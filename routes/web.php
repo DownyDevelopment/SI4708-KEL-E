@@ -19,6 +19,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middl
 
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'adminDashboard'])->name('admin.dashboard');
+    Route::get('/analisis', [\App\Http\Controllers\AnalisisController::class, 'index'])->name('admin.analisis');
     Route::get('/pekerja', [\App\Http\Controllers\WorkerController::class, 'index'])->name('admin.pekerja');
     Route::post('/pekerja', [\App\Http\Controllers\WorkerController::class, 'store']);
     Route::get('/keluarga', [\App\Http\Controllers\HouseholdController::class, 'index'])->name('admin.keluarga');
@@ -32,6 +33,21 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     
     Route::get('/edukasi', [\App\Http\Controllers\EdukasiController::class, 'index'])->name('admin.edukasi');
     Route::post('/edukasi', [\App\Http\Controllers\EdukasiController::class, 'store']);
+    
+    Route::get('/inventaris', [\App\Http\Controllers\InventarisController::class, 'index'])->name('admin.inventaris');
+    Route::post('/inventaris', [\App\Http\Controllers\InventarisController::class, 'store']);
+    Route::post('/inventaris/{id}/adjust', [\App\Http\Controllers\InventarisController::class, 'adjust']);
+    
+    Route::get('/produktivitas', [\App\Http\Controllers\ProduktivitasController::class, 'index'])->name('admin.produktivitas');
+    
+    Route::get('/roles', [\App\Http\Controllers\UserController::class, 'index'])->name('admin.roles');
+    Route::get('/pengawas', [\App\Http\Controllers\UserController::class, 'index'])->name('admin.pengawas'); // Point to same view for now
+    Route::put('/roles/{id}', [\App\Http\Controllers\UserController::class, 'updateRole']);
+    
+    Route::get('/ekonomi', [\App\Http\Controllers\EkonomiController::class, 'index'])->name('admin.ekonomi');
+    Route::post('/ekonomi/insentif', [\App\Http\Controllers\EkonomiController::class, 'storeInsentif']);
+    Route::post('/ekonomi/reward', [\App\Http\Controllers\EkonomiController::class, 'storeReward']);
+    Route::get('/ekonomi/detail/{workerId}', [\App\Http\Controllers\EkonomiController::class, 'detail']);
 });
 
 Route::middleware(['auth', 'role:pengawas'])->prefix('pengawas')->group(function () {
@@ -84,4 +100,5 @@ Route::middleware('auth')->prefix('api')->group(function () {
     });
 
     Route::get('/workers/{id}', [\App\Http\Controllers\WorkerController::class, 'show']);
+    Route::get('/inventaris/{id}/history', [\App\Http\Controllers\InventarisController::class, 'history']);
 });

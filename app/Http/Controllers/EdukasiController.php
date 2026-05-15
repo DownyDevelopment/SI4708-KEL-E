@@ -3,13 +3,13 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Edukasi;
+use App\Models\EdukasiContent;
 
 class EdukasiController extends Controller
 {
     public function index()
     {
-        $contents = Edukasi::all();
+        $contents = EdukasiContent::all();
         return view('admin.edukasi', compact('contents'));
     }
 
@@ -23,7 +23,7 @@ class EdukasiController extends Controller
             'url_konten' => 'nullable|string',
         ]);
 
-        Edukasi::create($request->all());
+        EdukasiContent::create($request->all());
 
         return redirect()->back()->with('success', 'Materi edukasi berhasil ditambahkan.');
     }
