@@ -239,7 +239,8 @@
                 }
                 this.loadingDetail = true;
                 try {
-                    const res = await fetch(`/admin/ekonomi/detail/${this.workerId}?tahun=${this.tahun}&bulan=${this.bulan}`);
+                    const prefix = window.location.pathname.includes('/admin') ? '/admin' : '/pengawas';
+                    const res = await fetch(`${prefix}/ekonomi/detail/${this.workerId}?tahun=${this.tahun}&bulan=${this.bulan}`);
                     if (res.ok) {
                         const data = await res.json();
                         this.akumulasi = data.akumulasi;

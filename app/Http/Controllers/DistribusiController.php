@@ -1,0 +1,45 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\Inventaris;
+use App\Models\Household;
+
+class DistribusiController extends Controller
+{
+    public function index()
+    {
+        $items = Inventaris::where('kuantitas', '>', 0)->get();
+        $households = Household::all();
+        return view('pengawas.distribusi', compact('items', 'households'));
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'item_id' => 'required|exists:inventaris,id',
+            'jumlah' => 'required|numeric|min:0.1',
+            'tipe' => 'required|string',
+            'keterangan' => 'required|string'
+        ]);
+
+        $item = Inventaris::findOrFail($request->item_id);
+
+        if ($request->jumlah > $item->kuantitas) {
+            return redirect()->back()->withErrors(['jumlah' => 'Stok tidak mencukupi']);
+        }
+
+        $item->kuantitas -= $request->jumlah;
+        $item->save();
+
+        \App\Models\InventarisHistory::create([
+            'inventaris_id' => $item->id,
+            'tipe_perubahan' => 'kurang',
+            'jumlah_perubahan' => $request->jumlah,
+            'keterangan' => $request->keterangan
+        ]);
+
+        return redirect()->back()->with('success', 'Distribusi/Penjualan berhasil dicatat.');
+    }
+}

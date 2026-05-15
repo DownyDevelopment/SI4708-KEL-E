@@ -15,6 +15,13 @@ class InventarisController extends Controller
         return view('admin.inventaris', compact('items'));
     }
 
+    public function trackingIndex()
+    {
+        $items = Inventaris::whereIn('kategori', ['Kompos', 'Kerajinan'])->get();
+        $households = \App\Models\Household::all();
+        return view('admin.tracking_reducing', compact('items', 'households'));
+    }
+
     public function store(Request $request)
     {
         $request->validate([

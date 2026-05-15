@@ -48,10 +48,27 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::post('/ekonomi/insentif', [\App\Http\Controllers\EkonomiController::class, 'storeInsentif']);
     Route::post('/ekonomi/reward', [\App\Http\Controllers\EkonomiController::class, 'storeReward']);
     Route::get('/ekonomi/detail/{workerId}', [\App\Http\Controllers\EkonomiController::class, 'detail']);
+    
+    Route::get('/tracking-reducing', [\App\Http\Controllers\InventarisController::class, 'trackingIndex'])->name('admin.tracking');
+    
+    Route::get('/tugas', [\App\Http\Controllers\JadwalController::class, 'index'])->name('admin.tugas');
 });
 
 Route::middleware(['auth', 'role:pengawas'])->prefix('pengawas')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'pengawasDashboard'])->name('pengawas.dashboard');
+    Route::get('/jadwal', [\App\Http\Controllers\JadwalController::class, 'pengawasIndex'])->name('pengawas.jadwal');
+    
+    Route::get('/logbook', [\App\Http\Controllers\LogbookController::class, 'index'])->name('pengawas.logbook');
+    Route::post('/logbook', [\App\Http\Controllers\LogbookController::class, 'store']);
+    
+    Route::get('/distribusi', [\App\Http\Controllers\DistribusiController::class, 'index'])->name('pengawas.distribusi');
+    Route::post('/distribusi', [\App\Http\Controllers\DistribusiController::class, 'store']);
+    
+    Route::get('/ekonomi', [\App\Http\Controllers\EkonomiController::class, 'index'])->name('pengawas.ekonomi');
+    Route::get('/ekonomi/detail/{workerId}', [\App\Http\Controllers\EkonomiController::class, 'detail']);
+    
+    Route::get('/pelaporan', [\App\Http\Controllers\PelaporanController::class, 'index'])->name('pengawas.pelaporan');
+    Route::post('/pelaporan', [\App\Http\Controllers\PelaporanController::class, 'store']);
 });
 
 Route::middleware('auth')->prefix('api')->group(function () {
