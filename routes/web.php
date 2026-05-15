@@ -19,6 +19,19 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middl
 
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'adminDashboard'])->name('admin.dashboard');
+    Route::get('/pekerja', [\App\Http\Controllers\WorkerController::class, 'index'])->name('admin.pekerja');
+    Route::post('/pekerja', [\App\Http\Controllers\WorkerController::class, 'store']);
+    Route::get('/keluarga', [\App\Http\Controllers\HouseholdController::class, 'index'])->name('admin.keluarga');
+    Route::post('/keluarga', [\App\Http\Controllers\HouseholdController::class, 'store']);
+    
+    Route::get('/perencanaan', [\App\Http\Controllers\ProgramController::class, 'perencanaanIndex'])->name('admin.perencanaan');
+    Route::get('/program', [\App\Http\Controllers\ProgramController::class, 'programIndex'])->name('admin.program');
+    Route::post('/program', [\App\Http\Controllers\ProgramController::class, 'store']);
+    Route::put('/program/{id}', [\App\Http\Controllers\ProgramController::class, 'update']);
+    Route::delete('/program/{id}', [\App\Http\Controllers\ProgramController::class, 'destroy']);
+    
+    Route::get('/edukasi', [\App\Http\Controllers\EdukasiController::class, 'index'])->name('admin.edukasi');
+    Route::post('/edukasi', [\App\Http\Controllers\EdukasiController::class, 'store']);
 });
 
 Route::middleware(['auth', 'role:pengawas'])->prefix('pengawas')->group(function () {
@@ -69,4 +82,6 @@ Route::middleware('auth')->prefix('api')->group(function () {
         ]);
         return response()->json($program);
     });
+
+    Route::get('/workers/{id}', [\App\Http\Controllers\WorkerController::class, 'show']);
 });
