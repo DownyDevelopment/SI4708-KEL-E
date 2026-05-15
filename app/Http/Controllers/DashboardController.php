@@ -54,7 +54,26 @@ class DashboardController extends Controller
 
     public function pengawasDashboard()
     {
-        // To be implemented later, for now just render view
-        return view('pengawas.dashboard');
+        $today = \Carbon\Carbon::today();
+
+        $todaySchedules = \App\Models\WorkSchedule::whereDate('created_at', $today)->count();
+        $pendingLogbooks = \App\Models\WorkSchedule::whereDate('created_at', $today)
+            ->whereNotIn('id', function($query) {
+                $query->select('schedule_id')->from('logbooks');
+            })->count();
+        $reportedProblems = \App\Models\FieldProblem::whereDate('created_at', $today)->count();
+
+        $schedules = \App\Models\WorkSchedule::leftJoin('logbooks', 'work_schedules.id', '=', 'logbooks.schedule_id')
+            ->select('work_schedules.*', 'logbooks.id as logbook_id', 'logbooks.progres_persentase')
+            ->whereDate('work_schedules.created_at', $today)
+            ->get();
+
+        $stats = [
+            'todaySchedules' => $todaySchedules,
+            'pendingLogbooks' => $pendingLogbooks,
+            'reportedProblems' => $reportedProblems,
+        ];
+
+        return view('pengawas.dashboard', compact('stats', 'schedules'));
     }
 }
