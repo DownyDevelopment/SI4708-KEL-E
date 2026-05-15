@@ -9,15 +9,19 @@ class JadwalController extends Controller
 {
     public function index()
     {
-        // For admin /tugas
-        $jadwal = WorkSchedule::orderBy('created_at', 'desc')->get();
+        $jadwal = WorkSchedule::leftJoin('micro_programs', 'work_schedules.program_id', '=', 'micro_programs.id')
+            ->select('work_schedules.*', 'micro_programs.nama_program as tugas')
+            ->orderBy('work_schedules.created_at', 'desc')
+            ->get();
         return view('admin.tugas', compact('jadwal'));
     }
 
     public function pengawasIndex()
     {
-        // For pengawas /jadwal
-        $jadwal = WorkSchedule::orderBy('created_at', 'desc')->get();
+        $jadwal = WorkSchedule::leftJoin('micro_programs', 'work_schedules.program_id', '=', 'micro_programs.id')
+            ->select('work_schedules.*', 'micro_programs.nama_program as tugas')
+            ->orderBy('work_schedules.created_at', 'desc')
+            ->get();
         return view('pengawas.jadwal', compact('jadwal'));
     }
 }

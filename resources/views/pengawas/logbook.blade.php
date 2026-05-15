@@ -30,15 +30,19 @@
                     <div 
                         class="glass-panel" 
                         :class="{'active': selectedSchedule?.id === {{ $s->id }}}"
-                        style="padding: 1.25rem; cursor: pointer; transition: all 0.2s ease;"
-                        :style="selectedSchedule?.id === {{ $s->id }} ? 'border: 2px solid var(--primary); background: rgba(16, 185, 129, 0.05);' : 'border: 1px solid var(--border); background: var(--surface);'"
+                        :style="{
+                            'padding': '1.25rem', 
+                            'cursor': 'pointer', 
+                            'transition': 'all 0.2s ease',
+                            'border': selectedSchedule?.id === {{ $s->id }} ? '2px solid var(--primary)' : '1px solid var(--border)',
+                            'background': selectedSchedule?.id === {{ $s->id }} ? 'rgba(16, 185, 129, 0.05)' : 'var(--surface)'
+                        }"
                         @click="selectSchedule({{ $s }})"
                     >
-                        <div style="font-weight: 600; color: var(--text-main);">{{ $s->tugas }}</div>
-                        <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem; display: flex; gap: 1rem;">
-                            <span style="display: flex; align-items: center; gap: 0.25rem;">
-                                <i data-lucide="clock" style="width: 14px; height: 14px;"></i> {{ \Carbon\Carbon::parse($s->jam_mulai)->format('H:i') }} - {{ \Carbon\Carbon::parse($s->jam_selesai ?? $s->jam_mulai)->format('H:i') }}
-                            </span>
+                        <div style="font-weight: 600; font-size: 1rem; color: var(--text-main);">{{ $s->tugas }}</div>
+                        <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <i data-lucide="clock" style="width: 14px; height: 14px; margin-top: -1px;"></i> 
+                            <span>{{ \Carbon\Carbon::parse($s->jam_mulai)->format('H:i') }} - {{ \Carbon\Carbon::parse($s->jam_selesai ?? $s->jam_mulai)->format('H:i') }}</span>
                         </div>
                     </div>
                 @empty
@@ -68,7 +72,7 @@
 
                     <h3 style="margin-bottom: 0.5rem; color: var(--text-main);">Upload Bukti Kerja</h3>
                     <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem;">
-                        Tugas: <span x-text="selectedSchedule.tugas"></span> (<span x-text="selectedSchedule.hari"></span>)
+                        Tugas: <span x-text="selectedSchedule.tugas"></span> (<span x-text="selectedSchedule.tanggal"></span>)
                     </p>
 
                     <div class="form-group">

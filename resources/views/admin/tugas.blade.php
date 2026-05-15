@@ -28,7 +28,7 @@
                     @forelse($jadwal as $item)
                         <tr style="border-bottom: 1px solid #f1f5f9;">
                             <td style="padding: 1rem;">#{{ $item->id }}</td>
-                            <td style="padding: 1rem; font-weight: 500;">{{ $item->hari }}</td>
+                            <td style="padding: 1rem; font-weight: 500;">{{ \Carbon\Carbon::parse($item->tanggal)->format('d M Y') }}</td>
                             <td style="padding: 1rem;">{{ $item->tugas }}</td>
                             <td style="padding: 1rem;">{{ \Carbon\Carbon::parse($item->jam_mulai)->format('H:i') }}</td>
                             <td style="padding: 1rem;">

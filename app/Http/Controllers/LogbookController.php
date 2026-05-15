@@ -13,7 +13,10 @@ class LogbookController extends Controller
 {
     public function index()
     {
-        $schedules = WorkSchedule::all();
+        $schedules = WorkSchedule::leftJoin('micro_programs', 'work_schedules.program_id', '=', 'micro_programs.id')
+            ->select('work_schedules.*', 'micro_programs.nama_program as tugas')
+            ->orderBy('work_schedules.created_at', 'desc')
+            ->get();
         $workers = Worker::all();
         return view('pengawas.logbook', compact('schedules', 'workers'));
     }

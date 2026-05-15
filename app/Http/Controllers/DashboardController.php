@@ -64,7 +64,8 @@ class DashboardController extends Controller
         $reportedProblems = \App\Models\FieldProblem::whereDate('created_at', $today)->count();
 
         $schedules = \App\Models\WorkSchedule::leftJoin('logbooks', 'work_schedules.id', '=', 'logbooks.schedule_id')
-            ->select('work_schedules.*', 'logbooks.id as logbook_id', 'logbooks.progres_persentase')
+            ->leftJoin('micro_programs', 'work_schedules.program_id', '=', 'micro_programs.id')
+            ->select('work_schedules.*', 'logbooks.id as logbook_id', 'logbooks.progres_persentase', 'micro_programs.nama_program as tugas')
             ->whereDate('work_schedules.created_at', $today)
             ->get();
 
