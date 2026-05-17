@@ -61,7 +61,9 @@ class EkonomiController extends Controller
             'jenis_insentif' => 'required|string',
         ]);
 
-        Insentif::create($request->all());
+        Insentif::create($request->only([
+            'worker_id', 'tanggal', 'jumlah_upah', 'jenis_insentif', 'keterangan',
+        ]));
         return redirect()->back()->with('success', 'Insentif / upah berhasil dicatat.');
     }
 
@@ -73,7 +75,9 @@ class EkonomiController extends Controller
             'tanggal_pemberian' => 'required|date',
         ]);
 
-        Reward::create($request->all());
+        Reward::create($request->only([
+            'worker_id', 'nama_penghargaan', 'tanggal_pemberian',
+        ]));
         return redirect()->back()->with('success', 'Penghargaan berhasil dicatat.');
     }
 }
