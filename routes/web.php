@@ -52,14 +52,18 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/tracking-reducing', [\App\Http\Controllers\InventarisController::class, 'trackingIndex'])->name('admin.tracking');
     
     Route::get('/tugas', [\App\Http\Controllers\JadwalController::class, 'index'])->name('admin.tugas');
+    Route::post('/tugas', [\App\Http\Controllers\JadwalController::class, 'store']);
+    Route::put('/tugas/{id}', [\App\Http\Controllers\JadwalController::class, 'update']);
+    Route::delete('/tugas/{id}', [\App\Http\Controllers\JadwalController::class, 'destroy']);
 });
 
 Route::middleware(['auth', 'role:pengawas'])->prefix('pengawas')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'pengawasDashboard'])->name('pengawas.dashboard');
-    Route::get('/jadwal', [\App\Http\Controllers\JadwalController::class, 'pengawasIndex'])->name('pengawas.jadwal');
-    
+    Route::get('/operasional', [\App\Http\Controllers\JadwalController::class, 'pengawasIndex'])->name('pengawas.operasional');
+    Route::get('/jadwal', fn () => redirect()->route('pengawas.operasional', ['tab' => 'jadwal']));
     Route::get('/logbook', [\App\Http\Controllers\LogbookController::class, 'index'])->name('pengawas.logbook');
     Route::post('/logbook', [\App\Http\Controllers\LogbookController::class, 'store']);
+    Route::put('/logbook/{id}', [\App\Http\Controllers\LogbookController::class, 'update']);
     
     Route::get('/distribusi', [\App\Http\Controllers\DistribusiController::class, 'index'])->name('pengawas.distribusi');
     Route::post('/distribusi', [\App\Http\Controllers\DistribusiController::class, 'store']);
