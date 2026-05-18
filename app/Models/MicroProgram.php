@@ -6,5 +6,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class MicroProgram extends Model
 {
-    //
+    protected $fillable = [
+        'nama_program',
+        'jenis_program',
+        'deskripsi',
+        'lokasi',
+        'kordinat',
+        'stakeholders',
+        'tanggal_mulai',
+        'tanggal_selesai',
+        'status',
+    ];
 }

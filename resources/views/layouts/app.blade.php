@@ -42,12 +42,15 @@
                 <x-sidebar-item icon="package" label="Inventaris" to="/admin/inventaris" :active="request()->is('admin/inventaris')" />
             @else
                 <x-sidebar-item icon="layout-dashboard" label="Dashboard Pengawas" to="/pengawas/dashboard" :active="request()->is('pengawas/dashboard')" />
+<<<<<<< HEAD
                 <x-sidebar-item icon="pie-chart" label="Profiling Pekerja" to="/pengawas/profiling" :active="request()->is('pengawas/profiling')" />
                 <x-sidebar-item icon="calendar" label="Logbook Validasi" to="/pengawas/logbook" :active="request()->is('pengawas/logbook')" />
+=======
+                <x-sidebar-item icon="calendar-clock" label="Operasional" to="/pengawas/operasional" :active="request()->is('pengawas/operasional') || request()->is('pengawas/jadwal') || request()->is('pengawas/logbook')" />
+>>>>>>> 39ff43e1bf25f74d1c786ba53a16904cbe7ed34b
                 <x-sidebar-item icon="send" label="Distribusi Hasil" to="/pengawas/distribusi" :active="request()->is('pengawas/distribusi')" />
                 <x-sidebar-item icon="dollar-sign" label="Insentif & Upah" to="/pengawas/ekonomi" :active="request()->is('pengawas/ekonomi')" />
                 <x-sidebar-item icon="alert-triangle" label="Pelaporan Masalah" to="/pengawas/pelaporan" :active="request()->is('pengawas/pelaporan')" />
-                <x-sidebar-item icon="calendar" label="Jadwal Kerja" to="/pengawas/jadwal" :active="request()->is('pengawas/jadwal')" />
             @endif
         </nav>
 

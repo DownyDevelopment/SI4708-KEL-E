@@ -9,14 +9,18 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Worker extends Model
 {
+<<<<<<< HEAD
     use HasFactory;
 
+=======
+>>>>>>> 39ff43e1bf25f74d1c786ba53a16904cbe7ed34b
     protected $fillable = [
         'nama',
         'tanggal_lahir',
         'jenis_kelamin',
         'alamat',
         'no_telepon',
+<<<<<<< HEAD
         'kontak_darurat',
         'status_keluarga',
         'status_rumah',
@@ -108,4 +112,9 @@ class Worker extends Model
 
         return 'Lainnya';
     }
+=======
+        'kemampuan_utama',
+        'household_id',
+    ];
+>>>>>>> 39ff43e1bf25f74d1c786ba53a16904cbe7ed34b
 }
