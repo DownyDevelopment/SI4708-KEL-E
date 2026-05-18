@@ -43,4 +43,17 @@ class WorkerController extends Controller
 
         return response()->json($formatted);
     }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'nama' => 'required|string|max:255',
+            'kemampuan_utama' => 'required|string|max:255',
+        ]);
+
+        $worker = Worker::findOrFail($id);
+        $worker->update($request->all());
+
+        return redirect()->back()->with('success', 'Data Pekerja berhasil diperbarui.');
+    }
 }

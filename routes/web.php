@@ -22,6 +22,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/analisis', [\App\Http\Controllers\AnalisisController::class, 'index'])->name('admin.analisis');
     Route::get('/pekerja', [\App\Http\Controllers\WorkerController::class, 'index'])->name('admin.pekerja');
     Route::post('/pekerja', [\App\Http\Controllers\WorkerController::class, 'store']);
+    Route::put('/pekerja/{id}', [\App\Http\Controllers\WorkerController::class, 'update']);
     Route::get('/keluarga', [\App\Http\Controllers\HouseholdController::class, 'index'])->name('admin.keluarga');
     Route::post('/keluarga', [\App\Http\Controllers\HouseholdController::class, 'store']);
     
@@ -52,6 +53,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/tracking-reducing', [\App\Http\Controllers\InventarisController::class, 'trackingIndex'])->name('admin.tracking');
     
     Route::get('/tugas', [\App\Http\Controllers\JadwalController::class, 'index'])->name('admin.tugas');
+
+    Route::get('/profiling', [\App\Http\Controllers\ProfilingController::class, 'index'])->name('admin.profiling');
 });
 
 Route::middleware(['auth', 'role:pengawas'])->prefix('pengawas')->group(function () {
@@ -69,6 +72,8 @@ Route::middleware(['auth', 'role:pengawas'])->prefix('pengawas')->group(function
     
     Route::get('/pelaporan', [\App\Http\Controllers\PelaporanController::class, 'index'])->name('pengawas.pelaporan');
     Route::post('/pelaporan', [\App\Http\Controllers\PelaporanController::class, 'store']);
+
+    Route::get('/profiling', [\App\Http\Controllers\ProfilingController::class, 'index'])->name('pengawas.profiling');
 });
 
 Route::middleware('auth')->prefix('api')->group(function () {
