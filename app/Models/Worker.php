@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Worker extends Model
@@ -32,6 +33,11 @@ class Worker extends Model
     public function insentifs(): HasMany
     {
         return $this->hasMany(Insentif::class);
+    }
+
+    public function schedules(): BelongsToMany
+    {
+        return $this->belongsToMany(WorkSchedule::class, 'schedule_assignments', 'worker_id', 'schedule_id');
     }
 
     /**

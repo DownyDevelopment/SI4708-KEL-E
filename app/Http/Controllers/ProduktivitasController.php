@@ -4,22 +4,30 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\MicroProgram;
-use Illuminate\Support\Facades\DB;
 
 class ProduktivitasController extends Controller
 {
     public function index()
     {
-        // Get trend data per month
-        $trends = MicroProgram::select(
-            DB::raw('DATE_FORMAT(created_at, "%Y-%m") as periode'),
-            DB::raw('SUM(CASE WHEN status = "planned" THEN 1 ELSE 0 END) as rencana'),
-            DB::raw('SUM(CASE WHEN status IN ("active", "ongoing", "in_progress") THEN 1 ELSE 0 END) as berjalan'),
-            DB::raw('SUM(CASE WHEN status IN ("completed", "selesai") THEN 1 ELSE 0 END) as selesai')
-        )
-        ->groupBy('periode')
-        ->orderBy('periode', 'asc')
-        ->get();
+        // Tren per bulan — grouping di PHP agar kompatibel SQLite & MySQL
+        $statusRencana = ['planned'];
+        $statusBerjalan = ['active', 'ongoing', 'in_progress'];
+        $statusSelesai = ['completed', 'selesai'];
+
+        $trends = MicroProgram::query()
+            ->whereNotNull('created_at')
+            ->get()
+            ->groupBy(fn ($program) => $program->created_at->format('Y-m'))
+            ->map(function ($group, $periode) use ($statusRencana, $statusBerjalan, $statusSelesai) {
+                return (object) [
+                    'periode' => $periode,
+                    'rencana' => $group->whereIn('status', $statusRencana)->count(),
+                    'berjalan' => $group->whereIn('status', $statusBerjalan)->count(),
+                    'selesai' => $group->whereIn('status', $statusSelesai)->count(),
+                ];
+            })
+            ->sortBy('periode')
+            ->values();
 
         // Ensure we format it correctly for the frontend
         $formattedData = $trends->map(function ($item) {

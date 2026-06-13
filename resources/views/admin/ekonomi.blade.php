@@ -2,6 +2,9 @@
 @section('title', 'Ekonomi & Insentif')
 
 @section('content')
+@php
+    $ekonomiPrefix = request()->is('pengawas/*') ? '/pengawas' : '/admin';
+@endphp
 <div class="animate-fade-in" style="padding: 2rem;" x-data="ekonomiData()">
     <div style="margin-bottom: 2rem;">
         <h1 style="font-size: 1.8rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text-main);">
@@ -93,7 +96,7 @@
                 <!-- Form Insentif -->
                 <div class="glass-panel" style="padding: 1.5rem;">
                     <h3 style="margin-bottom: 1rem;">Catat insentif / upah</h3>
-                    <form method="POST" action="/admin/ekonomi/insentif" style="display: flex; flex-direction: column; gap: 1rem;">
+                    <form method="POST" action="{{ $ekonomiPrefix }}/ekonomi/insentif" style="display: flex; flex-direction: column; gap: 1rem;">
                         @csrf
                         <input type="hidden" name="worker_id" :value="workerId">
                         <div class="form-group">
@@ -126,7 +129,7 @@
                     <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
                         <i data-lucide="award" style="width: 20px; height: 20px;"></i> Penghargaan
                     </h3>
-                    <form method="POST" action="/admin/ekonomi/reward" style="display: flex; flex-direction: column; gap: 1rem;">
+                    <form method="POST" action="{{ $ekonomiPrefix }}/ekonomi/reward" style="display: flex; flex-direction: column; gap: 1rem;">
                         @csrf
                         <input type="hidden" name="worker_id" :value="workerId">
                         <div class="form-group">

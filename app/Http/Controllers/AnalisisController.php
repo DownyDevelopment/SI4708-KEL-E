@@ -16,23 +16,29 @@ class AnalisisController extends Controller
         $period = $request->query('period', 'bulanan');
 
         // Total Pekerja Aktif
-        $totalWargaBekerja = Worker::where('status', 'aktif')->count();
+        $totalWargaBekerja = Worker::count();
 
         // Dampak Lingkungan
-        $dampakLingkungan = EnvironmentalTracking::select(DB::raw('SUM(volume) as total'))
+        $dampakLingkungan = EnvironmentalTracking::select(DB::raw('SUM(volume_kg) as total'))
             ->first();
         $totalDampak = $dampakLingkungan->total ?? 0;
 
         // Total Insentif
-        $totalInsentif = Insentif::select(DB::raw('SUM(jumlah_insentif) as total'))
+        $totalInsentif = Insentif::select(DB::raw('SUM(jumlah_upah) as total'))
             ->first();
         $totalInsentif = $totalInsentif->total ?? 0;
 
-        // Tren Partisipasi (Bulanan)
-        $trenPartisipasi = Worker::select(DB::raw('DATE_FORMAT(created_at, "%Y-%m") as bulan'), DB::raw('COUNT(id) as partisipasi'))
-            ->groupBy('bulan')
-            ->orderBy('bulan', 'asc')
-            ->get();
+        // Tren Partisipasi (Bulanan) — grouping di PHP agar kompatibel SQLite & MySQL
+        $trenPartisipasi = Worker::query()
+            ->whereNotNull('created_at')
+            ->get()
+            ->groupBy(fn ($worker) => $worker->created_at->format('Y-m'))
+            ->map(fn ($group, $bulan) => (object) [
+                'bulan' => $bulan,
+                'partisipasi' => $group->count(),
+            ])
+            ->sortBy('bulan')
+            ->values();
             
         $formattedTren = $trenPartisipasi->map(function ($item) {
             $parts = explode('-', $item->bulan);
