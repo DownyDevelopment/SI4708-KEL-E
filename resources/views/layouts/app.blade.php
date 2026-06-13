@@ -33,7 +33,6 @@
                 <x-sidebar-item icon="calendar" label="Program Mikro" to="/admin/program" :active="request()->is('admin/program')" />
                 <x-sidebar-item icon="pie-chart" label="Profiling" to="/admin/profiling" :active="request()->is('admin/profiling')" />
                 <x-sidebar-item icon="dollar-sign" label="Keuangan" to="/admin/ekonomi" :active="request()->is('admin/ekonomi')" />
-                <x-sidebar-item icon="users" label="Pengawas" to="/admin/pengawas" :active="request()->is('admin/pengawas')" />
                 <x-sidebar-item icon="book-open" label="Edukasi" to="/admin/edukasi" :active="request()->is('admin/edukasi')" />
                 <x-sidebar-item icon="shield-check" label="Pengaturan Akses" to="/admin/roles" :active="request()->is('admin/roles')" />
                 <x-sidebar-item icon="trending-up" label="Tren Produktivitas" to="/admin/produktivitas" :active="request()->is('admin/produktivitas')" />

@@ -67,5 +67,7 @@ class DatabaseSeeder extends Seeder
                 'satuan' => $inv[3],
             ]);
         }
+
+        $this->call(MonitoringSeeder::class);
     }
 }

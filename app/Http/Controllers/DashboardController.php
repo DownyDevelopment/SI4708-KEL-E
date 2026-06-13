@@ -56,17 +56,17 @@ class DashboardController extends Controller
     {
         $today = \Carbon\Carbon::today();
 
-        $todaySchedules = \App\Models\WorkSchedule::whereDate('created_at', $today)->count();
-        $pendingLogbooks = \App\Models\WorkSchedule::whereDate('created_at', $today)
+        $todaySchedules = \App\Models\WorkSchedule::whereDate('tanggal', $today)->count();
+        $pendingLogbooks = \App\Models\WorkSchedule::whereDate('tanggal', $today)
             ->whereNotIn('id', function($query) {
                 $query->select('schedule_id')->from('logbooks');
             })->count();
-        $reportedProblems = \App\Models\FieldProblem::whereDate('created_at', $today)->count();
+        $reportedProblems = \App\Models\FieldProblem::whereDate('tanggal', $today)->count();
 
         $schedules = \App\Models\WorkSchedule::leftJoin('logbooks', 'work_schedules.id', '=', 'logbooks.schedule_id')
             ->leftJoin('micro_programs', 'work_schedules.program_id', '=', 'micro_programs.id')
             ->select('work_schedules.*', 'logbooks.id as logbook_id', 'logbooks.progres_persentase', 'micro_programs.nama_program as tugas')
-            ->whereDate('work_schedules.created_at', $today)
+            ->whereDate('work_schedules.tanggal', $today)
             ->get();
 
         $stats = [

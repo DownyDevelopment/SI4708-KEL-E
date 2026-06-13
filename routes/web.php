@@ -25,6 +25,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::put('/pekerja/{id}', [\App\Http\Controllers\WorkerController::class, 'update']);
     Route::get('/keluarga', [\App\Http\Controllers\HouseholdController::class, 'index'])->name('admin.keluarga');
     Route::post('/keluarga', [\App\Http\Controllers\HouseholdController::class, 'store']);
+    Route::put('/keluarga/{id}', [\App\Http\Controllers\HouseholdController::class, 'update']);
     
     Route::get('/perencanaan', [\App\Http\Controllers\ProgramController::class, 'perencanaanIndex'])->name('admin.perencanaan');
     Route::get('/program', [\App\Http\Controllers\ProgramController::class, 'programIndex'])->name('admin.program');
@@ -42,7 +43,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/produktivitas', [\App\Http\Controllers\ProduktivitasController::class, 'index'])->name('admin.produktivitas');
     
     Route::get('/roles', [\App\Http\Controllers\UserController::class, 'index'])->name('admin.roles');
-    Route::get('/pengawas', [\App\Http\Controllers\UserController::class, 'index'])->name('admin.pengawas'); // Point to same view for now
     Route::put('/roles/{id}', [\App\Http\Controllers\UserController::class, 'updateRole']);
     
     Route::get('/ekonomi', [\App\Http\Controllers\EkonomiController::class, 'index'])->name('admin.ekonomi');
@@ -110,9 +110,115 @@ Route::middleware('auth')->prefix('api')->group(function () {
         return response()->json(\App\Models\User::where('id', '!=', auth()->id())->select('id', 'nama', 'role')->get());
     });
     Route::get('/search', function (\Illuminate\Http\Request $request) {
-        $q = $request->q;
+        $q = trim($request->query('q', ''));
+        if (strlen($q) < 3) {
+            return response()->json([]);
+        }
+
+        $role = auth()->user()->role;
         $results = [];
-        return response()->json($results);
+        $like = '%' . $q . '%';
+
+        $addResult = function (array $item) use (&$results) {
+            foreach ($results as $existing) {
+                if ($existing['title'] === $item['title'] && $existing['link'] === $item['link']) {
+                    return;
+                }
+            }
+            $results[] = $item;
+        };
+
+        if ($role === 'admin') {
+            foreach (\App\Models\Worker::where('nama', 'like', $like)
+                ->orWhere('kemampuan_utama', 'like', $like)
+                ->limit(5)->get() as $worker) {
+                $addResult([
+                    'title' => $worker->nama,
+                    'desc' => $worker->kemampuan_utama ?? 'Pekerja desa',
+                    'type' => 'Pekerja',
+                    'link' => '/admin/pekerja',
+                ]);
+            }
+
+            foreach (\App\Models\MicroProgram::where('nama_program', 'like', $like)
+                ->orWhere('jenis_program', 'like', $like)
+                ->orWhere('lokasi', 'like', $like)
+                ->limit(5)->get() as $program) {
+                $addResult([
+                    'title' => $program->nama_program,
+                    'desc' => ($program->jenis_program ?? 'Program') . ' · ' . ($program->lokasi ?? '-'),
+                    'type' => 'Program',
+                    'link' => '/admin/perencanaan',
+                ]);
+            }
+
+            foreach (\App\Models\Household::where('kepala_keluarga', 'like', $like)
+                ->orWhere('rt_rw', 'like', $like)
+                ->limit(5)->get() as $household) {
+                $addResult([
+                    'title' => $household->kepala_keluarga,
+                    'desc' => 'RT/RW ' . $household->rt_rw,
+                    'type' => 'Keluarga',
+                    'link' => '/admin/keluarga',
+                ]);
+            }
+
+            $navItems = [
+                ['Dashboard Admin', 'Ringkasan program kerja', '/admin/dashboard'],
+                ['Dashboard Analisis', 'Laporan dampak program', '/admin/analisis'],
+                ['Data Pekerja', 'Manajemen pekerja desa', '/admin/pekerja'],
+                ['Keluarga Miskin', 'Data rumah tangga prasejahtera', '/admin/keluarga'],
+                ['Perencanaan Program', 'Program kerja mikro & area', '/admin/perencanaan'],
+                ['Keuangan', 'Insentif dan upah pekerja', '/admin/ekonomi'],
+                ['Inventaris', 'Stok hasil produksi', '/admin/inventaris'],
+                ['Tugas', 'Penjadwalan pekerjaan', '/admin/tugas'],
+                ['Pengaturan Akses', 'Manajemen role pengguna', '/admin/roles'],
+            ];
+        } else {
+            foreach (\App\Models\Worker::where('nama', 'like', $like)
+                ->orWhere('kemampuan_utama', 'like', $like)
+                ->limit(5)->get() as $worker) {
+                $addResult([
+                    'title' => $worker->nama,
+                    'desc' => $worker->kemampuan_utama ?? 'Pekerja desa',
+                    'type' => 'Pekerja',
+                    'link' => '/pengawas/profiling',
+                ]);
+            }
+
+            foreach (\App\Models\MicroProgram::where('nama_program', 'like', $like)
+                ->orWhere('lokasi', 'like', $like)
+                ->limit(5)->get() as $program) {
+                $addResult([
+                    'title' => $program->nama_program,
+                    'desc' => $program->lokasi ?? 'Program kerja',
+                    'type' => 'Program',
+                    'link' => '/pengawas/operasional',
+                ]);
+            }
+
+            $navItems = [
+                ['Dashboard Pengawas', 'Ringkasan tugas hari ini', '/pengawas/dashboard'],
+                ['Operasional', 'Jadwal dan logbook harian', '/pengawas/operasional'],
+                ['Distribusi Hasil', 'Distribusi stok inventaris', '/pengawas/distribusi'],
+                ['Insentif & Upah', 'Catat upah pekerja', '/pengawas/ekonomi'],
+                ['Pelaporan Masalah', 'Laporkan kendala lapangan', '/pengawas/pelaporan'],
+                ['Profiling Pekerja', 'Analisis kesejahteraan', '/pengawas/profiling'],
+            ];
+        }
+
+        foreach ($navItems as [$title, $desc, $link]) {
+            if (stripos($title, $q) !== false || stripos($desc, $q) !== false) {
+                $addResult([
+                    'title' => $title,
+                    'desc' => $desc,
+                    'type' => 'Navigasi',
+                    'link' => $link,
+                ]);
+            }
+        }
+
+        return response()->json(array_slice($results, 0, 10));
     });
 
     Route::post('/programs', function (\Illuminate\Http\Request $request) {

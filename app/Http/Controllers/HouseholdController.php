@@ -27,4 +27,22 @@ class HouseholdController extends Controller
 
         return redirect()->back()->with('success', 'Data keluarga berhasil ditambahkan.');
     }
+
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'kepala_keluarga' => 'required|string|max:255',
+            'rt_rw' => 'required|string|max:255',
+            'jumlah_anggota' => 'required|integer|min:1',
+            'pendapatan_per_bulan' => 'required|numeric|min:0',
+            'alamat' => 'required|string',
+        ]);
+
+        $household = Household::findOrFail($id);
+        $household->update($request->only([
+            'kepala_keluarga', 'rt_rw', 'jumlah_anggota', 'pendapatan_per_bulan', 'alamat',
+        ]));
+
+        return redirect()->back()->with('success', 'Data keluarga berhasil diperbarui.');
+    }
 }

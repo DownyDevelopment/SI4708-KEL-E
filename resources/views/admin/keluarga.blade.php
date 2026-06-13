@@ -8,12 +8,11 @@
             <h1 style="font-size: 1.8rem;">Data Keluarga Prasejahtera</h1>
             <p>Manajemen data rumah tangga penerima manfaat program desa.</p>
         </div>
-        <button class="btn btn-primary" @click="showForm = !showForm">
+        <button class="btn btn-primary" @click="openAddForm()">
             <i data-lucide="plus-circle" style="width: 18px; height: 18px; margin-right: 8px;"></i> Tambah Keluarga
         </button>
     </div>
 
-    <!-- Feedback Message -->
     @if(session('success'))
         <div style="background: #f0fdf4; color: #166534; padding: 0.75rem; border-radius: var(--radius-sm); margin-bottom: 1.5rem; font-size: 0.85rem; text-align: center;">
             {{ session('success') }}
@@ -34,35 +33,38 @@
     </div>
 
     <div x-show="showForm" class="glass-panel" style="padding: 2rem; margin-bottom: 2rem; display: none;">
-        <h3 style="margin-bottom: 1.5rem;">Input Data Keluarga Baru</h3>
-        <form method="POST" action="{{ route('admin.keluarga') }}" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+        <h3 style="margin-bottom: 1.5rem;" x-text="editMode ? 'Edit Data Keluarga' : 'Input Data Keluarga Baru'"></h3>
+        <form method="POST" :action="editMode ? '/admin/keluarga/' + householdData.id : '{{ route('admin.keluarga') }}'" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
             @csrf
+            <template x-if="editMode">
+                <input type="hidden" name="_method" value="PUT">
+            </template>
             <div class="form-group">
                 <label class="form-label">Nama Kepala Keluarga</label>
-                <input type="text" name="kepala_keluarga" class="form-input" required />
+                <input type="text" name="kepala_keluarga" class="form-input" required x-model="householdData.kepala_keluarga" />
             </div>
             <div class="form-group">
                 <label class="form-label">RT / RW</label>
-                <input type="text" name="rt_rw" class="form-input" placeholder="Contoh: 002/005" required />
+                <input type="text" name="rt_rw" class="form-input" placeholder="Contoh: 002/005" required x-model="householdData.rt_rw" />
             </div>
             <div class="form-group">
                 <label class="form-label">Jumlah Anggota Keluarga</label>
-                <input type="number" name="jumlah_anggota" class="form-input" required min="1" />
+                <input type="number" name="jumlah_anggota" class="form-input" required min="1" x-model="householdData.jumlah_anggota" />
             </div>
             <div class="form-group">
                 <label class="form-label">Estimasi Pendapatan / Bulan (Rp)</label>
                 <div style="position: relative;">
                     <span style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); font-weight: bold;">Rp</span>
-                    <input type="number" name="pendapatan_per_bulan" class="form-input" style="padding-left: 3rem;" required min="0" />
+                    <input type="number" name="pendapatan_per_bulan" class="form-input" style="padding-left: 3rem;" required min="0" x-model="householdData.pendapatan_per_bulan" />
                 </div>
             </div>
             <div class="form-group" style="grid-column: 1 / -1;">
                 <label class="form-label">Alamat Rumah</label>
-                <textarea name="alamat" class="form-input" rows="2" required></textarea>
+                <textarea name="alamat" class="form-input" rows="2" required x-model="householdData.alamat"></textarea>
             </div>
             <div style="grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1rem;">
-                <button type="button" class="btn btn-outline" @click="showForm = false">Batal</button>
-                <button type="submit" class="btn btn-primary">Simpan Data</button>
+                <button type="button" class="btn btn-outline" @click="showForm = false; editMode = false">Batal</button>
+                <button type="submit" class="btn btn-primary" x-text="editMode ? 'Simpan Perubahan' : 'Simpan Data'"></button>
             </div>
         </form>
     </div>
@@ -97,7 +99,7 @@
                         </td>
                         <td x-text="'Rp ' + parseInt(h.pendapatan_per_bulan).toLocaleString('id-ID')"></td>
                         <td>
-                            <button class="btn btn-outline btn-sm">Edit</button>
+                            <button class="btn btn-outline btn-sm" @click="openEditForm(h)">Edit</button>
                         </td>
                     </tr>
                 </template>
@@ -113,9 +115,18 @@
     document.addEventListener('alpine:init', () => {
         Alpine.data('keluargaData', () => ({
             showForm: false,
+            editMode: false,
             searchTerm: '',
             households: @json($households),
-            
+            householdData: {
+                id: null,
+                kepala_keluarga: '',
+                rt_rw: '',
+                jumlah_anggota: 1,
+                pendapatan_per_bulan: 0,
+                alamat: '',
+            },
+
             get filteredHouseholds() {
                 if (this.searchTerm === '') {
                     return this.households;
@@ -125,6 +136,26 @@
                     h.kepala_keluarga.toLowerCase().includes(term) ||
                     h.rt_rw.toLowerCase().includes(term)
                 );
+            },
+
+            openAddForm() {
+                this.editMode = false;
+                this.householdData = {
+                    id: null,
+                    kepala_keluarga: '',
+                    rt_rw: '',
+                    jumlah_anggota: 1,
+                    pendapatan_per_bulan: 0,
+                    alamat: '',
+                };
+                this.showForm = true;
+            },
+
+            openEditForm(h) {
+                this.editMode = true;
+                this.householdData = { ...h };
+                this.showForm = true;
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             },
 
             init() {
