@@ -178,18 +178,34 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Foto bukti kerja</label>
-                            <div style="border: 2px dashed var(--border); border-radius: 8px; padding: 1.5rem; text-align: center; background: var(--background); position: relative;">
-                                <template x-if="!previewUrl">
+                            <label class="form-label">Foto sebelum pekerjaan</label>
+                            <div style="border: 2px dashed var(--border); border-radius: 8px; padding: 1.25rem; text-align: center; background: var(--background); position: relative;">
+                                <template x-if="!previewSebelum">
                                     <div>
                                         <i data-lucide="camera" style="width: 28px; height: 28px; color: var(--text-muted); margin: 0 auto 0.5rem;"></i>
-                                        <p style="font-size: 0.85rem; color: var(--text-muted);">Unggah JPG/PNG (maks. 2MB)</p>
+                                        <p style="font-size: 0.85rem; color: var(--text-muted);">Unggah kondisi area sebelum dikerjakan</p>
                                     </div>
                                 </template>
-                                <template x-if="previewUrl">
-                                    <img :src="previewUrl" alt="Preview" style="max-width: 100%; max-height: 180px; border-radius: 8px;">
+                                <template x-if="previewSebelum">
+                                    <img :src="previewSebelum" alt="Sebelum" style="max-width: 100%; max-height: 160px; border-radius: 8px;">
                                 </template>
-                                <input type="file" name="foto_bukti" accept="image/jpeg,image/png,image/jpg" style="position: absolute; inset: 0; opacity: 0; cursor: pointer;" @change="handleFileChange">
+                                <input type="file" name="foto_sebelum" accept="image/jpeg,image/png,image/jpg" required style="position: absolute; inset: 0; opacity: 0; cursor: pointer;" @change="handleFileChange($event, 'sebelum')">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Foto sesudah pekerjaan</label>
+                            <div style="border: 2px dashed var(--border); border-radius: 8px; padding: 1.25rem; text-align: center; background: var(--background); position: relative;">
+                                <template x-if="!previewSesudah">
+                                    <div>
+                                        <i data-lucide="camera" style="width: 28px; height: 28px; color: var(--text-muted); margin: 0 auto 0.5rem;"></i>
+                                        <p style="font-size: 0.85rem; color: var(--text-muted);">Unggah kondisi area setelah dikerjakan</p>
+                                    </div>
+                                </template>
+                                <template x-if="previewSesudah">
+                                    <img :src="previewSesudah" alt="Sesudah" style="max-width: 100%; max-height: 160px; border-radius: 8px;">
+                                </template>
+                                <input type="file" name="foto_sesudah" accept="image/jpeg,image/png,image/jpg" required style="position: absolute; inset: 0; opacity: 0; cursor: pointer;" @change="handleFileChange($event, 'sesudah')">
                             </div>
                         </div>
 
@@ -228,6 +244,16 @@
                         @elseif($log->status_validasi === 'ditolak')
                             <span class="badge" style="margin-left: 0.5rem; background: rgba(239, 68, 68, 0.15); color: var(--danger);">Validasi ditolak</span>
                         @endif
+                        @if($log->foto_sebelum || $log->foto_sesudah || $log->foto_bukti)
+                            <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
+                                @if($log->foto_sebelum)
+                                    <img src="{{ $log->foto_sebelum }}" alt="Sebelum" title="Sebelum" style="width: 64px; height: 48px; object-fit: cover; border-radius: 4px;">
+                                @endif
+                                @if($log->foto_sesudah ?? $log->foto_bukti)
+                                    <img src="{{ $log->foto_sesudah ?? $log->foto_bukti }}" alt="Sesudah" title="Sesudah" style="width: 64px; height: 48px; object-fit: cover; border-radius: 4px;">
+                                @endif
+                            </div>
+                        @endif
                     </div>
                 @empty
                     <p style="color: var(--text-muted); text-align: center;">Belum ada entri logbook.</p>
@@ -259,7 +285,8 @@
             activeTab: @json($activeTab ?? 'jadwal'),
             selectedSchedule: null,
             progres: 0,
-            previewUrl: null,
+            previewSebelum: null,
+            previewSesudah: null,
             today: new Date().toISOString().slice(0, 10),
 
             init() {
@@ -277,7 +304,8 @@
             selectSchedule(s) {
                 this.selectedSchedule = s;
                 this.progres = s.progres_terakhir ?? 0;
-                this.previewUrl = null;
+                this.previewSebelum = null;
+                this.previewSesudah = null;
                 this.activeTab = 'logbook';
                 this.setTab('logbook');
             },
@@ -292,11 +320,12 @@
                 });
             },
 
-            handleFileChange(e) {
+            handleFileChange(e, type) {
                 const file = e.target.files[0];
-                if (file) {
-                    this.previewUrl = URL.createObjectURL(file);
-                }
+                if (!file) return;
+                const url = URL.createObjectURL(file);
+                if (type === 'sebelum') this.previewSebelum = url;
+                else this.previewSesudah = url;
             },
         }));
     });

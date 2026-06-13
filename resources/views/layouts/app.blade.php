@@ -38,13 +38,24 @@
                 <x-sidebar-item icon="file-text" label="Tugas" to="/admin/tugas" :active="request()->is('admin/tugas')" />
                 <x-sidebar-item icon="package" label="Inventaris" to="/admin/inventaris" :active="request()->is('admin/inventaris')" />
             @else
+                @php $userRole = auth()->user()->role; @endphp
                 <x-sidebar-item icon="layout-dashboard" label="Dashboard Pengawas" to="/pengawas/dashboard" :active="request()->is('pengawas/dashboard')" />
-                <x-sidebar-item icon="pie-chart" label="Profiling Pekerja" to="/pengawas/profiling" :active="request()->is('pengawas/profiling')" />
-                <x-sidebar-item icon="calendar" label="Logbook Validasi" to="/pengawas/logbook" :active="request()->is('pengawas/logbook')" />
-                <x-sidebar-item icon="calendar-clock" label="Operasional" to="/pengawas/operasional" :active="request()->is('pengawas/operasional') || request()->is('pengawas/jadwal') || request()->is('pengawas/logbook')" />
-                <x-sidebar-item icon="send" label="Distribusi Hasil" to="/pengawas/distribusi" :active="request()->is('pengawas/distribusi')" />
-                <x-sidebar-item icon="dollar-sign" label="Insentif & Upah" to="/pengawas/ekonomi" :active="request()->is('pengawas/ekonomi')" />
-                <x-sidebar-item icon="alert-triangle" label="Pelaporan Masalah" to="/pengawas/pelaporan" :active="request()->is('pengawas/pelaporan')" />
+                @if(in_array($userRole, ['pengawas', 'supervisor'], true))
+                    <x-sidebar-item icon="pie-chart" label="Profiling Pekerja" to="/pengawas/profiling" :active="request()->is('pengawas/profiling') || request()->is('pengawas/pekerja/*/profil')" />
+                @endif
+                @if(in_array($userRole, ['pengawas', 'supervisor'], true))
+                    <x-sidebar-item icon="calendar" label="Logbook Validasi" to="/pengawas/logbook" :active="request()->is('pengawas/logbook')" />
+                    <x-sidebar-item icon="calendar-clock" label="Operasional" to="/pengawas/operasional" :active="request()->is('pengawas/operasional') || request()->is('pengawas/jadwal') || request()->is('pengawas/logbook')" />
+                @endif
+                @if(in_array($userRole, ['pengawas', 'supervisor'], true))
+                    <x-sidebar-item icon="send" label="Distribusi Hasil" to="/pengawas/distribusi" :active="request()->is('pengawas/distribusi')" />
+                @endif
+                @if($userRole === 'pengawas')
+                    <x-sidebar-item icon="dollar-sign" label="Insentif & Upah" to="/pengawas/ekonomi" :active="request()->is('pengawas/ekonomi')" />
+                @endif
+                @if(in_array($userRole, ['pengawas', 'supervisor', 'relawan'], true))
+                    <x-sidebar-item icon="alert-triangle" label="Pelaporan Masalah" to="/pengawas/pelaporan" :active="request()->is('pengawas/pelaporan')" />
+                @endif
             @endif
         </nav>
 

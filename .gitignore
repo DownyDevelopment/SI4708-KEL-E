@@ -8,6 +8,8 @@
 /.codex
 /.cursor/
 cursor.md
+/.cursor2/
+cursor2.md
 /.idea
 /.nova
 /.phpunit.cache

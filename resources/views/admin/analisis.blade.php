@@ -27,13 +27,76 @@
             </div>
             
             <button 
-                @click="window.print()"
+                onclick="window.location.href='/admin/analisis/pdf?period={{ $period }}'"
                 style="display: flex; align-items: center; gap: 0.5rem; background: var(--primary); color: white; border: none; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer;"
             >
                 <i data-lucide="download" style="width: 18px; height: 18px;"></i>
-                Cetak PDF
+                Unduh PDF
             </button>
         </div>
+    </div>
+
+    @if(session('success'))
+        <div style="background: #f0fdf4; color: #166534; padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    <div class="no-print glass-panel" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+        <h3 style="margin: 0 0 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i data-lucide="leaf" style="width: 20px; height: 20px; color: var(--primary);"></i>
+            Input Dampak Lingkungan
+        </h3>
+        <form method="POST" action="{{ route('admin.analisis.dampak') }}" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; align-items: end;">
+            @csrf
+            <div class="form-group" style="margin:0;">
+                <label class="form-label">Tanggal</label>
+                <input type="date" name="tanggal" class="form-input" value="{{ now()->toDateString() }}" required>
+            </div>
+            <div class="form-group" style="margin:0;">
+                <label class="form-label">Jenis Limbah</label>
+                <select name="jenis_limbah" class="form-input" required>
+                    <option value="Organik">Organik</option>
+                    <option value="Kompos">Kompos</option>
+                    <option value="Plastik Daur Ulang">Plastik Daur Ulang</option>
+                    <option value="Sampah Terpilah">Sampah Terpilah</option>
+                </select>
+            </div>
+            <div class="form-group" style="margin:0;">
+                <label class="form-label">Volume (Kg)</label>
+                <input type="number" name="volume_kg" class="form-input" min="0" step="0.01" placeholder="25.5" required>
+            </div>
+            <div class="form-group" style="margin:0;">
+                <label class="form-label">Estimasi Emisi Berkurang (Kg CO₂)</label>
+                <input type="number" name="estimasi_emisi_berkurang_kg" class="form-input" min="0" step="0.01" placeholder="10">
+            </div>
+            <button type="submit" class="btn btn-primary">Simpan Data</button>
+        </form>
+
+        @if(isset($environmentalRecords) && $environmentalRecords->count())
+            <div style="margin-top: 1.25rem; overflow-x: auto;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Tanggal</th>
+                            <th>Jenis Limbah</th>
+                            <th>Volume (Kg)</th>
+                            <th>Emisi Berkurang</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($environmentalRecords as $record)
+                            <tr>
+                                <td>{{ $record->tanggal->format('d/m/Y') }}</td>
+                                <td>{{ $record->jenis_limbah }}</td>
+                                <td>{{ number_format($record->volume_kg, 2, ',', '.') }}</td>
+                                <td>{{ number_format($record->estimasi_emisi_berkurang_kg, 2, ',', '.') }} Kg</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
     </div>
 
     <!-- Headline Cards -->

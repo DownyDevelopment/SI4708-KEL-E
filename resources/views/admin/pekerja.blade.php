@@ -120,6 +120,7 @@
                         </td>
                         <td>Aktif</td>
                         <td>
+                            <a href="/admin/pekerja/{{ $w->id }}/profil" class="btn btn-primary btn-sm" style="margin-right: 0.35rem; text-decoration: none;">Profil</a>
                             <button class="btn btn-outline btn-sm" @click="handleEdit({{ $w->id }})">Edit Data</button>
                         </td>
                     </tr>

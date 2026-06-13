@@ -18,6 +18,8 @@ class Logbook extends Model
         'status_validasi',
         'foto_bukti',
         'foto_bukti_url',
+        'foto_sebelum',
+        'foto_sesudah',
         'lokasi_pekerjaan',
         'pekerja_terlibat',
     ];

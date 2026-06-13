@@ -245,6 +245,16 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+    function fixLeafletIcons() {
+        if (typeof L === 'undefined') return;
+        delete L.Icon.Default.prototype._getIconUrl;
+        L.Icon.Default.mergeOptions({
+            iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+            iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+            shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+        });
+    }
+
     document.addEventListener('alpine:init', () => {
         Alpine.data('perencanaanData', () => ({
             programs: @json($programs),
@@ -273,17 +283,33 @@
                 this.$watch('programs', () => {
                     setTimeout(() => lucide.createIcons(), 50);
                 });
-                this.$nextTick(() => this.initMap());
+                fixLeafletIcons();
+                this.$nextTick(() => {
+                    setTimeout(() => this.initMap(), 100);
+                });
             },
 
             initMap() {
                 if (this.map || typeof L === 'undefined') return;
 
-                this.map = L.map('perencanaan-map').setView([-6.914744, 107.609810], 13);
-                this.streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
-                this.satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
+                const container = document.getElementById('perencanaan-map');
+                if (!container) return;
+
+                this.map = L.map(container, { scrollWheelZoom: true }).setView([-6.914744, 107.609810], 13);
+                this.streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; OpenStreetMap'
+                });
+                this.satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                    maxZoom: 19,
+                    attribution: '&copy; Esri'
+                });
                 this.streetLayer.addTo(this.map);
                 this.refreshMarkers();
+
+                setTimeout(() => {
+                    if (this.map) this.map.invalidateSize();
+                }, 450);
 
                 this.map.on('click', async (e) => {
                     if (!this.isAddingMode) return;
@@ -324,22 +350,29 @@
                 });
             },
 
+            markers: [],
+
             refreshMarkers() {
                 if (!this.map) return;
-                this.map.eachLayer((layer) => {
-                    if (layer instanceof L.Marker) {
-                        this.map.removeLayer(layer);
-                    }
-                });
 
+                this.markers.forEach(marker => this.map.removeLayer(marker));
+                this.markers = [];
+
+                const bounds = [];
                 this.programs.forEach((program) => {
                     if (!program.kordinat) return;
                     const [lat, lng] = program.kordinat.split(',').map(Number);
-                    if (!isNaN(lat) && !isNaN(lng)) {
-                        L.marker([lat, lng]).addTo(this.map)
-                            .bindPopup(`<strong>${program.nama_program}</strong><br/>Lokasi: ${program.lokasi || '-'}<br/>Status: ${program.status || '-'}`);
-                    }
+                    if (isNaN(lat) || isNaN(lng)) return;
+
+                    const marker = L.marker([lat, lng]).addTo(this.map)
+                        .bindPopup(`<strong>${program.nama_program}</strong><br/>Lokasi: ${program.lokasi || '-'}<br/>Status: ${program.status || '-'}`);
+                    this.markers.push(marker);
+                    bounds.push([lat, lng]);
                 });
+
+                if (bounds.length > 0) {
+                    this.map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
+                }
             },
 
             toggleMapType() {

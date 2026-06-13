@@ -110,6 +110,12 @@ class EkonomiController extends Controller
             return redirect()->back()->with('success', 'Hasil kerja ditolak. Upah tidak dicairkan.');
         }
 
+        $fotoSebelum = $logbook->foto_sebelum;
+        $fotoSesudah = $logbook->foto_sesudah ?? $logbook->foto_bukti;
+        if (!$fotoSebelum || !$fotoSesudah) {
+            return redirect()->back()->with('error', 'Validasi membutuhkan foto sebelum dan sesudah pekerjaan.');
+        }
+
         if (Insentif::where('logbook_id', $logbook->id)->exists()) {
             $logbook->update(['status_validasi' => 'disetujui']);
             return redirect()->back()->with('success', 'Logbook sudah memiliki pencairan upah.');

@@ -2,49 +2,64 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\MicroProgram;
+use App\Models\Logbook;
+use App\Models\WorkSchedule;
 
 class ProduktivitasController extends Controller
 {
     public function index()
     {
-        // Tren per bulan — grouping di PHP agar kompatibel SQLite & MySQL
-        $statusRencana = ['planned'];
-        $statusBerjalan = ['active', 'ongoing', 'in_progress'];
-        $statusSelesai = ['completed', 'selesai'];
+        $schedules = WorkSchedule::query()
+            ->whereNotNull('tanggal')
+            ->get();
 
-        $trends = MicroProgram::query()
-            ->whereNotNull('created_at')
-            ->get()
-            ->groupBy(fn ($program) => $program->created_at->format('Y-m'))
-            ->map(function ($group, $periode) use ($statusRencana, $statusBerjalan, $statusSelesai) {
-                return (object) [
-                    'periode' => $periode,
-                    'rencana' => $group->whereIn('status', $statusRencana)->count(),
-                    'berjalan' => $group->whereIn('status', $statusBerjalan)->count(),
-                    'selesai' => $group->whereIn('status', $statusSelesai)->count(),
-                ];
-            })
-            ->sortBy('periode')
+        $logbooks = Logbook::query()
+            ->whereNotNull('tanggal')
+            ->get();
+
+        $periodKeys = $schedules->pluck('tanggal')
+            ->merge($logbooks->pluck('tanggal'))
+            ->filter()
+            ->map(fn ($d) => \Carbon\Carbon::parse($d)->format('Y-m'))
+            ->unique()
+            ->sort()
             ->values();
 
-        // Ensure we format it correctly for the frontend
-        $formattedData = $trends->map(function ($item) {
-            $parts = explode('-', $item->periode);
-            $monthNum = (int)$parts[1];
-            $year = $parts[0];
-            
+        $formattedData = $periodKeys->map(function ($periode) use ($schedules, $logbooks) {
+            $monthSchedules = $schedules->filter(
+                fn ($s) => $s->tanggal && \Carbon\Carbon::parse($s->tanggal)->format('Y-m') === $periode
+            );
+            $monthLogbooks = $logbooks->filter(
+                fn ($l) => $l->tanggal && \Carbon\Carbon::parse($l->tanggal)->format('Y-m') === $periode
+            );
+
+            $rencana = $monthSchedules->count();
+
+            $berjalan = $monthLogbooks->where('progres_persentase', '<', 100)->count()
+                + $monthSchedules->whereIn('status', ['in_progress', 'active', 'ongoing'])->count();
+
+            $selesai = $monthLogbooks->where('progres_persentase', '>=', 100)->count()
+                + $monthSchedules->whereIn('status', ['completed', 'selesai'])->count();
+
+            $parts = explode('-', $periode);
             $months = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-            $monthName = $months[$monthNum];
-            
+
             return [
-                'name' => "$monthName $year",
-                'PekerjaanRencana' => (int)$item->rencana,
-                'PekerjaanBerjalan' => (int)$item->berjalan,
-                'PekerjaanSelesai' => (int)$item->selesai
+                'name' => ($months[(int) $parts[1]] ?? $parts[1]) . ' ' . $parts[0],
+                'PekerjaanRencana' => (int) $rencana,
+                'PekerjaanBerjalan' => (int) $berjalan,
+                'PekerjaanSelesai' => (int) $selesai,
             ];
         });
+
+        if ($formattedData->isEmpty()) {
+            $formattedData = collect([[
+                'name' => now()->format('M Y'),
+                'PekerjaanRencana' => 0,
+                'PekerjaanBerjalan' => 0,
+                'PekerjaanSelesai' => 0,
+            ]]);
+        }
 
         return view('admin.produktivitas', ['data' => $formattedData]);
     }

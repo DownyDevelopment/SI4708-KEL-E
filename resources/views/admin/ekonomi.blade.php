@@ -41,13 +41,30 @@
             <div style="display: flex; flex-direction: column; gap: 1rem;">
                 @foreach($pendingLogbooks as $log)
                     <div style="border: 1px solid var(--border); border-radius: 8px; padding: 1rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
-                        <div>
+                        <div style="flex: 1; min-width: 220px;">
                             <div style="font-weight: 600;">{{ $log->schedule?->program?->nama_program ?? 'Program' }}</div>
                             <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">
                                 Pekerja: {{ $log->worker?->nama ?? 'Belum ditentukan' }} · Progres: {{ $log->progres_persentase }}%
                             </div>
                             <div style="font-size: 0.85rem; color: var(--text-muted);">
                                 {{ $log->catatan_progres ?? $log->catatan ?? '—' }}
+                            </div>
+                            <div style="display: flex; gap: 0.75rem; margin-top: 0.75rem; flex-wrap: wrap;">
+                                @if($log->foto_sebelum)
+                                    <div>
+                                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.25rem;">Sebelum</div>
+                                        <img src="{{ $log->foto_sebelum }}" alt="Sebelum" style="width: 96px; height: 72px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border);">
+                                    </div>
+                                @endif
+                                @if($log->foto_sesudah ?? $log->foto_bukti)
+                                    <div>
+                                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.25rem;">Sesudah</div>
+                                        <img src="{{ $log->foto_sesudah ?? $log->foto_bukti }}" alt="Sesudah" style="width: 96px; height: 72px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border);">
+                                    </div>
+                                @endif
+                                @if(!$log->foto_sebelum || !($log->foto_sesudah ?? $log->foto_bukti))
+                                    <span style="font-size: 0.8rem; color: var(--warning);">Foto before/after belum lengkap</span>
+                                @endif
                             </div>
                         </div>
                         <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">

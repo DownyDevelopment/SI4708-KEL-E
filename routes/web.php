@@ -20,7 +20,10 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middl
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'adminDashboard'])->name('admin.dashboard');
     Route::get('/analisis', [\App\Http\Controllers\AnalisisController::class, 'index'])->name('admin.analisis');
+    Route::get('/analisis/pdf', [\App\Http\Controllers\AnalisisController::class, 'exportPdf'])->name('admin.analisis.pdf');
+    Route::post('/analisis/dampak-lingkungan', [\App\Http\Controllers\AnalisisController::class, 'storeEnvironmental'])->name('admin.analisis.dampak');
     Route::get('/pekerja', [\App\Http\Controllers\WorkerController::class, 'index'])->name('admin.pekerja');
+    Route::get('/pekerja/{id}/profil', [\App\Http\Controllers\WorkerController::class, 'profile'])->name('admin.pekerja.profil');
     Route::post('/pekerja', [\App\Http\Controllers\WorkerController::class, 'store']);
     Route::put('/pekerja/{id}', [\App\Http\Controllers\WorkerController::class, 'update']);
     Route::get('/keluarga', [\App\Http\Controllers\HouseholdController::class, 'index'])->name('admin.keluarga');
@@ -61,25 +64,42 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
 });
 
 Route::middleware(['auth', 'role:pengawas,supervisor,relawan'])->prefix('pengawas')->group(function () {
-    Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'pengawasDashboard'])->name('pengawas.dashboard');
-    Route::get('/operasional', [\App\Http\Controllers\JadwalController::class, 'pengawasIndex'])->name('pengawas.operasional');
-    Route::get('/jadwal', fn () => redirect()->route('pengawas.operasional', ['tab' => 'jadwal']));
-    Route::get('/logbook', [\App\Http\Controllers\LogbookController::class, 'index'])->name('pengawas.logbook');
-    Route::post('/logbook', [\App\Http\Controllers\LogbookController::class, 'store']);
-    Route::put('/logbook/{id}', [\App\Http\Controllers\LogbookController::class, 'update']);
-    
-    Route::get('/distribusi', [\App\Http\Controllers\DistribusiController::class, 'index'])->name('pengawas.distribusi');
-    Route::post('/distribusi', [\App\Http\Controllers\DistribusiController::class, 'store']);
-    
-    Route::get('/ekonomi', [\App\Http\Controllers\EkonomiController::class, 'index'])->name('pengawas.ekonomi');
-    Route::post('/ekonomi/insentif', [\App\Http\Controllers\EkonomiController::class, 'storeInsentif']);
-    Route::post('/ekonomi/reward', [\App\Http\Controllers\EkonomiController::class, 'storeReward']);
-    Route::get('/ekonomi/detail/{workerId}', [\App\Http\Controllers\EkonomiController::class, 'detail']);
-    
-    Route::get('/pelaporan', [\App\Http\Controllers\PelaporanController::class, 'index'])->name('pengawas.pelaporan');
-    Route::post('/pelaporan', [\App\Http\Controllers\PelaporanController::class, 'store']);
+    Route::middleware('role.feature:dashboard')->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'pengawasDashboard'])->name('pengawas.dashboard');
+    });
 
-    Route::get('/profiling', [\App\Http\Controllers\ProfilingController::class, 'index'])->name('pengawas.profiling');
+    Route::middleware('role.feature:operasional')->group(function () {
+        Route::get('/operasional', [\App\Http\Controllers\JadwalController::class, 'pengawasIndex'])->name('pengawas.operasional');
+        Route::get('/jadwal', fn () => redirect()->route('pengawas.operasional', ['tab' => 'jadwal']));
+        Route::get('/logbook', [\App\Http\Controllers\LogbookController::class, 'index'])->name('pengawas.logbook');
+        Route::post('/logbook', [\App\Http\Controllers\LogbookController::class, 'store']);
+        Route::put('/logbook/{id}', [\App\Http\Controllers\LogbookController::class, 'update']);
+    });
+
+    Route::middleware('role.feature:distribusi')->group(function () {
+        Route::get('/distribusi', [\App\Http\Controllers\DistribusiController::class, 'index'])->name('pengawas.distribusi');
+        Route::post('/distribusi', [\App\Http\Controllers\DistribusiController::class, 'store']);
+    });
+
+    Route::middleware('role.feature:ekonomi')->group(function () {
+        Route::get('/ekonomi', [\App\Http\Controllers\EkonomiController::class, 'index'])->name('pengawas.ekonomi');
+        Route::post('/ekonomi/insentif', [\App\Http\Controllers\EkonomiController::class, 'storeInsentif']);
+        Route::post('/ekonomi/reward', [\App\Http\Controllers\EkonomiController::class, 'storeReward']);
+        Route::get('/ekonomi/detail/{workerId}', [\App\Http\Controllers\EkonomiController::class, 'detail']);
+    });
+
+    Route::middleware('role.feature:pelaporan')->group(function () {
+        Route::get('/pelaporan', [\App\Http\Controllers\PelaporanController::class, 'index'])->name('pengawas.pelaporan');
+        Route::post('/pelaporan', [\App\Http\Controllers\PelaporanController::class, 'store']);
+    });
+
+    Route::middleware('role.feature:profiling')->group(function () {
+        Route::get('/profiling', [\App\Http\Controllers\ProfilingController::class, 'index'])->name('pengawas.profiling');
+    });
+
+    Route::middleware('role.feature:profil-pekerja')->group(function () {
+        Route::get('/pekerja/{id}/profil', [\App\Http\Controllers\WorkerController::class, 'profile'])->name('pengawas.pekerja.profil');
+    });
 });
 
 Route::middleware('auth')->prefix('api')->group(function () {
@@ -137,7 +157,7 @@ Route::middleware('auth')->prefix('api')->group(function () {
                     'title' => $worker->nama,
                     'desc' => $worker->kemampuan_utama ?? 'Pekerja desa',
                     'type' => 'Pekerja',
-                    'link' => '/admin/pekerja',
+                    'link' => '/admin/pekerja/' . $worker->id . '/profil',
                 ]);
             }
 
@@ -183,7 +203,7 @@ Route::middleware('auth')->prefix('api')->group(function () {
                     'title' => $worker->nama,
                     'desc' => $worker->kemampuan_utama ?? 'Pekerja desa',
                     'type' => 'Pekerja',
-                    'link' => '/pengawas/profiling',
+                    'link' => '/pengawas/pekerja/' . $worker->id . '/profil',
                 ]);
             }
 

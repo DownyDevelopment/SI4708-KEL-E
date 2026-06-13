@@ -58,9 +58,9 @@ class MonitoringSeeder extends Seeder
 
         // 2. Insert Micro Programs
         $programs = [
-            ['nama_program' => 'Pembersihan Saluran Air Desa', 'jenis_program' => 'Infrastruktur', 'deskripsi' => 'Pembersihan got utama', 'lokasi' => 'Desa Sukamaju RT 01', 'status' => 'active'],
-            ['nama_program' => 'Pembuatan Kompos Organik', 'jenis_program' => 'Lingkungan', 'deskripsi' => 'Pengolahan sampah', 'lokasi' => 'Bank Sampah RW 03', 'status' => 'active'],
-            ['nama_program' => 'Perbaikan Jalan Setapak', 'jenis_program' => 'Infrastruktur', 'deskripsi' => 'Pengecoran jalan', 'lokasi' => 'Jalan Mawar RT 02', 'status' => 'active']
+            ['nama_program' => 'Pembersihan Saluran Air Desa', 'jenis_program' => 'Infrastruktur', 'deskripsi' => 'Pembersihan got utama', 'lokasi' => 'Desa Sukamaju RT 01', 'kordinat' => '-6.914744,107.609810', 'status' => 'active'],
+            ['nama_program' => 'Pembuatan Kompos Organik', 'jenis_program' => 'Lingkungan', 'deskripsi' => 'Pengolahan sampah', 'lokasi' => 'Bank Sampah RW 03', 'kordinat' => '-6.918500,107.612500', 'status' => 'active'],
+            ['nama_program' => 'Perbaikan Jalan Setapak', 'jenis_program' => 'Infrastruktur', 'deskripsi' => 'Pengecoran jalan', 'lokasi' => 'Jalan Mawar RT 02', 'kordinat' => '-6.911200,107.606800', 'status' => 'active']
         ];
         
         foreach ($programs as $progData) {

@@ -2,6 +2,7 @@
 @section('title', 'Admin Dashboard')
 
 @section('content')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <div class="dashboard-layout animate-fade-in">
     <!-- Banner -->
     <div class="banner">
@@ -114,33 +115,131 @@
         </div>
     </div>
 
-    <!-- Ringkasan Progres Area -->
-    <div class="glass-panel stat-card" style="padding: 2rem;">
-        <h3 class="stat-title" style="margin-bottom: 1.5rem; color: var(--text-main); font-size: 1rem; font-weight: 600;">Progres Kebersihan Area</h3>
-        
-        <div style="display: flex; flex-direction: column; gap: 1rem;">
-            @forelse($data['area'] as $i => $a)
-                @php
-                    $isDone = in_array($a->status, ['completed', 'selesai']);
-                    $isInProgress = in_array($a->status, ['active', 'in_progress']);
-                @endphp
-                <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 1rem; border-bottom: {{ $i < count($data['area']) - 1 ? '1px solid var(--border)' : 'none' }};">
-                    <span style="font-weight: 600; color: var(--text-main);">{{ $a->lokasi ?: $a->nama_program }}</span>
-                    @if($isDone)
-                        <span class="badge badge-success" style="background: rgba(16, 185, 129, 0.15); color: var(--primary); padding: 0.25rem 0.75rem; font-size: 0.7rem;">SELESAI</span>
-                    @elseif($isInProgress)
-                        <span class="badge" style="background: rgba(245, 158, 11, 0.15); color: var(--warning); padding: 0.25rem 0.75rem; font-size: 0.7rem;">DALAM PROSES</span>
-                    @else
-                        <span class="badge" style="background: var(--background); color: var(--text-muted); padding: 0.25rem 0.75rem; font-size: 0.7rem;">BELUM MULAI</span>
-                    @endif
-                </div>
-            @empty
-                <p style="color: var(--text-muted);">Belum ada data program area.</p>
-            @endforelse
+    <!-- Peta Area Kerja -->
+    <div class="glass-panel stat-card" style="padding: 2rem;" x-data="dashboardMapData()">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+            <h3 class="stat-title" style="margin: 0; color: var(--text-main); font-size: 1rem; font-weight: 600;">Peta Area Kerja</h3>
+            <div style="display: flex; gap: 0.75rem; align-items: center;">
+                <button class="btn btn-outline" @click="toggleMapType" style="padding: 0.5rem 1rem; font-size: 0.8rem;" x-text="mapType === 'street' ? 'Satellite' : 'Street'"></button>
+                <a href="/admin/perencanaan" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.8rem; text-decoration: none;">Kelola Area</a>
+            </div>
         </div>
-        <p style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-muted);">
-            Peta interaktif area kerja tersedia di menu <a href="/admin/perencanaan" style="color: var(--primary);">Perencanaan Program</a>.
-        </p>
+
+        <div style="height: 400px; width: 100%; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); position: relative; background: #e2e8f0;">
+            <div id="dashboard-map" style="height: 100%; width: 100%; z-index: 0;"></div>
+        </div>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 1rem; font-size: 0.8rem; color: var(--text-muted);">
+            <span style="display: flex; align-items: center; gap: 0.35rem;">
+                <span style="width: 10px; height: 10px; border-radius: 50%; background: var(--success);"></span>
+                Aktif / Dalam Proses
+            </span>
+            <span style="display: flex; align-items: center; gap: 0.35rem;">
+                <span style="width: 10px; height: 10px; border-radius: 50%; background: var(--secondary);"></span>
+                Selesai
+            </span>
+            <span style="display: flex; align-items: center; gap: 0.35rem;">
+                <span style="width: 10px; height: 10px; border-radius: 50%; background: var(--warning);"></span>
+                Direncanakan
+            </span>
+            <span style="margin-left: auto;" x-text="programs.length + ' program area'"></span>
+        </div>
     </div>
 </div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    function fixLeafletIcons() {
+        if (typeof L === 'undefined') return;
+        delete L.Icon.Default.prototype._getIconUrl;
+        L.Icon.Default.mergeOptions({
+            iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+            iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+            shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+        });
+    }
+
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('dashboardMapData', () => ({
+            programs: @json($data['area']),
+            mapType: 'street',
+            map: null,
+            streetLayer: null,
+            satelliteLayer: null,
+            markers: [],
+
+            init() {
+                fixLeafletIcons();
+                this.$nextTick(() => {
+                    setTimeout(() => this.initMap(), 100);
+                });
+            },
+
+            initMap() {
+                if (this.map || typeof L === 'undefined') return;
+
+                const container = document.getElementById('dashboard-map');
+                if (!container) return;
+
+                this.map = L.map(container, { scrollWheelZoom: true }).setView([-6.914744, 107.609810], 13);
+                this.streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; OpenStreetMap'
+                });
+                this.satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                    maxZoom: 19,
+                    attribution: '&copy; Esri'
+                });
+                this.streetLayer.addTo(this.map);
+                this.refreshMarkers();
+
+                setTimeout(() => {
+                    if (this.map) this.map.invalidateSize();
+                }, 450);
+            },
+
+            getStatusLabel(status) {
+                if (['completed', 'selesai'].includes(status)) return 'Selesai';
+                if (['active', 'in_progress', 'ongoing'].includes(status)) return 'Dalam Proses';
+                return 'Direncanakan';
+            },
+
+            refreshMarkers() {
+                if (!this.map) return;
+
+                this.markers.forEach(marker => this.map.removeLayer(marker));
+                this.markers = [];
+
+                const bounds = [];
+                this.programs.forEach((program) => {
+                    if (!program.kordinat) return;
+                    const [lat, lng] = program.kordinat.split(',').map(Number);
+                    if (isNaN(lat) || isNaN(lng)) return;
+
+                    const marker = L.marker([lat, lng]).addTo(this.map)
+                        .bindPopup(`<strong>${program.nama_program}</strong><br/>Lokasi: ${program.lokasi || '-'}<br/>Status: ${this.getStatusLabel(program.status)}`);
+                    this.markers.push(marker);
+                    bounds.push([lat, lng]);
+                });
+
+                if (bounds.length > 0) {
+                    this.map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
+                }
+            },
+
+            toggleMapType() {
+                if (!this.map) return;
+                if (this.mapType === 'street') {
+                    this.map.removeLayer(this.streetLayer);
+                    this.satelliteLayer.addTo(this.map);
+                    this.mapType = 'satellite';
+                } else {
+                    this.map.removeLayer(this.satelliteLayer);
+                    this.streetLayer.addTo(this.map);
+                    this.mapType = 'street';
+                }
+            }
+        }));
+    });
+</script>
 @endsection

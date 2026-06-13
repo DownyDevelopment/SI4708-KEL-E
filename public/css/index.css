@@ -646,6 +646,13 @@ a:hover {
   overflow: hidden;
 }
 
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  z-index: 0;
+  font-family: inherit;
+}
+
 /* Specific Sidebar Adjustments */
 .sidebar .nav-item.active {
   background: var(--primary);

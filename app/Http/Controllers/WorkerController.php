@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Models\Worker;
 use App\Models\Household;
@@ -55,5 +56,33 @@ class WorkerController extends Controller
         $worker->update($request->all());
 
         return redirect()->back()->with('success', 'Data Pekerja berhasil diperbarui.');
+    }
+
+    public function profile(int $id)
+    {
+        $worker = Worker::with([
+            'household',
+            'schedules.program',
+            'insentifs' => fn ($q) => $q->orderByDesc('created_at')->limit(5),
+        ])
+            ->withSum('insentifs', 'jumlah_upah')
+            ->withCount('insentifs')
+            ->findOrFail($id);
+
+        $programs = $worker->schedules
+            ->pluck('program')
+            ->filter()
+            ->unique('id')
+            ->values();
+
+        $schedules = $worker->schedules
+            ->sortByDesc('tanggal')
+            ->values();
+
+        $usia = $worker->tanggal_lahir
+            ? Carbon::parse($worker->tanggal_lahir)->age
+            : null;
+
+        return view('admin.pekerja-profil', compact('worker', 'programs', 'schedules', 'usia'));
     }
 }

@@ -30,18 +30,17 @@ class LogbookController extends Controller
             'pekerja_terlibat' => 'nullable|string',
             'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'foto_bukti' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'foto_sebelum' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+            'foto_sesudah' => 'required|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
         $schedule = WorkSchedule::findOrFail($validated['schedule_id']);
         $catatan = $validated['catatan_progres'] ?? $validated['catatan'] ?? null;
 
-        $fotoPath = null;
-        $uploadedFile = $request->file('foto_bukti') ?? $request->file('foto');
-
-        if ($uploadedFile) {
-            $stored = $uploadedFile->store('logbooks', 'public');
-            $fotoPath = '/storage/' . $stored;
-        }
+        $fotoSebelum = $this->storePhoto($request->file('foto_sebelum'));
+        $fotoSesudah = $this->storePhoto(
+            $request->file('foto_sesudah') ?? $request->file('foto_bukti') ?? $request->file('foto')
+        );
 
         Logbook::create([
             'schedule_id' => $validated['schedule_id'],
@@ -52,8 +51,10 @@ class LogbookController extends Controller
             'catatan' => $catatan,
             'progres_persentase' => (int) $validated['progres_persentase'],
             'status_validasi' => (int) $validated['progres_persentase'] >= 100 ? 'menunggu' : null,
-            'foto_bukti' => $fotoPath,
-            'foto_bukti_url' => $fotoPath,
+            'foto_sebelum' => $fotoSebelum,
+            'foto_sesudah' => $fotoSesudah,
+            'foto_bukti' => $fotoSesudah,
+            'foto_bukti_url' => $fotoSesudah,
             'lokasi_pekerjaan' => $validated['lokasi_pekerjaan'] ?? null,
             'pekerja_terlibat' => $validated['pekerja_terlibat'] ?? null,
         ]);
@@ -82,19 +83,23 @@ class LogbookController extends Controller
             'worker_id' => 'nullable|exists:workers,id',
             'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'foto_bukti' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'foto_sebelum' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'foto_sesudah' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
         $catatan = $validated['catatan_progres'] ?? $validated['catatan'] ?? $logbook->catatan;
-        $uploadedFile = $request->file('foto_bukti') ?? $request->file('foto');
-        $fotoPath = $logbook->foto_bukti ?? $logbook->foto_bukti_url;
+        $fotoSebelum = $logbook->foto_sebelum;
+        $fotoSesudah = $logbook->foto_sesudah ?? $logbook->foto_bukti ?? $logbook->foto_bukti_url;
 
-        if ($uploadedFile) {
-            if ($logbook->foto_bukti) {
-                $old = str_replace('/storage/', '', $logbook->foto_bukti);
-                Storage::disk('public')->delete($old);
-            }
-            $stored = $uploadedFile->store('logbooks', 'public');
-            $fotoPath = '/storage/' . $stored;
+        if ($request->hasFile('foto_sebelum')) {
+            $this->deletePhoto($logbook->foto_sebelum);
+            $fotoSebelum = $this->storePhoto($request->file('foto_sebelum'));
+        }
+
+        $uploadedSesudah = $request->file('foto_sesudah') ?? $request->file('foto_bukti') ?? $request->file('foto');
+        if ($uploadedSesudah) {
+            $this->deletePhoto($logbook->foto_sesudah ?? $logbook->foto_bukti);
+            $fotoSesudah = $this->storePhoto($uploadedSesudah);
         }
 
         $logbook->update([
@@ -105,8 +110,10 @@ class LogbookController extends Controller
             'status_validasi' => (int) $validated['progres_persentase'] >= 100 && $logbook->status_validasi !== 'disetujui'
                 ? 'menunggu'
                 : $logbook->status_validasi,
-            'foto_bukti' => $fotoPath,
-            'foto_bukti_url' => $fotoPath,
+            'foto_sebelum' => $fotoSebelum,
+            'foto_sesudah' => $fotoSesudah,
+            'foto_bukti' => $fotoSesudah,
+            'foto_bukti_url' => $fotoSesudah,
         ]);
 
         $schedule = $logbook->schedule;
@@ -123,5 +130,24 @@ class LogbookController extends Controller
         return redirect()
             ->route('pengawas.operasional', ['tab' => 'logbook'])
             ->with('success', 'Progres logbook berhasil diperbarui.');
+    }
+
+    private function storePhoto(?\Illuminate\Http\UploadedFile $file): ?string
+    {
+        if (!$file) {
+            return null;
+        }
+
+        return '/storage/' . $file->store('logbooks', 'public');
+    }
+
+    private function deletePhoto(?string $path): void
+    {
+        if (!$path) {
+            return;
+        }
+
+        $relative = str_replace('/storage/', '', $path);
+        Storage::disk('public')->delete($relative);
     }
 }

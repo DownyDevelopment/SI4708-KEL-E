@@ -79,6 +79,7 @@
                         <th style="padding: 1rem; font-weight: 600;">Pekerjaan Makro</th>
                         <th style="padding: 1rem; font-weight: 600;">Pendapatan / Kapita</th>
                         <th style="padding: 1rem; font-weight: 600;">Klasifikasi Kesejahteraan</th>
+                        <th style="padding: 1rem; font-weight: 600;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -117,10 +118,13 @@
                                 </span>
                             @endif
                         </td>
+                        <td style="padding: 1rem;">
+                            <a href="/pengawas/pekerja/{{ $worker->id }}/profil" class="btn btn-primary btn-sm" style="text-decoration: none;">Profil</a>
+                        </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="5" style="padding: 2rem; text-align: center; color: var(--text-muted);">
+                        <td colspan="6" style="padding: 2rem; text-align: center; color: var(--text-muted);">
                             Belum ada data pekerja yang dapat dianalisis.
                         </td>
                     </tr>
