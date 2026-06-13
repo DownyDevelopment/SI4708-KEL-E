@@ -1,116 +1,104 @@
 # Work4Village — Catatan Lanjutan: Kesesuaian PBI (Setelah 11.A, 11.B, 11.C)
 
-> Dokumen ini melanjutkan `cursor.md`. Status terbaru: **Bagian 11.A, 11.B, dan 11.C sudah dikerjakan semua.** Klaim-klaim "sudah jalan" di analisis kekurangan PBI (search bar, MonitoringSeeder, peta di Perencanaan, workflow validasi→upah otomatis) **konsisten** dengan progres yang sudah dilakukan.
-
-Fokus dokumen ini sekarang: **apa saja gap PBI yang TERSISA** setelah semua perbaikan di `cursor.md` selesai, supaya kelompok bisa fokus ke sisa pekerjaan menjelang presentasi.
+> Dokumen ini melanjutkan `cursor.md`. **Checklist utama (#1–#7) sudah selesai.** Bagian "Sisa Kekurangan" di bawah sudah disinkronkan dengan kode terbaru — hanya item opsional yang benar-benar belum ada.
 
 ---
 
-## Ringkasan Skor PBI (Estimasi Setelah A+B+C Selesai)
+## Ringkasan Skor PBI (Estimasi Setelah Perbaikan cursor2)
 
 | Anggota | PBI | Estimasi |
 |---------|-----|----------|
-| 1 | 3 PBI | ~55% |
-| 2 | 3 PBI | ~75% |
-| 3 | 3 PBI | ~75% |
-| 4 | 3 PBI | ~55% |
-| 5 | 3 PBI | ~75% |
-| 6 | 3 PBI | ~75% |
-| 7 | 3 PBI | ~55% |
+| 1 | 3 PBI | ~80% |
+| 2 | 3 PBI | ~85% |
+| 3 | 3 PBI | ~85% |
+| 4 | 3 PBI | ~80% |
+| 5 | 3 PBI | ~85% |
+| 6 | 3 PBI | ~85% |
+| 7 | 3 PBI | ~80% |
 
-**Total: ~65–70%** dari spesifikasi PBI awal.
-
-> 💡 Catatan kecil: angka ini berasal dari analisis AI berdasarkan PBI spec, bukan hasil cek manual baris-per-baris. Kalau mau yakin 100%, sesekali minta Cursor **mengutip kode asli** untuk klaim tertentu — tapi untuk keperluan presentasi, gap di bawah ini sudah cukup jelas dan masuk akal sebagai daftar kerja.
+**Total: ~82–85%** dari spesifikasi PBI awal.
 
 ---
 
-## Sisa Kekurangan Per Anggota
+## Status PBI Per Anggota (Sinkron dengan Kode)
 
-### Anggota 1 — Manajemen Data Dasar (~55%)
+### Anggota 1 — Manajemen Data Dasar (~80%)
 
-| PBI | Status | Yang masih kurang |
+| PBI | Status | Catatan |
 |---|---|---|
-| Registrasi Pekerja | ⚠️ Sebagian | Data warga masih terpecah di 2 menu (Keluarga vs Pekerja); usia disimpan sebagai `tanggal_lahir`, tidak ditampilkan sebagai usia; belum ada halaman registrasi terpadu. |
-| **Profil Pekerja** | ❌ Belum ada | **Tidak ada halaman profil** (ringkasan kemampuan + program yang diikuti + jadwal kerja). Menu **Profiling** ≠ ini — Profiling adalah analisis kesejahteraan ekonomi, bukan profil individu pekerja. |
-| Role & Permission | ✅ Cukup | Hanya dua role: `admin` (panel admin) dan `pengawas` (modul lapangan). Middleware, sidebar, dan halaman Pengaturan Akses sudah selaras. |
-
-**🎯 Gap paling jelas:** halaman **Profil Pekerja** — ini satu-satunya PBI di seluruh proyek yang statusnya masih 0%/belum ada sama sekali (bukan sekadar "kurang lengkap").
+| Registrasi Pekerja | ✅ Cukup | CRUD pekerja + keluarga; usia tampil di tabel & form; banner registrasi terpadu + tautan antar menu Keluarga/Pekerja. |
+| **Profil Pekerja** | ✅ Selesai | `/admin/pekerja/{id}/profil` & `/pengawas/pekerja/{id}/profil` — kemampuan, program, jadwal. |
+| Role & Permission | ✅ Selesai | Hanya `admin` dan `pengawas`; middleware, sidebar, Pengaturan Akses selaras. |
 
 ---
 
-### Anggota 2 — Perencanaan Program & Area (~75%)
+### Anggota 2 — Perencanaan Program & Area (~85%)
 
-| PBI | Status | Yang masih kurang |
+| PBI | Status | Catatan |
 |---|---|---|
-| Daftar Program Mikro | ✅ Cukup | Route `/admin/program` kemungkinan masih ada sebagai sisa duplikat backend — cek apakah sudah benar-benar dihapus/redirect ke `/admin/perencanaan`. |
-| Peta Area Kerja | ✅ Cukup | Marker hanya muncul jika program punya data `kordinat` di DB — pastikan semua program contoh/seeder punya koordinat supaya peta tidak kosong saat demo. |
-| Koordinasi Multi-Stakeholder | ⚠️ Sebagian | Masih sebatas catatan teks JSON — belum ada koneksi nyata ke akun user atau notifikasi otomatis ke stakeholder. |
+| Daftar Program Mikro | ✅ Selesai | `/admin/program` redirect ke `/admin/perencanaan`. |
+| Peta Area Kerja | ✅ Selesai | Leaflet di Perencanaan; seeder program punya koordinat. |
+| Koordinasi Multi-Stakeholder | ✅ Cukup | Stakeholder JSON + notifikasi ke pengawas saat program disimpan/diupdate. Belum auto-link ke akun user (opsional). |
 
 ---
 
-### Anggota 3 — Operasional & Penjadwalan (~75%)
+### Anggota 3 — Operasional & Penjadwalan (~85%)
 
-| PBI | Status | Yang masih kurang |
+| PBI | Status | Catatan |
 |---|---|---|
-| Jadwal Harian/Mingguan | ✅ Cukup | Label "mingguan" di dashboard kemungkinan masih belum benar-benar memfilter per minggu (cek lagi setelah perbaikan 11.B). |
-| Notifikasi Tugas | ⚠️ Sebagian | Masih hanya notif "jadwal baru" ke pengawas — belum ada notif untuk pengiriman bahan/kebun atau saat jadwal di-edit/dihapus. |
-| Logbook Harian | ✅ Cukup | Pastikan menu logbook dobel sudah benar-benar digabung (bukan cuma redirect tanpa konten tambahan). |
+| Jadwal Harian/Mingguan | ✅ Selesai | Filter mingguan di dashboard admin + label periode. |
+| Notifikasi Tugas | ✅ Cukup | Notif jadwal baru, edit, hapus + stok masuk/bahan kebun ke pengawas. |
+| Logbook Harian | ✅ Selesai | Menu logbook redirect ke tab Operasional. |
 
 ---
 
-### Anggota 4 — Monitoring & Kendala Lapangan (~55%)
+### Anggota 4 — Monitoring & Kendala Lapangan (~80%)
 
-| PBI | Status | Yang masih kurang |
+| PBI | Status | Catatan |
 |---|---|---|
-| Monitoring Pekerjaan | ⚠️ Sebagian | `progres_persentase` + `catatan` masih generik — belum ada field spesifik per jenis pekerjaan (luas area dibersihkan, jenis tanaman kebun, berat sampah dikumpulkan, dll). |
-| Pelaporan Masalah | ✅ Cukup | Pengawas bisa akses form pelaporan dan daftar masalah lapangan. |
-| **Validasi Hasil Kerja (BARU)** | ⚠️ Sebagian | Workflow validasi→upah otomatis sudah ada ✅, tapi **upload foto masih cuma 1, belum before & after** seperti yang diminta spek ("foto bukti pekerjaan sebelum & sesudah"). |
-
-**🎯 Gap paling jelas:** **foto before/after** untuk validasi hasil kerja — ini PBI [BARU] skala menengah dan biasanya jadi sorotan penilaian, jadi worth diprioritaskan.
+| Monitoring Pekerjaan | ✅ Selesai | Field `detail_monitoring` per jenis pekerjaan (luas area, berat sampah, tanaman, dll). |
+| Pelaporan Masalah | ✅ Selesai | Form + daftar masalah untuk pengawas. |
+| **Validasi Hasil Kerja (BARU)** | ✅ Selesai | Foto before/after wajib; validasi admin → upah otomatis. |
 
 ---
 
-### Anggota 5 — Ekonomi & Insentif (~75%)
+### Anggota 5 — Ekonomi & Insentif (~85%)
 
-| PBI | Status | Yang masih kurang |
+| PBI | Status | Catatan |
 |---|---|---|
-| Sistem Insentif & Upah | ✅ Cukup | Sudah otomatis dari validasi logbook + pengawas sudah bisa input (fix dari 11.A.3). Kondisi ini sudah cukup baik. |
-| Reward & Pengakuan | ✅ Cukup | Sertifikat masih berupa catatan teks, bukan generate PDF — ini **wajar**, spek tidak mengharuskan PDF, jadi tidak perlu dikerjakan kecuali ada waktu lebih. |
-| Kalkulator Upah Bulanan (BARU) | ✅ Cukup | Belum menggabungkan otomatis SEMUA sumber pendapatan keluarga lintas program — masih dihitung per jenis transaksi. |
+| Sistem Insentif & Upah | ✅ Selesai | Validasi logbook + input pengawas/admin. |
+| Reward & Pengakuan | ✅ Cukup | Catatan teks (spek tidak wajib PDF). |
+| Kalkulator Upah Bulanan (BARU) | ✅ Selesai | Akumulasi lintas program keluarga di `EkonomiController@detail`. |
 
 ---
 
-### Anggota 6 — Produksi & Distribusi (~75%)
+### Anggota 6 — Produksi & Distribusi (~85%)
 
-| PBI | Status | Yang masih kurang |
+| PBI | Status | Catatan |
 |---|---|---|
-| Distribusi Hasil | ✅ Cukup | Belum auto-link ke data keluarga penerima (dropdown household ada di tracking, tapi tidak terhubung ke form distribusi). |
-| Edukasi & Tips | ✅ Cukup | Edit/hapus materi edukasi masih belum lengkap. |
-| Manajemen Stok | ✅ Cukup | Pastikan `/admin/tracking-reducing` sudah benar-benar digabung/dihapus, bukan cuma dibiarkan jadi dead route. |
+| Distribusi Hasil | ✅ Selesai | `household_id` di form distribusi & histori inventaris. |
+| Edukasi & Tips | ✅ Selesai | Tambah, edit, hapus materi edukasi. |
+| Manajemen Stok | ✅ Selesai | `/admin/tracking-reducing` redirect ke inventaris (filter kompos/kerajinan). |
 
 ---
 
-### Anggota 7 — Evaluasi & Dampak (~55%)
+### Anggota 7 — Evaluasi & Dampak (~80%)
 
-| PBI | Status | Yang masih kurang |
+| PBI | Status | Catatan |
 |---|---|---|
-| Dashboard Program | ✅ Cukup | Widget masih campuran dari modul lain (peta, produksi, tugas) — secara fungsi OK, tapi cek lagi apakah stat keahlian (`Bertani`/`Membersihkan` dll) sudah cocok dengan keyword di seeder. |
-| **Laporan Dampak (PDF)** | ⚠️ Sebagian | "Cetak PDF" kemungkinan masih `window.print()`, bukan export PDF asli. **Form input `EnvironmentalTracking`** kemungkinan masih belum ada → data dampak lingkungan tetap kosong di laporan. |
-| **Tren Produktivitas (BARU)** | ⚠️ Sebagian | Grafik kemungkinan masih dari status program, bukan dari jumlah pekerjaan selesai (logbook/jadwal) per periode — perlu cek apakah ini sudah diperbaiki di 11.C. |
-
-**🎯 Gap paling jelas:** export PDF asli + form input dampak lingkungan — kalau dua ini tidak ada, "Laporan Dampak Program" sulit di-demo dengan baik.
+| Dashboard Program | ✅ Selesai | Stat keahlian fleksibel (Bertani/Petani, Membersihkan, Kerajinan). |
+| **Laporan Dampak (PDF)** | ✅ Selesai | Form input dampak lingkungan + unduh PDF Dompdf; seeder demo environmental data. |
+| **Tren Produktivitas (BARU)** | ✅ Selesai | Grafik dari logbook/jadwal (fallback tanggal schedule jika logbook kosong). |
 
 ---
 
-## Daftar Kerja Tersisa (Urutan Saran)
+## Sisa Opsional (Bukan Blocker Demo)
 
-Berdasarkan dampak ke nilai presentasi (PBI yang masih **0%** atau **paling kelihatan** kalau ditanya dosen/penilai didahulukan):
+Hanya kerjakan jika masih ada waktu sebelum presentasi:
 
-1. **Halaman Profil Pekerja** (Anggota 1) — satu-satunya PBI yang benar-benar 0%, paling mencolok kalau ditanya "mana fitur profil pekerjanya?"
-2. **Foto before/after untuk Validasi Hasil Kerja** (Anggota 4) — PBI [BARU], gampang didemo ("upload foto sebelum, upload foto sesudah, baru bisa divalidasi").
-3. **Form input Environmental Tracking + export PDF asli** (Anggota 7) — supaya "Laporan Dampak Program" bisa benar-benar didemo dengan data dan file PDF nyata.
-4. **Tren Produktivitas dari data logbook**, bukan dari status program (Anggota 7) — kalau belum, ganti sumber data grafik.
-5. Item-item "✅ Cukup tapi kurang" lainnya — sifatnya polish, kerjakan kalau masih ada waktu: notifikasi tugas lebih lengkap, auto-link distribusi ke keluarga, edit/hapus edukasi, integrasi lintas program di kalkulator upah.
+1. **Halaman registrasi satu layar** — gabung form keluarga + pekerja dalam satu wizard (saat ini sudah cukup via tautan silang).
+2. **Stakeholder → akun user** — hubungkan nama stakeholder ke user di sistem + kirim pesan internal otomatis.
+3. **Reward sertifikat PDF** — generate PDF penghargaan (spek tidak mewajibkan).
 
 ---
 
@@ -127,9 +115,17 @@ Berdasarkan dampak ke nilai presentasi (PBI yang masih **0%** atau **paling keli
 
 - [x] **7a. Tugas mingguan dashboard** — Filter `WorkSchedule` per minggu berjalan + label periode di widget.
 - [x] **7b. Stat keahlian dashboard** — Matching keyword fleksibel (Bertani/Petani, Membersihkan, Kerajinan).
-- [x] **7c. Usia pekerja** — Kolom usia di tabel pekerja (accessor `Worker::usia`).
+- [x] **7c. Usia pekerja** — Kolom usia di tabel pekerja (accessor `Worker::usia`) + preview usia di form.
 - [x] **7d. Monitoring per jenis pekerjaan** — Field `detail_monitoring` di logbook (luas area, berat sampah, tanaman, dll).
 - [x] **7e. Akun demo & seeder** — User `admin@village.com` / `pengawas@village.com`, keahlian seeder selaras dashboard.
+
+## Checklist Sinkronisasi Dokumen (Sesi terbaru)
+
+- [x] **8a. Registrasi terpadu (ringan)** — Banner + tautan silang menu Keluarga ↔ Pekerja, preview usia saat input tanggal lahir.
+- [x] **8b. Seeder demo analisis** — Data `EnvironmentalTracking` + `tanggal` logbook di `MonitoringSeeder`.
+- [x] **8c. Produktivitas fallback tanggal** — Grafik pakai `logbook.tanggal` → `schedule.tanggal` → `created_at`.
+- [x] **8d. Notifikasi stakeholder** — Pengawas dapat notif saat program dengan stakeholder disimpan/diupdate.
+- [x] **8e. Update cursor2.md** — Tabel gap diselaraskan dengan implementasi aktual.
 
 ---
 
@@ -137,6 +133,6 @@ Berdasarkan dampak ke nilai presentasi (PBI yang masih **0%** atau **paling keli
 
 Contoh prompt untuk sesi berikutnya:
 
-> "Baca `@cursor.md` dan `@cursor2.md`. Checklist cursor2 sudah selesai (#1–#6). Perbaiki bug demo atau polish tambahan jika diperlukan."
+> "Baca `@cursor.md` dan `@cursor2.md`. Semua checklist sudah selesai. Fokus ke bug demo atau item opsional (#1–#3 di Sisa Opsional) jika diperlukan."
 
-Setelah tiap item selesai, minta update checklist supaya progres tetap tercatat dan sesi berikutnya tidak mengulang kerja yang sama.
+Setelah tiap item selesai, minta update checklist supaya progres tetap tercatat.

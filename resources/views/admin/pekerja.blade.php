@@ -8,9 +8,14 @@
             <h1 style="font-size: 1.8rem;">Manajemen Data Pekerja</h1>
             <p>Daftar warga prasejahtera yang berpartisipasi dalam program desa.</p>
         </div>
-        <button class="btn btn-primary" @click="openAddForm()">
-            <i data-lucide="plus-circle" style="width: 18px; height: 18px; margin-right: 8px;"></i> Tambah Pekerja
-        </button>
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+            <a href="/admin/keluarga" class="btn btn-outline" style="text-decoration: none;">
+                <i data-lucide="users" style="width: 18px; height: 18px; margin-right: 8px;"></i> Data Keluarga
+            </a>
+            <button class="btn btn-primary" @click="openAddForm()">
+                <i data-lucide="plus-circle" style="width: 18px; height: 18px; margin-right: 8px;"></i> Tambah Pekerja
+            </button>
+        </div>
     </div>
 
     <!-- Feedback Message -->
@@ -19,6 +24,13 @@
             {{ session('success') }}
         </div>
     @endif
+
+    <div class="glass-panel" style="padding: 1rem 1.25rem; margin-bottom: 1.5rem; border-left: 4px solid var(--primary);">
+        <strong style="color: var(--text-main);">Registrasi terpadu</strong>
+        <p style="margin: 0.35rem 0 0; font-size: 0.9rem; color: var(--text-muted);">
+            Tambah data keluarga terlebih dahulu di menu <a href="/admin/keluarga" style="color: var(--primary);">Keluarga Miskin</a>, lalu daftarkan anggota pekerja dan hubungkan ke kepala keluarga.
+        </p>
+    </div>
 
     <div x-show="showForm" class="glass-panel" style="padding: 2rem; margin-bottom: 2rem; display: none;">
         <h3 style="margin-bottom: 1.5rem;" x-text="editMode ? 'Edit Data Pekerja' : 'Pendaftaran Pekerja Baru'"></h3>
@@ -43,6 +55,9 @@
             <div class="form-group">
                 <label class="form-label">Tanggal Lahir</label>
                 <input type="date" name="tanggal_lahir" class="form-input" x-model="workerData.tanggal_lahir" />
+                <small x-show="computedUsia !== null" style="display: block; margin-top: 0.35rem; color: var(--text-muted);">
+                    Usia: <span x-text="computedUsia"></span> tahun
+                </small>
             </div>
             <div class="form-group">
                 <label class="form-label">Jenis Kelamin</label>
@@ -143,6 +158,23 @@
             editMode: false,
             workerData: {
                 nama: '', household_id: '', tanggal_lahir: '', jenis_kelamin: 'L', no_telepon: '', kontak_darurat: '', kemampuan_utama: '', status_keluarga: 'Kepala Keluarga', status_rumah: 'Milik Sendiri', riwayat_penyakit: '', alamat: ''
+            },
+
+            get computedUsia() {
+                if (!this.workerData.tanggal_lahir) {
+                    return null;
+                }
+                const birth = new Date(this.workerData.tanggal_lahir);
+                if (Number.isNaN(birth.getTime())) {
+                    return null;
+                }
+                const today = new Date();
+                let age = today.getFullYear() - birth.getFullYear();
+                const monthDiff = today.getMonth() - birth.getMonth();
+                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+                    age--;
+                }
+                return age >= 0 ? age : null;
             },
 
             openAddForm() {

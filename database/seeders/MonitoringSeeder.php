@@ -11,6 +11,7 @@ use App\Models\MicroProgram;
 use App\Models\WorkSchedule;
 use App\Models\Logbook;
 use App\Models\FieldProblem;
+use App\Models\EnvironmentalTracking;
 
 class MonitoringSeeder extends Seeder
 {
@@ -95,7 +96,9 @@ class MonitoringSeeder extends Seeder
             [
                 'schedule_id' => $sched1Id,
                 'pengawas_id' => $pengawasId,
+                'tanggal' => $today,
                 'progres_persentase' => 100,
+                'status_validasi' => 'menunggu',
                 'catatan' => 'Pembersihan selesai 100%',
                 'pekerja_terlibat' => '[]',
                 'lokasi_pekerjaan' => 'Desa Sukamaju RT 01',
@@ -104,6 +107,7 @@ class MonitoringSeeder extends Seeder
             [
                 'schedule_id' => $sched2Id,
                 'pengawas_id' => $pengawasId,
+                'tanggal' => $today,
                 'progres_persentase' => 50,
                 'catatan' => 'Sedang memilah sampah organik',
                 'pekerja_terlibat' => '[]',
@@ -129,6 +133,18 @@ class MonitoringSeeder extends Seeder
             $probData['created_at'] = now();
             $probData['updated_at'] = now();
             FieldProblem::create($probData);
+        }
+
+        $environmentalSamples = [
+            ['tanggal' => $today, 'jenis_limbah' => 'Organik', 'volume_kg' => 62.5, 'estimasi_emisi_berkurang_kg' => 18.2],
+            ['tanggal' => $today, 'jenis_limbah' => 'Kompos', 'volume_kg' => 28.0, 'estimasi_emisi_berkurang_kg' => 9.5],
+            ['tanggal' => Carbon::today()->subDays(7)->toDateString(), 'jenis_limbah' => 'Sampah Terpilah', 'volume_kg' => 45.0, 'estimasi_emisi_berkurang_kg' => 12.0],
+        ];
+
+        foreach ($environmentalSamples as $envData) {
+            $envData['created_at'] = now();
+            $envData['updated_at'] = now();
+            EnvironmentalTracking::create($envData);
         }
 
         $this->command->info("Seeding data monitoring selesai! Silakan cek database/dashboard.");

@@ -13,25 +13,34 @@ class ProduktivitasController extends Controller
             ->whereNotNull('tanggal')
             ->get();
 
-        $logbooks = Logbook::query()
-            ->whereNotNull('tanggal')
-            ->get();
+        $logbooks = Logbook::with('schedule')->get();
+
+        $resolvePeriod = function ($dateValue) {
+            if (!$dateValue) {
+                return null;
+            }
+
+            return \Carbon\Carbon::parse($dateValue)->format('Y-m');
+        };
 
         $periodKeys = $schedules->pluck('tanggal')
-            ->merge($logbooks->pluck('tanggal'))
+            ->merge($logbooks->map(fn (Logbook $logbook) => $logbook->tanggal ?? $logbook->schedule?->tanggal ?? $logbook->created_at))
             ->filter()
-            ->map(fn ($d) => \Carbon\Carbon::parse($d)->format('Y-m'))
+            ->map($resolvePeriod)
+            ->filter()
             ->unique()
             ->sort()
             ->values();
 
-        $formattedData = $periodKeys->map(function ($periode) use ($schedules, $logbooks) {
+        $formattedData = $periodKeys->map(function ($periode) use ($schedules, $logbooks, $resolvePeriod) {
             $monthSchedules = $schedules->filter(
-                fn ($s) => $s->tanggal && \Carbon\Carbon::parse($s->tanggal)->format('Y-m') === $periode
+                fn ($s) => $s->tanggal && $resolvePeriod($s->tanggal) === $periode
             );
-            $monthLogbooks = $logbooks->filter(
-                fn ($l) => $l->tanggal && \Carbon\Carbon::parse($l->tanggal)->format('Y-m') === $periode
-            );
+            $monthLogbooks = $logbooks->filter(function (Logbook $logbook) use ($periode, $resolvePeriod) {
+                $date = $logbook->tanggal ?? $logbook->schedule?->tanggal ?? $logbook->created_at;
+
+                return $date && $resolvePeriod($date) === $periode;
+            });
 
             $rencana = $monthSchedules->count();
 

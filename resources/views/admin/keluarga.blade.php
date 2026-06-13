@@ -8,9 +8,14 @@
             <h1 style="font-size: 1.8rem;">Data Keluarga Prasejahtera</h1>
             <p>Manajemen data rumah tangga penerima manfaat program desa.</p>
         </div>
-        <button class="btn btn-primary" @click="openAddForm()">
-            <i data-lucide="plus-circle" style="width: 18px; height: 18px; margin-right: 8px;"></i> Tambah Keluarga
-        </button>
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+            <a href="/admin/pekerja" class="btn btn-outline" style="text-decoration: none;">
+                <i data-lucide="user" style="width: 18px; height: 18px; margin-right: 8px;"></i> Data Pekerja
+            </a>
+            <button class="btn btn-primary" @click="openAddForm()">
+                <i data-lucide="plus-circle" style="width: 18px; height: 18px; margin-right: 8px;"></i> Tambah Keluarga
+            </button>
+        </div>
     </div>
 
     @if(session('success'))

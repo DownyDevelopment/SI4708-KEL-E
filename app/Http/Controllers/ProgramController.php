@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\MicroProgram;
+use App\Support\OperationalNotifier;
+use Illuminate\Http\Request;
 
 class ProgramController extends Controller
 {
@@ -27,6 +28,8 @@ class ProgramController extends Controller
 
         MicroProgram::create($request->all());
 
+        $this->notifyStakeholders($request->input('stakeholders'), $request->input('nama_program'));
+
         return redirect()->back()->with('success', 'Program berhasil disimpan.');
     }
 
@@ -35,6 +38,8 @@ class ProgramController extends Controller
         $program = MicroProgram::findOrFail($id);
         $program->update($request->all());
 
+        $this->notifyStakeholders($request->input('stakeholders'), $program->nama_program);
+
         return redirect()->back()->with('success', 'Program berhasil diupdate.');
     }
 
@@ -42,5 +47,29 @@ class ProgramController extends Controller
     {
         MicroProgram::findOrFail($id)->delete();
         return redirect()->back()->with('success', 'Program berhasil dihapus.');
+    }
+
+    private function notifyStakeholders(?string $stakeholdersJson, ?string $programName): void
+    {
+        $stakeholders = json_decode($stakeholdersJson ?? '[]', true);
+        if (!is_array($stakeholders) || empty($stakeholders)) {
+            return;
+        }
+
+        $labels = collect($stakeholders)
+            ->map(fn ($item) => trim(($item['nama'] ?? '') . ($item['peran'] ? ' (' . $item['peran'] . ')' : '')))
+            ->filter()
+            ->take(4)
+            ->implode(', ');
+
+        if ($labels === '') {
+            return;
+        }
+
+        OperationalNotifier::notify(
+            'Koordinasi Stakeholder',
+            "Program {$programName} melibatkan stakeholder: {$labels}",
+            '/pengawas/operasional'
+        );
     }
 }
