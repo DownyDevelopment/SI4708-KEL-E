@@ -21,7 +21,8 @@ class DistribusiController extends Controller
             'item_id' => 'required|exists:inventaris,id',
             'jumlah' => 'required|numeric|min:0.1',
             'tipe' => 'required|string',
-            'keterangan' => 'required|string'
+            'keterangan' => 'required|string',
+            'household_id' => 'nullable|exists:households,id',
         ]);
 
         $item = Inventaris::findOrFail($request->item_id);
@@ -37,7 +38,8 @@ class DistribusiController extends Controller
             'inventaris_id' => $item->id,
             'tipe_perubahan' => 'kurang',
             'jumlah_perubahan' => $request->jumlah,
-            'keterangan' => $request->keterangan
+            'keterangan' => $request->keterangan,
+            'household_id' => $request->household_id,
         ]);
 
         return redirect()->back()->with('success', 'Distribusi/Penjualan berhasil dicatat.');

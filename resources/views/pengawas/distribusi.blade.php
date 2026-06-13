@@ -81,6 +81,7 @@
                 @csrf
                 <input type="hidden" name="item_id" :value="activeAction.id">
                 <input type="hidden" name="tipe" :value="activeAction.type">
+                <input type="hidden" name="household_id" :value="household_id || ''">
                 <div>
                     <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem;">Jumlah (<span x-text="selectedItem?.satuan"></span>)</label>
                     <input type="number" step="0.1" min="0.1" name="jumlah" class="search-input" style="width: 100%;" required placeholder="Cth: 5" />
@@ -155,6 +156,11 @@
                                     <span x-text="(h.tipe_perubahan === 'tambah' ? '+' : '-') + Number(h.jumlah_perubahan) + ' ' + selectedItem?.satuan"></span>
                                 </div>
                                 <p style="font-size: 0.875rem; color: #555; margin: 0;" x-text="h.keterangan"></p>
+                                <template x-if="h.household">
+                                    <p style="font-size: 0.8rem; color: var(--primary); margin: 0.35rem 0 0;">
+                                        Penerima: <span x-text="h.household.kepala_keluarga + ' (RT/RW ' + h.household.rt_rw + ')'"></span>
+                                    </p>
+                                </template>
                             </div>
                         </div>
                     </template>

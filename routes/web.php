@@ -38,6 +38,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     
     Route::get('/edukasi', [\App\Http\Controllers\EdukasiController::class, 'index'])->name('admin.edukasi');
     Route::post('/edukasi', [\App\Http\Controllers\EdukasiController::class, 'store']);
+    Route::put('/edukasi/{id}', [\App\Http\Controllers\EdukasiController::class, 'update'])->name('admin.edukasi.update');
+    Route::delete('/edukasi/{id}', [\App\Http\Controllers\EdukasiController::class, 'destroy'])->name('admin.edukasi.destroy');
     
     Route::get('/inventaris', [\App\Http\Controllers\InventarisController::class, 'index'])->name('admin.inventaris');
     Route::post('/inventaris', [\App\Http\Controllers\InventarisController::class, 'store']);

@@ -3,11 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\MicroProgram;
-use App\Models\Notification;
 use App\Models\ScheduleAssignment;
-use App\Models\User;
 use App\Models\Worker;
 use App\Models\WorkSchedule;
+use App\Support\OperationalNotifier;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -60,7 +59,11 @@ class JadwalController extends Controller
                 ]);
             }
 
-            $this->notifyPengawasNewSchedule($program->nama_program);
+            OperationalNotifier::notify(
+                'Jadwal Baru',
+                "Jadwal baru ditambahkan untuk program {$program->nama_program}",
+                '/pengawas/operasional?tab=jadwal'
+            );
         });
 
         return redirect()->back()->with('success', 'Jadwal kerja berhasil ditambahkan.');
@@ -68,7 +71,7 @@ class JadwalController extends Controller
 
     public function update(Request $request, int $id)
     {
-        $schedule = WorkSchedule::findOrFail($id);
+        $schedule = WorkSchedule::with('program')->findOrFail($id);
 
         $validated = $request->validate([
             'program_id' => 'required|exists:micro_programs,id',
@@ -101,6 +104,15 @@ class JadwalController extends Controller
                     'worker_id' => $workerId,
                 ]);
             }
+
+            $programName = MicroProgram::find($validated['program_id'])?->nama_program
+                ?? $schedule->program?->nama_program
+                ?? 'Program';
+            OperationalNotifier::notify(
+                'Jadwal Diperbarui',
+                "Jadwal program {$programName} pada {$validated['tanggal']} telah diubah",
+                '/pengawas/operasional?tab=jadwal'
+            );
         });
 
         return redirect()->back()->with('success', 'Jadwal kerja berhasil diperbarui.');
@@ -108,7 +120,17 @@ class JadwalController extends Controller
 
     public function destroy(int $id)
     {
-        WorkSchedule::findOrFail($id)->delete();
+        $schedule = WorkSchedule::with('program')->findOrFail($id);
+        $programName = $schedule->program?->nama_program ?? 'Program';
+        $tanggal = $schedule->tanggal;
+
+        $schedule->delete();
+
+        OperationalNotifier::notify(
+            'Jadwal Dihapus',
+            "Jadwal program {$programName} pada {$tanggal} telah dihapus",
+            '/pengawas/operasional?tab=jadwal'
+        );
 
         return redirect()->back()->with('success', 'Jadwal kerja berhasil dihapus.');
     }
@@ -143,18 +165,4 @@ class JadwalController extends Controller
         ];
     }
 
-    private function notifyPengawasNewSchedule(string $namaProgram): void
-    {
-        $pengawasUsers = User::where('role', 'pengawas')->get();
-
-        foreach ($pengawasUsers as $user) {
-            Notification::create([
-                'user_id' => $user->id,
-                'judul' => 'Jadwal Baru',
-                'pesan' => "Jadwal baru ditambahkan untuk program {$namaProgram}",
-                'is_read' => false,
-                'link_url' => '/pengawas/operasional',
-            ]);
-        }
-    }
 }

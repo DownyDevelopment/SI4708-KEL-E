@@ -139,14 +139,34 @@
                         <div>
                             <div style="font-size: 1.75rem; font-weight: 700; color: var(--primary);" x-text="fmtIdr(akumulasi.total_upah)"></div>
                             <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">
-                                Periode <span x-text="akumulasi.periode.label"></span> · <span x-text="akumulasi.jumlah_entri"></span> entri
+                                Upah pekerja terpilih · Periode <span x-text="akumulasi.periode.label"></span> · <span x-text="akumulasi.jumlah_entri"></span> entri
                             </p>
+                            <template x-if="akumulasi.total_keluarga_lintas_program > 0">
+                                <div style="margin-top: 1rem; padding: 1rem; background: #f0fdf4; border-radius: 8px; border: 1px solid #bbf7d0;">
+                                    <div style="font-size: 0.8rem; color: #166534; font-weight: 600; margin-bottom: 0.35rem;">Total pendapatan keluarga (lintas program)</div>
+                                    <div style="font-size: 1.35rem; font-weight: 700; color: #15803d;" x-text="fmtIdr(akumulasi.total_keluarga_lintas_program)"></div>
+                                    <p style="font-size: 0.8rem; color: #166534; margin-top: 0.35rem;">
+                                        Dasar keluarga: <span x-text="fmtIdr(akumulasi.pendapatan_keluarga_dasar)"></span>
+                                        · Insentif semua anggota: <span x-text="fmtIdr(akumulasi.total_insentif_keluarga)"></span>
+                                    </p>
+                                </div>
+                            </template>
                             <template x-if="akumulasi.per_jenis && akumulasi.per_jenis.length > 0">
                                 <ul style="margin-top: 1rem; padding-left: 1.1rem; font-size: 0.9rem;">
                                     <template x-for="p in akumulasi.per_jenis" :key="p.jenis_insentif">
                                         <li><span x-text="p.jenis_insentif"></span>: <strong x-text="fmtIdr(p.subtotal)"></strong></li>
                                     </template>
                                 </ul>
+                            </template>
+                            <template x-if="akumulasi.per_program && akumulasi.per_program.length > 0">
+                                <div style="margin-top: 1rem;">
+                                    <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.5rem;">Rincian per program (keluarga)</div>
+                                    <ul style="padding-left: 1.1rem; font-size: 0.85rem;">
+                                        <template x-for="p in akumulasi.per_program" :key="p.program">
+                                            <li><span x-text="p.program"></span>: <strong x-text="fmtIdr(p.subtotal)"></strong> (<span x-text="p.jumlah_entri"></span> entri)</li>
+                                        </template>
+                                    </ul>
+                                </div>
                             </template>
                         </div>
                     </template>

@@ -122,7 +122,7 @@ Berdasarkan dampak ke nilai presentasi (PBI yang masih **0%** atau **paling keli
 - [x] **3. Form Environmental Tracking + export PDF asli** — Form input di `/admin/analisis`, model `EnvironmentalTracking` diisi, unduh PDF via Dompdf (`/admin/analisis/pdf`).
 - [x] **4. Tren Produktivitas dari logbook/jadwal** — `ProduktivitasController` pakai data `WorkSchedule` + `Logbook`, bukan status program.
 - [x] **5. Permission granular per role** — Middleware `role.feature`: relawan (dashboard + pelaporan), supervisor (+ operasional, distribusi, profiling), pengawas (semua termasuk ekonomi).
-- [ ] **6. Polish opsional** — Notifikasi tugas lengkap, auto-link distribusi, edit/hapus edukasi, kalkulator upah lintas program (belum dikerjakan).
+- [x] **6. Polish opsional** — Notifikasi jadwal edit/hapus + stok masuk, `household_id` di distribusi, edit/hapus edukasi, kalkulator upah lintas program keluarga.
 
 ---
 
@@ -130,6 +130,6 @@ Berdasarkan dampak ke nilai presentasi (PBI yang masih **0%** atau **paling keli
 
 Contoh prompt untuk sesi berikutnya:
 
-> "Baca `@cursor.md` dan `@cursor2.md`. Item #1–#5 di checklist sudah selesai. Lanjutkan item #6 (polish opsional) atau perbaiki bug yang muncul saat demo."
+> "Baca `@cursor.md` dan `@cursor2.md`. Checklist cursor2 sudah selesai (#1–#6). Perbaiki bug demo atau polish tambahan jika diperlukan."
 
 Setelah tiap item selesai, minta update checklist supaya progres tetap tercatat dan sesi berikutnya tidak mengulang kerja yang sama.

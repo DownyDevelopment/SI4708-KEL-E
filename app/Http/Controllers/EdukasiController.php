@@ -27,4 +27,26 @@ class EdukasiController extends Controller
 
         return redirect()->back()->with('success', 'Materi edukasi berhasil ditambahkan.');
     }
+
+    public function update(Request $request, int $id)
+    {
+        $request->validate([
+            'judul' => 'required|string|max:255',
+            'deskripsi' => 'required|string',
+            'kategori' => 'required|string|max:255',
+            'tipe_konten' => 'required|string|max:255',
+            'url_konten' => 'nullable|string',
+        ]);
+
+        EdukasiContent::findOrFail($id)->update($request->all());
+
+        return redirect()->back()->with('success', 'Materi edukasi berhasil diperbarui.');
+    }
+
+    public function destroy(int $id)
+    {
+        EdukasiContent::findOrFail($id)->delete();
+
+        return redirect()->back()->with('success', 'Materi edukasi berhasil dihapus.');
+    }
 }

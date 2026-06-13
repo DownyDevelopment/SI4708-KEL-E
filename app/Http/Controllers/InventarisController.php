@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Inventaris;
 use App\Models\InventarisHistory;
+use App\Support\OperationalNotifier;
 use Illuminate\Support\Facades\DB;
 
 class InventarisController extends Controller
@@ -57,7 +58,8 @@ class InventarisController extends Controller
         $request->validate([
             'jumlah' => 'required|numeric|min:0.1',
             'tipe' => 'required|in:tambah,kurang',
-            'keterangan' => 'required|string'
+            'keterangan' => 'required|string',
+            'household_id' => 'nullable|exists:households,id',
         ]);
 
         DB::transaction(function () use ($request, $id) {
@@ -76,8 +78,17 @@ class InventarisController extends Controller
                 'inventaris_id' => $item->id,
                 'jumlah_perubahan' => $request->jumlah,
                 'tipe_perubahan' => $request->tipe,
-                'keterangan' => $request->keterangan
+                'keterangan' => $request->keterangan,
+                'household_id' => $request->tipe === 'kurang' ? $request->household_id : null,
             ]);
+
+            if ($request->tipe === 'tambah') {
+                OperationalNotifier::notify(
+                    'Stok Masuk / Bahan Kebun',
+                    "Stok {$item->nama_barang} ditambah {$request->jumlah} {$item->satuan}: {$request->keterangan}",
+                    '/pengawas/distribusi'
+                );
+            }
         });
 
         return redirect()->back()->with('success', 'Stok berhasil diperbarui.');
@@ -85,7 +96,8 @@ class InventarisController extends Controller
 
     public function history($id)
     {
-        $histories = InventarisHistory::where('inventaris_id', $id)
+        $histories = InventarisHistory::with('household')
+            ->where('inventaris_id', $id)
             ->orderBy('created_at', 'desc')
             ->get();
             

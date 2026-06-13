@@ -82,12 +82,24 @@
                     <h3 style="font-size: 1.125rem; font-weight: 600; color: var(--text-main); margin-bottom: 0.5rem; line-height: 1.4;" x-text="content.judul"></h3>
                     <p style="font-size: 0.875rem; color: var(--text-muted); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;" x-text="content.deskripsi"></p>
                 </div>
-                <div style="padding: 1rem 1.5rem; background-color: #fafafa; display: flex; justify-content: space-between; align-items: center; margin-top: auto;">
+                <div style="padding: 1rem 1.5rem; background-color: #fafafa; display: flex; justify-content: space-between; align-items: center; margin-top: auto; gap: 0.5rem;">
                     <span style="font-size: 0.75rem; color: var(--text-muted);" x-text="content.tipe_konten"></span>
-                    <button @click="handleOpenMaterial(content)" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; color: var(--primary); font-weight: 500; background: none; border: none; cursor: pointer; padding: 0;">
-                        <span x-text="content.url_konten?.startsWith('modal:') ? 'Baca Modul' : 'Buka Materi'"></span>
-                        <i :data-lucide="content.url_konten?.startsWith('modal:') ? 'book-open' : 'external-link'" style="width: 14px; height: 14px;"></i>
-                    </button>
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <button type="button" @click="openEdit(content)" style="font-size: 0.8rem; color: var(--text-muted); background: none; border: none; cursor: pointer; padding: 0;" title="Edit">
+                            <i data-lucide="pencil" style="width: 14px; height: 14px;"></i>
+                        </button>
+                        <form method="POST" :action="'/admin/edukasi/' + content.id" @submit="return confirm('Hapus materi ini?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" style="font-size: 0.8rem; color: #ef4444; background: none; border: none; cursor: pointer; padding: 0;" title="Hapus">
+                                <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                            </button>
+                        </form>
+                        <button @click="handleOpenMaterial(content)" style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; color: var(--primary); font-weight: 500; background: none; border: none; cursor: pointer; padding: 0;">
+                            <span x-text="content.url_konten?.startsWith('modal:') ? 'Baca Modul' : 'Buka Materi'"></span>
+                            <i :data-lucide="content.url_konten?.startsWith('modal:') ? 'book-open' : 'external-link'" style="width: 14px; height: 14px;"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </template>
@@ -99,6 +111,52 @@
                 <p style="color: var(--text-muted);">Tambahkan materi edukasi pertama untuk pekerja.</p>
             </div>
         </template>
+    </div>
+
+    <!-- Modal Edit Konten -->
+    <div x-show="editContent" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9998; display: flex; justify-content: center; align-items: center; padding: 2rem; display: none;" @click="editContent = null">
+        <div style="background: white; padding: 1.5rem; border-radius: 12px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto;" @click.stop>
+            <h3 style="margin-bottom: 1rem; font-weight: 600;">Edit Materi Edukasi</h3>
+            <form method="POST" :action="'/admin/edukasi/' + editContent?.id" style="display: flex; flex-direction: column; gap: 1rem;">
+                @csrf
+                @method('PUT')
+                <div>
+                    <label style="display: block; font-size: 0.875rem; margin-bottom: 0.5rem;">Judul Materi</label>
+                    <input type="text" name="judul" class="search-input" style="width: 100%;" required x-model="editContent.judul" />
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.875rem; margin-bottom: 0.5rem;">Deskripsi</label>
+                    <textarea name="deskripsi" class="search-input" style="width: 100%; min-height: 80px;" required x-model="editContent.deskripsi"></textarea>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <div style="flex: 1;">
+                        <label style="display: block; font-size: 0.875rem; margin-bottom: 0.5rem;">Kategori</label>
+                        <select name="kategori" class="search-input" style="width: 100%;" x-model="editContent.kategori">
+                            <option value="Pertanian">Pertanian</option>
+                            <option value="Lingkungan">Lingkungan</option>
+                            <option value="Keterampilan">Keterampilan</option>
+                            <option value="Kesehatan">Kesehatan</option>
+                        </select>
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="display: block; font-size: 0.875rem; margin-bottom: 0.5rem;">Tipe Konten</label>
+                        <select name="tipe_konten" class="search-input" style="width: 100%;" x-model="editContent.tipe_konten">
+                            <option value="Artikel">Artikel</option>
+                            <option value="Video">Video</option>
+                            <option value="Panduan PDF">Panduan PDF</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.875rem; margin-bottom: 0.5rem;">URL / Link Materi</label>
+                    <input type="text" name="url_konten" class="search-input" style="width: 100%;" x-model="editContent.url_konten" />
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button type="button" class="btn btn-outline" @click="editContent = null">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <!-- Modul & Video Modal -->
@@ -189,6 +247,7 @@
             searchTerm: '',
             contents: @json($contents),
             activeModul: null,
+            editContent: null,
             
             get filteredContents() {
                 if (this.searchTerm === '') {
@@ -228,6 +287,11 @@
                     anchor.rel = 'noopener noreferrer';
                     anchor.click();
                 }
+            },
+
+            openEdit(content) {
+                this.editContent = { ...content };
+                setTimeout(() => lucide.createIcons(), 50);
             }
         }));
     });

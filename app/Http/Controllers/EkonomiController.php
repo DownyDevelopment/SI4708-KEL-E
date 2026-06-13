@@ -29,28 +29,64 @@ class EkonomiController extends Controller
 
     public function detail(Request $request, $workerId)
     {
-        $tahun = $request->query('tahun', date('Y'));
-        $bulan = $request->query('bulan', date('n'));
+        $tahun = (int) $request->query('tahun', date('Y'));
+        $bulan = (int) $request->query('bulan', date('n'));
 
-        $insentif = Insentif::where('worker_id', $workerId)
+        $worker = Worker::with('household.workers')->findOrFail($workerId);
+
+        $insentif = Insentif::with(['logbook.schedule.program'])
+            ->where('worker_id', $workerId)
             ->whereYear('tanggal', $tahun)
             ->whereMonth('tanggal', $bulan)
             ->get();
 
         $totalUpah = $insentif->sum('jumlah_upah');
-        
+
         $perJenis = $insentif->groupBy('jenis_insentif')->map(function ($group) {
             return [
                 'jenis_insentif' => $group->first()->jenis_insentif,
-                'subtotal' => $group->sum('jumlah_upah')
+                'subtotal' => $group->sum('jumlah_upah'),
             ];
         })->values();
+
+        $householdWorkerIds = $worker->household
+            ? $worker->household->workers->pluck('id')
+            : collect([$worker->id]);
+
+        $insentifKeluarga = Insentif::with(['worker', 'logbook.schedule.program'])
+            ->whereIn('worker_id', $householdWorkerIds)
+            ->whereYear('tanggal', $tahun)
+            ->whereMonth('tanggal', $bulan)
+            ->get();
+
+        $totalInsentifKeluarga = $insentifKeluarga->sum('jumlah_upah');
+        $pendapatanKeluargaDasar = (float) ($worker->household?->pendapatan_per_bulan ?? 0);
+
+        $perProgram = $insentifKeluarga
+            ->groupBy(function (Insentif $item) {
+                return $item->logbook?->schedule?->program?->nama_program ?? 'Lainnya / Manual';
+            })
+            ->map(function ($group, $programName) {
+                return [
+                    'program' => $programName,
+                    'subtotal' => $group->sum('jumlah_upah'),
+                    'jumlah_entri' => $group->count(),
+                ];
+            })
+            ->values()
+            ->sortByDesc('subtotal')
+            ->values();
 
         $akumulasi = [
             'total_upah' => $totalUpah,
             'jumlah_entri' => $insentif->count(),
             'periode' => ['label' => "$bulan/$tahun"],
-            'per_jenis' => $perJenis
+            'per_jenis' => $perJenis,
+            'pendapatan_keluarga_dasar' => $pendapatanKeluargaDasar,
+            'total_insentif_keluarga' => $totalInsentifKeluarga,
+            'total_keluarga_lintas_program' => $pendapatanKeluargaDasar + $totalInsentifKeluarga,
+            'per_program' => $perProgram,
+            'anggota_keluarga' => $worker->household?->workers->pluck('nama')->values() ?? collect(),
         ];
 
         $riwayat = Insentif::where('worker_id', $workerId)->orderBy('tanggal', 'desc')->get();
@@ -59,7 +95,7 @@ class EkonomiController extends Controller
         return response()->json([
             'akumulasi' => $akumulasi,
             'riwayat' => $riwayat,
-            'rewards' => $rewards
+            'rewards' => $rewards,
         ]);
     }
 
