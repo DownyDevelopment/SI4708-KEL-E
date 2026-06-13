@@ -31,9 +31,15 @@ class AuthController extends Controller
 
             if (Auth::user()->role === 'admin') {
                 return redirect()->intended('/admin/dashboard');
-            } else {
+            }
+            if (in_array(Auth::user()->role, ['pengawas', 'supervisor', 'relawan'], true)) {
                 return redirect()->intended('/pengawas/dashboard');
             }
+
+            Auth::logout();
+            return back()->withErrors([
+                'email' => 'Role akun tidak memiliki akses modul.',
+            ])->onlyInput('email');
         }
 
         return back()->withErrors([

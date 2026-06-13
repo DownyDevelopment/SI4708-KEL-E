@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Logbook;
 use App\Models\Worker;
 use App\Models\WorkSchedule;
+use App\Models\ScheduleAssignment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -50,6 +51,7 @@ class LogbookController extends Controller
             'catatan_progres' => $catatan,
             'catatan' => $catatan,
             'progres_persentase' => (int) $validated['progres_persentase'],
+            'status_validasi' => (int) $validated['progres_persentase'] >= 100 ? 'menunggu' : null,
             'foto_bukti' => $fotoPath,
             'foto_bukti_url' => $fotoPath,
             'lokasi_pekerjaan' => $validated['lokasi_pekerjaan'] ?? null,
@@ -100,6 +102,9 @@ class LogbookController extends Controller
             'catatan_progres' => $catatan,
             'catatan' => $catatan,
             'progres_persentase' => (int) $validated['progres_persentase'],
+            'status_validasi' => (int) $validated['progres_persentase'] >= 100 && $logbook->status_validasi !== 'disetujui'
+                ? 'menunggu'
+                : $logbook->status_validasi,
             'foto_bukti' => $fotoPath,
             'foto_bukti_url' => $fotoPath,
         ]);

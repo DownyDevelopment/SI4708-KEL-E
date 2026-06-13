@@ -11,6 +11,7 @@ class Insentif extends Model
     use HasFactory;
     protected $fillable = [
         'worker_id',
+        'logbook_id',
         'tanggal',
         'jumlah_upah',
         'jenis_insentif',
@@ -20,5 +21,10 @@ class Insentif extends Model
     public function worker(): BelongsTo
     {
         return $this->belongsTo(Worker::class);
+    }
+
+    public function logbook(): BelongsTo
+    {
+        return $this->belongsTo(Logbook::class);
     }
 }

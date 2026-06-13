@@ -15,6 +15,7 @@ class Logbook extends Model
         'catatan_progres',
         'catatan',
         'progres_persentase',
+        'status_validasi',
         'foto_bukti',
         'foto_bukti_url',
         'lokasi_pekerjaan',

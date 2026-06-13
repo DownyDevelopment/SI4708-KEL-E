@@ -29,14 +29,12 @@
                 <x-sidebar-item icon="bar-chart-2" label="Dashboard Analisis" to="/admin/analisis" :active="request()->is('admin/analisis')" />
                 <x-sidebar-item icon="users" label="Data Pekerja" to="/admin/pekerja" :active="request()->is('admin/pekerja')" />
                 <x-sidebar-item icon="square-user" label="Keluarga Miskin" to="/admin/keluarga" :active="request()->is('admin/keluarga')" />
-                <x-sidebar-item icon="map-pin" label="Perencanaan Program" to="/admin/perencanaan" :active="request()->is('admin/perencanaan')" />
-                <x-sidebar-item icon="calendar" label="Program Mikro" to="/admin/program" :active="request()->is('admin/program')" />
+                <x-sidebar-item icon="map-pin" label="Perencanaan Program" to="/admin/perencanaan" :active="request()->is('admin/perencanaan') || request()->is('admin/program')" />
                 <x-sidebar-item icon="pie-chart" label="Profiling" to="/admin/profiling" :active="request()->is('admin/profiling')" />
                 <x-sidebar-item icon="dollar-sign" label="Keuangan" to="/admin/ekonomi" :active="request()->is('admin/ekonomi')" />
                 <x-sidebar-item icon="book-open" label="Edukasi" to="/admin/edukasi" :active="request()->is('admin/edukasi')" />
                 <x-sidebar-item icon="shield-check" label="Pengaturan Akses" to="/admin/roles" :active="request()->is('admin/roles')" />
                 <x-sidebar-item icon="trending-up" label="Tren Produktivitas" to="/admin/produktivitas" :active="request()->is('admin/produktivitas')" />
-                <x-sidebar-item icon="leaf" label="Tracking & Reducing" to="/admin/tracking-reducing" :active="request()->is('admin/tracking-reducing')" />
                 <x-sidebar-item icon="file-text" label="Tugas" to="/admin/tugas" :active="request()->is('admin/tugas')" />
                 <x-sidebar-item icon="package" label="Inventaris" to="/admin/inventaris" :active="request()->is('admin/inventaris')" />
             @else
@@ -147,7 +145,13 @@
                 <div class="user-profile">
                     <div class="user-info">
                         <div class="user-name">{{ auth()->user()->nama }}</div>
-                        <div class="user-role">{{ auth()->user()->role === 'admin' ? 'Administrator' : 'Pengawas' }}</div>
+                        <div class="user-role">@switch(auth()->user()->role)
+                            @case('admin') Administrator @break
+                            @case('pengawas') Pengawas @break
+                            @case('supervisor') Supervisor @break
+                            @case('relawan') Relawan @break
+                            @default {{ auth()->user()->role }}
+                        @endswitch</div>
                     </div>
                     <div class="avatar" style="display: flex; align-items: center; justify-content: center; background: #e0e7ff; color: #4f46e5;">
                         <i data-lucide="user-circle" style="width: 28px; height: 28px;"></i>

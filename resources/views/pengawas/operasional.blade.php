@@ -221,6 +221,13 @@
                             <div class="progress-fill" style="width: {{ min(100, (int)$log->progres_persentase) }}%;"></div>
                         </div>
                         <span style="font-size: 0.8rem;">{{ (int)$log->progres_persentase }}%</span>
+                        @if($log->status_validasi === 'menunggu')
+                            <span class="badge" style="margin-left: 0.5rem; background: rgba(245, 158, 11, 0.15); color: var(--warning);">Menunggu validasi admin</span>
+                        @elseif($log->status_validasi === 'disetujui')
+                            <span class="badge badge-success" style="margin-left: 0.5rem;">Tervalidasi · upah dicairkan</span>
+                        @elseif($log->status_validasi === 'ditolak')
+                            <span class="badge" style="margin-left: 0.5rem; background: rgba(239, 68, 68, 0.15); color: var(--danger);">Validasi ditolak</span>
+                        @endif
                     </div>
                 @empty
                     <p style="color: var(--text-muted); text-align: center;">Belum ada entri logbook.</p>

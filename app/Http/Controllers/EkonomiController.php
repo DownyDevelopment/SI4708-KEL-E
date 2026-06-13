@@ -6,14 +6,25 @@ use Illuminate\Http\Request;
 use App\Models\Worker;
 use App\Models\Insentif;
 use App\Models\Reward;
-use Illuminate\Support\Facades\DB;
+use App\Models\Logbook;
+use App\Models\ScheduleAssignment;
 
 class EkonomiController extends Controller
 {
     public function index()
     {
         $workers = Worker::all();
-        return view('admin.ekonomi', compact('workers'));
+        $pendingLogbooks = collect();
+
+        if (auth()->user()->role === 'admin') {
+            $pendingLogbooks = Logbook::with(['worker', 'schedule.program'])
+                ->where('progres_persentase', '>=', 100)
+                ->where('status_validasi', 'menunggu')
+                ->orderByDesc('created_at')
+                ->get();
+        }
+
+        return view('admin.ekonomi', compact('workers', 'pendingLogbooks'));
     }
 
     public function detail(Request $request, $workerId)
@@ -79,5 +90,55 @@ class EkonomiController extends Controller
             'worker_id', 'nama_penghargaan', 'tanggal_pemberian',
         ]));
         return redirect()->back()->with('success', 'Penghargaan berhasil dicatat.');
+    }
+
+    public function validateLogbook(Request $request, int $id)
+    {
+        $request->validate([
+            'action' => 'required|in:disetujui,ditolak',
+            'jumlah_upah' => 'nullable|numeric|min:0',
+        ]);
+
+        $logbook = Logbook::with(['worker', 'schedule.program'])->findOrFail($id);
+
+        if ($logbook->status_validasi !== 'menunggu') {
+            return redirect()->back()->with('error', 'Logbook ini sudah divalidasi sebelumnya.');
+        }
+
+        if ($request->action === 'ditolak') {
+            $logbook->update(['status_validasi' => 'ditolak']);
+            return redirect()->back()->with('success', 'Hasil kerja ditolak. Upah tidak dicairkan.');
+        }
+
+        if (Insentif::where('logbook_id', $logbook->id)->exists()) {
+            $logbook->update(['status_validasi' => 'disetujui']);
+            return redirect()->back()->with('success', 'Logbook sudah memiliki pencairan upah.');
+        }
+
+        $workerId = $logbook->worker_id;
+        if (!$workerId && $logbook->schedule_id) {
+            $assignment = ScheduleAssignment::where('schedule_id', $logbook->schedule_id)->first();
+            $workerId = $assignment?->worker_id;
+        }
+
+        if (!$workerId) {
+            return redirect()->back()->with('error', 'Tidak ada pekerja terkait untuk pencairan upah.');
+        }
+
+        $programName = $logbook->schedule?->program?->nama_program ?? 'Program';
+        $jumlahUpah = $request->jumlah_upah ?? 50000;
+
+        Insentif::create([
+            'worker_id' => $workerId,
+            'logbook_id' => $logbook->id,
+            'tanggal' => now()->toDateString(),
+            'jumlah_upah' => $jumlahUpah,
+            'jenis_insentif' => 'Upah Harian',
+            'keterangan' => "Pencairan otomatis setelah validasi logbook #{$logbook->id} — {$programName}",
+        ]);
+
+        $logbook->update(['status_validasi' => 'disetujui']);
+
+        return redirect()->back()->with('success', 'Validasi disetujui. Upah pekerja berhasil dicatat.');
     }
 }

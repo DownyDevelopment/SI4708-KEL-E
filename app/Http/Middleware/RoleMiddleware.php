@@ -13,12 +13,19 @@ class RoleMiddleware
      *
      * @param  Closure(Request): (Response)  $next
      */
-    public function handle(Request $request, Closure $next, string $role): Response
+    public function handle(Request $request, Closure $next, string $roles): Response
     {
-        if (!auth()->check() || auth()->user()->role !== $role) {
+        $allowed = explode(',', $roles);
+
+        if (!auth()->check() || !in_array(auth()->user()->role, $allowed, true)) {
             if (auth()->check()) {
-                $redirect = auth()->user()->role === 'admin' ? '/admin/dashboard' : '/pengawas/dashboard';
-                return redirect($redirect);
+                $role = auth()->user()->role;
+                if ($role === 'admin') {
+                    return redirect('/admin/dashboard');
+                }
+                if (in_array($role, ['pengawas', 'supervisor', 'relawan'], true)) {
+                    return redirect('/pengawas/dashboard');
+                }
             }
             return redirect('/login');
         }

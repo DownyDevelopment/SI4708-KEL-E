@@ -6,7 +6,7 @@
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
         <div>
             <h1 style="font-size: 1.5rem; font-weight: bold; color: var(--text-main); margin-bottom: 0.5rem;">Manajemen Inventaris</h1>
-            <p style="color: var(--text-muted);">Lacak produk, tambah stok panen, & distribusi.</p>
+            <p style="color: var(--text-muted);">Lacak produk, tambah stok panen, distribusi, dan monitoring kompos/kerajinan.</p>
         </div>
         <button class="btn btn-primary" @click="showAddForm = true">
             <i data-lucide="plus" style="width: 18px; height: 18px; margin-right: 8px;"></i>
@@ -19,6 +19,11 @@
             {{ session('success') }}
         </div>
     @endif
+
+    <div style="display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+        <a href="{{ route('admin.inventaris', ['filter' => 'semua']) }}" class="btn {{ ($filter ?? 'semua') === 'semua' ? 'btn-primary' : 'btn-outline' }}">Semua Barang</a>
+        <a href="{{ route('admin.inventaris', ['filter' => 'kompos-kerajinan']) }}" class="btn {{ ($filter ?? 'semua') === 'kompos-kerajinan' ? 'btn-primary' : 'btn-outline' }}">Kompos & Kerajinan</a>
+    </div>
 
     <!-- Modal Tambah Barang -->
     <div x-show="showAddForm" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 99; display: flex; justify-content: center; align-items: center; display: none;">
@@ -89,6 +94,18 @@
                             <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem;">Total Harga Jual (Rp)</label>
                             <input type="number" min="0" class="search-input" style="width: 100%;" x-model="harga" placeholder="150000" />
                         </div>
+                    </div>
+                </template>
+
+                <template x-if="activeAction?.type === 'kurang'">
+                    <div>
+                        <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem;">Penerima Distribusi (Keluarga Miskin)</label>
+                        <select class="search-input" style="width: 100%;" x-model="household_id">
+                            <option value="">-- Pilih Keluarga / Lainnya --</option>
+                            <template x-for="h in households" :key="h.id">
+                                <option :value="h.id" x-text="'Keluarga ' + h.kepala_keluarga + ' (RT/RW ' + h.rt_rw + ')'"></option>
+                            </template>
+                        </select>
                     </div>
                 </template>
 
@@ -216,22 +233,29 @@
     document.addEventListener('alpine:init', () => {
         Alpine.data('inventarisData', () => ({
             items: @json($items),
+            households: @json($households ?? []),
+            categoryFilter: @json($filter ?? 'semua'),
             searchTerm: '',
             showAddForm: false,
-            activeAction: null, // { id, type }
+            activeAction: null,
             selectedItem: null,
             historyData: [],
             
             pembeli: '',
             harga: '',
             keterangan: '',
+            household_id: '',
 
             get filteredItems() {
+                let list = this.items;
+                if (this.categoryFilter === 'kompos-kerajinan') {
+                    list = list.filter(i => ['Kompos', 'Kerajinan'].includes(i.kategori));
+                }
                 if (this.searchTerm === '') {
-                    return this.items;
+                    return list;
                 }
                 const term = this.searchTerm.toLowerCase();
-                return this.items.filter(i => 
+                return list.filter(i => 
                     i.nama_barang.toLowerCase().includes(term) ||
                     i.kategori.toLowerCase().includes(term)
                 );
@@ -258,6 +282,7 @@
                 this.pembeli = '';
                 this.harga = '';
                 this.keterangan = '';
+                this.household_id = '';
                 setTimeout(() => lucide.createIcons(), 50);
             },
 
@@ -270,6 +295,11 @@
                 if (this.activeAction.type === 'jual') {
                     const formatter = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 });
                     this.keterangan = `🛒 Penjualan kepada: ${this.pembeli || 'Umum'} | Total: ${formatter.format(this.harga || 0)} | Catatan: ${this.keterangan || '-'}`;
+                } else if (this.activeAction.type === 'kurang' && this.household_id) {
+                    const targetKeluarga = this.households.find(h => h.id.toString() === this.household_id);
+                    if (targetKeluarga) {
+                        this.keterangan = `🤝 Distribusi gratis kepada: Keluarga ${targetKeluarga.kepala_keluarga} (RT/RW ${targetKeluarga.rt_rw}) | Catatan: ${this.keterangan || '-'}`;
+                    }
                 }
             },
 

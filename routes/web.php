@@ -28,10 +28,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::put('/keluarga/{id}', [\App\Http\Controllers\HouseholdController::class, 'update']);
     
     Route::get('/perencanaan', [\App\Http\Controllers\ProgramController::class, 'perencanaanIndex'])->name('admin.perencanaan');
+    Route::post('/perencanaan', [\App\Http\Controllers\ProgramController::class, 'store']);
+    Route::put('/perencanaan/{id}', [\App\Http\Controllers\ProgramController::class, 'update']);
+    Route::delete('/perencanaan/{id}', [\App\Http\Controllers\ProgramController::class, 'destroy']);
     Route::get('/program', [\App\Http\Controllers\ProgramController::class, 'programIndex'])->name('admin.program');
-    Route::post('/program', [\App\Http\Controllers\ProgramController::class, 'store']);
-    Route::put('/program/{id}', [\App\Http\Controllers\ProgramController::class, 'update']);
-    Route::delete('/program/{id}', [\App\Http\Controllers\ProgramController::class, 'destroy']);
     
     Route::get('/edukasi', [\App\Http\Controllers\EdukasiController::class, 'index'])->name('admin.edukasi');
     Route::post('/edukasi', [\App\Http\Controllers\EdukasiController::class, 'store']);
@@ -48,6 +48,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/ekonomi', [\App\Http\Controllers\EkonomiController::class, 'index'])->name('admin.ekonomi');
     Route::post('/ekonomi/insentif', [\App\Http\Controllers\EkonomiController::class, 'storeInsentif']);
     Route::post('/ekonomi/reward', [\App\Http\Controllers\EkonomiController::class, 'storeReward']);
+    Route::post('/logbook/{id}/validasi', [\App\Http\Controllers\EkonomiController::class, 'validateLogbook']);
     Route::get('/ekonomi/detail/{workerId}', [\App\Http\Controllers\EkonomiController::class, 'detail']);
     
     Route::get('/tracking-reducing', [\App\Http\Controllers\InventarisController::class, 'trackingIndex'])->name('admin.tracking');
@@ -59,7 +60,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::delete('/tugas/{id}', [\App\Http\Controllers\JadwalController::class, 'destroy']);
 });
 
-Route::middleware(['auth', 'role:pengawas'])->prefix('pengawas')->group(function () {
+Route::middleware(['auth', 'role:pengawas,supervisor,relawan'])->prefix('pengawas')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'pengawasDashboard'])->name('pengawas.dashboard');
     Route::get('/operasional', [\App\Http\Controllers\JadwalController::class, 'pengawasIndex'])->name('pengawas.operasional');
     Route::get('/jadwal', fn () => redirect()->route('pengawas.operasional', ['tab' => 'jadwal']));
@@ -128,7 +129,7 @@ Route::middleware('auth')->prefix('api')->group(function () {
             $results[] = $item;
         };
 
-        if ($role === 'admin') {
+        if (in_array($role, ['admin'], true)) {
             foreach (\App\Models\Worker::where('nama', 'like', $like)
                 ->orWhere('kemampuan_utama', 'like', $like)
                 ->limit(5)->get() as $worker) {

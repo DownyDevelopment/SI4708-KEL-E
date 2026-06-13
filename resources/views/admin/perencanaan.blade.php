@@ -2,6 +2,7 @@
 @section('title', 'Perencanaan Program & Area')
 
 @section('content')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <div class="animate-fade-in" style="padding: 2rem; max-width: 1400px; margin: 0 auto;" x-data="perencanaanData()">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem;">
         <div>
@@ -26,6 +27,22 @@
         </div>
     @endif
 
+    <div class="glass-panel" style="padding: 2rem; margin-bottom: 2.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h3 style="color: var(--text-main); font-size: 1rem; font-weight: 600; margin: 0;">Peta Area Kerja</h3>
+            <div style="display: flex; gap: 0.75rem;">
+                <button class="btn btn-outline" @click="toggleMapType" style="padding: 0.5rem 1rem; font-size: 0.8rem;" x-text="mapType === 'street' ? 'Satellite' : 'Street'"></button>
+                <button :class="isAddingMode ? 'btn' : 'btn btn-primary'" @click="isAddingMode = !isAddingMode" style="padding: 0.5rem 1rem; font-size: 0.8rem;" :style="isAddingMode ? 'background: #dc2626; color: white;' : ''" x-text="isAddingMode ? 'Batal Tambah' : '+ Tambah Titik'"></button>
+            </div>
+        </div>
+        <div style="height: 320px; width: 100%; border-radius: 12px; overflow: hidden;" :style="isAddingMode ? 'border: 3px dashed var(--primary); cursor: crosshair;' : 'border: 1px solid var(--border);'">
+            <div id="perencanaan-map" style="height: 100%; width: 100%; z-index: 0;"></div>
+        </div>
+        <div x-show="isAddingMode" style="font-size: 0.8rem; color: var(--primary); margin-top: 0.5rem; text-align: center; display: none;">
+            Klik pada peta untuk menambahkan titik lokasi program baru.
+        </div>
+    </div>
+
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 2rem;">
         <template x-for="prog in programs" :key="prog.id">
             <div class="glass-panel" style="padding: 1.75rem; display: flex; flex-direction: column; height: 100%; transition: all 0.3s ease; cursor: default;" 
@@ -42,7 +59,7 @@
                     </div>
                     <div style="display: flex; gap: 0.25rem; background: var(--background); padding: 4px; border-radius: 8px;">
                         <button @click="handleEdit(prog)" style="background: transparent; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; border-radius: 4px;" @mouseenter="$el.style.background = 'rgba(0,0,0,0.05)'" @mouseleave="$el.style.background = 'transparent'"><i data-lucide="edit-2" style="width: 16px; height: 16px;"></i></button>
-                        <form method="POST" :action="'/admin/program/' + prog.id" style="margin: 0; display: inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus program ini?');">
+                        <form method="POST" :action="'/admin/perencanaan/' + prog.id" style="margin: 0; display: inline;" onsubmit="return confirm('Apakah Anda yakin ingin menghapus program ini?');">
                             @csrf
                             @method('DELETE')
                             <button type="submit" style="background: transparent; border: none; color: var(--danger); cursor: pointer; padding: 4px; border-radius: 4px;" @mouseenter="$el.style.background = 'rgba(239, 68, 68, 0.1)'" @mouseleave="$el.style.background = 'transparent'"><i data-lucide="trash-2" style="width: 16px; height: 16px;"></i></button>
@@ -120,7 +137,7 @@
                 <button @click="showModal = false" style="background: var(--background); border: none; cursor: pointer; color: var(--text-muted); padding: 0.5rem; border-radius: 50%;"><i data-lucide="x" style="width: 20px; height: 20px;"></i></button>
             </div>
             
-            <form method="POST" :action="editingId ? '/admin/program/' + editingId : '/admin/program'" style="padding: 2rem; display: flex; flex-direction: column; gap: 1.5rem;">
+            <form method="POST" :action="editingId ? '/admin/perencanaan/' + editingId : '/admin/perencanaan'" style="padding: 2rem; display: flex; flex-direction: column; gap: 1.5rem;">
                 @csrf
                 <template x-if="editingId">
                     <input type="hidden" name="_method" value="PUT">
@@ -226,12 +243,18 @@
     </div>
 </div>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
     document.addEventListener('alpine:init', () => {
         Alpine.data('perencanaanData', () => ({
             programs: @json($programs),
             showModal: false,
             editingId: null,
+            mapType: 'street',
+            isAddingMode: false,
+            map: null,
+            streetLayer: null,
+            satelliteLayer: null,
             formData: {
                 nama_program: '',
                 jenis_program: '',
@@ -250,6 +273,86 @@
                 this.$watch('programs', () => {
                     setTimeout(() => lucide.createIcons(), 50);
                 });
+                this.$nextTick(() => this.initMap());
+            },
+
+            initMap() {
+                if (this.map || typeof L === 'undefined') return;
+
+                this.map = L.map('perencanaan-map').setView([-6.914744, 107.609810], 13);
+                this.streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+                this.satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}');
+                this.streetLayer.addTo(this.map);
+                this.refreshMarkers();
+
+                this.map.on('click', async (e) => {
+                    if (!this.isAddingMode) return;
+
+                    const nama = prompt('Masukkan Nama Program/Area Baru:');
+                    if (!nama) {
+                        this.isAddingMode = false;
+                        return;
+                    }
+
+                    const lokasi = prompt('Masukkan Deskripsi Lokasi (contoh: RT 01):') || 'Area Baru';
+                    const kordinat = `${e.latlng.lat},${e.latlng.lng}`;
+
+                    try {
+                        const res = await fetch('/api/programs', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                nama_program: nama,
+                                jenis_program: 'Lainnya',
+                                lokasi: lokasi,
+                                kordinat: kordinat,
+                                status: 'planned'
+                            })
+                        });
+
+                        if (res.ok) {
+                            window.location.reload();
+                        }
+                    } catch (err) {
+                        alert('Gagal menambahkan titik.');
+                    }
+                    this.isAddingMode = false;
+                });
+            },
+
+            refreshMarkers() {
+                if (!this.map) return;
+                this.map.eachLayer((layer) => {
+                    if (layer instanceof L.Marker) {
+                        this.map.removeLayer(layer);
+                    }
+                });
+
+                this.programs.forEach((program) => {
+                    if (!program.kordinat) return;
+                    const [lat, lng] = program.kordinat.split(',').map(Number);
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        L.marker([lat, lng]).addTo(this.map)
+                            .bindPopup(`<strong>${program.nama_program}</strong><br/>Lokasi: ${program.lokasi || '-'}<br/>Status: ${program.status || '-'}`);
+                    }
+                });
+            },
+
+            toggleMapType() {
+                if (!this.map) return;
+                if (this.mapType === 'street') {
+                    this.map.removeLayer(this.streetLayer);
+                    this.satelliteLayer.addTo(this.map);
+                    this.mapType = 'satellite';
+                } else {
+                    this.map.removeLayer(this.satelliteLayer);
+                    this.streetLayer.addTo(this.map);
+                    this.mapType = 'street';
+                }
             },
 
             resetForm() {

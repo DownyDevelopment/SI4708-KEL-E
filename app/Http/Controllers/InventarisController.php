@@ -9,17 +9,24 @@ use Illuminate\Support\Facades\DB;
 
 class InventarisController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $items = Inventaris::all();
-        return view('admin.inventaris', compact('items'));
+        $filter = $request->query('filter', 'semua');
+        $query = Inventaris::query();
+
+        if ($filter === 'kompos-kerajinan') {
+            $query->whereIn('kategori', ['Kompos', 'Kerajinan']);
+        }
+
+        $items = $query->get();
+        $households = \App\Models\Household::all();
+
+        return view('admin.inventaris', compact('items', 'households', 'filter'));
     }
 
     public function trackingIndex()
     {
-        $items = Inventaris::whereIn('kategori', ['Kompos', 'Kerajinan'])->get();
-        $households = \App\Models\Household::all();
-        return view('admin.tracking_reducing', compact('items', 'households'));
+        return redirect()->route('admin.inventaris', ['filter' => 'kompos-kerajinan']);
     }
 
     public function store(Request $request)

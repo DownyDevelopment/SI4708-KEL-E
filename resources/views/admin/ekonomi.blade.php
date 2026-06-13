@@ -19,11 +19,53 @@
             {{ session('success') }}
         </div>
     @endif
+    @if(session('error'))
+        <div class="glass-panel" style="margin-bottom: 1rem; padding: 0.85rem 1.25rem; border-left: 4px solid var(--danger); color: var(--danger);">
+            {{ session('error') }}
+        </div>
+    @endif
     @if($errors->any())
         <div class="glass-panel" style="margin-bottom: 1rem; padding: 0.85rem 1.25rem; border-left: 4px solid var(--danger); color: var(--danger);">
             @foreach($errors->all() as $error)
                 <p style="margin:0;">{{ $error }}</p>
             @endforeach
+        </div>
+    @endif
+
+    @if(auth()->user()->role === 'admin' && isset($pendingLogbooks) && $pendingLogbooks->count() > 0)
+        <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+            <h3 style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i data-lucide="clipboard-check" style="width: 20px; height: 20px; color: var(--primary);"></i>
+                Validasi Hasil Kerja — Menunggu Pencairan Upah
+            </h3>
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                @foreach($pendingLogbooks as $log)
+                    <div style="border: 1px solid var(--border); border-radius: 8px; padding: 1rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                        <div>
+                            <div style="font-weight: 600;">{{ $log->schedule?->program?->nama_program ?? 'Program' }}</div>
+                            <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem;">
+                                Pekerja: {{ $log->worker?->nama ?? 'Belum ditentukan' }} · Progres: {{ $log->progres_persentase }}%
+                            </div>
+                            <div style="font-size: 0.85rem; color: var(--text-muted);">
+                                {{ $log->catatan_progres ?? $log->catatan ?? '—' }}
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                            <form method="POST" action="/admin/logbook/{{ $log->id }}/validasi" style="display: flex; gap: 0.5rem; align-items: center;">
+                                @csrf
+                                <input type="hidden" name="action" value="disetujui">
+                                <input type="number" name="jumlah_upah" class="form-input" style="width: 120px;" placeholder="50000" value="50000" min="0" step="1000">
+                                <button type="submit" class="btn btn-primary btn-sm">Setujui & Cairkan</button>
+                            </form>
+                            <form method="POST" action="/admin/logbook/{{ $log->id }}/validasi">
+                                @csrf
+                                <input type="hidden" name="action" value="ditolak">
+                                <button type="submit" class="btn btn-outline btn-sm" style="color: var(--danger); border-color: var(--danger);">Tolak</button>
+                            </form>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
         </div>
     @endif
 

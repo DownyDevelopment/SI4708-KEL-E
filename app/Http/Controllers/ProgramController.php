@@ -15,8 +15,7 @@ class ProgramController extends Controller
 
     public function programIndex()
     {
-        $programs = MicroProgram::all();
-        return view('admin.program', compact('programs'));
+        return redirect()->route('admin.perencanaan');
     }
 
     public function store(Request $request)
