@@ -2,51 +2,49 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Worker;
-use App\Models\WorkSchedule;
+use App\Models\FieldProblem;
+use App\Models\Household;
 use App\Models\Inventaris;
 use App\Models\MicroProgram;
-use App\Models\Household;
+use App\Models\Worker;
+use App\Models\WorkSchedule;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
     public function adminDashboard()
     {
-        // Profiling stats
-        $totalProfiling = Worker::count();
-        $petani = Worker::where('kemampuan_utama', 'Bertani')->count();
-        $pembersih = Worker::where('kemampuan_utama', 'Membersihkan')->count();
-        $pengrajin = Worker::where('kemampuan_utama', 'Kerajinan')->count();
+        $countBySkill = function (array $keywords): int {
+            $query = Worker::query();
+            foreach ($keywords as $index => $keyword) {
+                $method = $index === 0 ? 'where' : 'orWhere';
+                $query->{$method}('kemampuan_utama', 'like', '%' . $keyword . '%');
+            }
 
-        // Tugas Mingguan (using work_schedules)
-        // Assume weekly is all time for now to match old code
-        $totalTugas = WorkSchedule::count();
-        $aktif = WorkSchedule::whereIn('status', ['active', 'in_progress'])->count();
-        $terjadwal = WorkSchedule::where('status', 'scheduled')->count();
-        $selesai = WorkSchedule::whereIn('status', ['completed', 'selesai'])->count();
+            return $query->count();
+        };
 
-        // Dampak Produksi
-        $dampak = Inventaris::all();
+        $weekStart = Carbon::now()->startOfWeek();
+        $weekEnd = Carbon::now()->endOfWeek();
 
-        // Area Kerja
-        $area = MicroProgram::all();
+        $weeklySchedules = WorkSchedule::whereBetween('tanggal', [$weekStart, $weekEnd]);
 
         $data = [
             'profiling' => [
-                'total' => $totalProfiling,
-                'petani' => $petani,
-                'pembersih' => $pembersih,
-                'pengrajin' => $pengrajin,
+                'total' => Worker::count(),
+                'petani' => $countBySkill(['Bertani', 'Petani', 'Kebun', 'Tani']),
+                'pembersih' => $countBySkill(['Membersihkan', 'Pembersih', 'Sampah', 'Lingkungan']),
+                'pengrajin' => $countBySkill(['Kerajinan', 'Pengrajin', 'Rajut']),
             ],
             'tugas' => [
-                'total' => $totalTugas,
-                'aktif' => $aktif,
-                'terjadwal' => $terjadwal,
-                'selesai' => $selesai,
+                'total' => (clone $weeklySchedules)->count(),
+                'aktif' => (clone $weeklySchedules)->whereIn('status', ['active', 'in_progress'])->count(),
+                'terjadwal' => (clone $weeklySchedules)->where('status', 'scheduled')->count(),
+                'selesai' => (clone $weeklySchedules)->whereIn('status', ['completed', 'selesai'])->count(),
+                'periode_label' => $weekStart->format('d M') . ' – ' . $weekEnd->format('d M Y'),
             ],
-            'dampak' => $dampak,
-            'area' => $area,
+            'dampak' => Inventaris::all(),
+            'area' => MicroProgram::all(),
         ];
 
         return view('admin.dashboard', compact('data'));
@@ -54,18 +52,23 @@ class DashboardController extends Controller
 
     public function pengawasDashboard()
     {
-        $today = \Carbon\Carbon::today();
+        $today = Carbon::today();
 
-        $todaySchedules = \App\Models\WorkSchedule::whereDate('tanggal', $today)->count();
-        $pendingLogbooks = \App\Models\WorkSchedule::whereDate('tanggal', $today)
-            ->whereNotIn('id', function($query) {
+        $todaySchedules = WorkSchedule::whereDate('tanggal', $today)->count();
+        $pendingLogbooks = WorkSchedule::whereDate('tanggal', $today)
+            ->whereNotIn('id', function ($query) {
                 $query->select('schedule_id')->from('logbooks');
             })->count();
-        $reportedProblems = \App\Models\FieldProblem::whereDate('tanggal', $today)->count();
+        $reportedProblems = FieldProblem::whereDate('tanggal', $today)->count();
 
-        $schedules = \App\Models\WorkSchedule::leftJoin('logbooks', 'work_schedules.id', '=', 'logbooks.schedule_id')
+        $schedules = WorkSchedule::leftJoin('logbooks', 'work_schedules.id', '=', 'logbooks.schedule_id')
             ->leftJoin('micro_programs', 'work_schedules.program_id', '=', 'micro_programs.id')
-            ->select('work_schedules.*', 'logbooks.id as logbook_id', 'logbooks.progres_persentase', 'micro_programs.nama_program as tugas')
+            ->select(
+                'work_schedules.*',
+                'logbooks.id as logbook_id',
+                'logbooks.progres_persentase',
+                'micro_programs.nama_program as tugas'
+            )
             ->whereDate('work_schedules.tanggal', $today)
             ->get();
 

@@ -32,7 +32,7 @@ class AuthController extends Controller
             if (Auth::user()->role === 'admin') {
                 return redirect()->intended('/admin/dashboard');
             }
-            if (in_array(Auth::user()->role, ['pengawas', 'supervisor', 'relawan'], true)) {
+            if (Auth::user()->role === 'pengawas') {
                 return redirect()->intended('/pengawas/dashboard');
             }
 

@@ -41,6 +41,7 @@ class MonitoringSeeder extends Seeder
             "Bambang Suryono", "Nita Permatasari", "Iwan Kusuma", "Maya Anggraini", "Reza Rahardian"
         ];
 
+        $skills = ['Bertani', 'Membersihkan', 'Kerajinan'];
         $workersData = [];
         foreach ($names as $i => $name) {
             $workersData[] = [
@@ -49,7 +50,7 @@ class MonitoringSeeder extends Seeder
                 'jenis_kelamin' => $i % 2 === 0 ? 'Laki-laki' : 'Perempuan',
                 'alamat' => "Jalan Mawar RT 0" . (($i % 5) + 1),
                 'no_telepon' => "0812345678" . str_pad($i, 2, '0', STR_PAD_LEFT),
-                'kemampuan_utama' => $i % 3 === 0 ? 'Pembersih' : 'Petani',
+                'kemampuan_utama' => $skills[$i % 3],
                 'created_at' => now(),
                 'updated_at' => now(),
             ];
@@ -91,8 +92,24 @@ class MonitoringSeeder extends Seeder
 
         // 4. Insert Logbooks (Progress updates)
         $logbooks = [
-            ['schedule_id' => $sched1Id, 'pengawas_id' => $pengawasId, 'progres_persentase' => 100, 'catatan' => 'Pembersihan selesai 100%', 'pekerja_terlibat' => '[]', 'lokasi_pekerjaan' => 'Desa Sukamaju RT 01'],
-            ['schedule_id' => $sched2Id, 'pengawas_id' => $pengawasId, 'progres_persentase' => 50, 'catatan' => 'Sedang memilah sampah organik', 'pekerja_terlibat' => '[]', 'lokasi_pekerjaan' => 'Bank Sampah RW 03']
+            [
+                'schedule_id' => $sched1Id,
+                'pengawas_id' => $pengawasId,
+                'progres_persentase' => 100,
+                'catatan' => 'Pembersihan selesai 100%',
+                'pekerja_terlibat' => '[]',
+                'lokasi_pekerjaan' => 'Desa Sukamaju RT 01',
+                'detail_monitoring' => ['luas_area' => 150, 'berat_sampah' => 62.5],
+            ],
+            [
+                'schedule_id' => $sched2Id,
+                'pengawas_id' => $pengawasId,
+                'progres_persentase' => 50,
+                'catatan' => 'Sedang memilah sampah organik',
+                'pekerja_terlibat' => '[]',
+                'lokasi_pekerjaan' => 'Bank Sampah RW 03',
+                'detail_monitoring' => ['berat_sampah' => 28, 'luas_area' => 40],
+            ],
         ];
 
         foreach ($logbooks as $logData) {
@@ -104,7 +121,8 @@ class MonitoringSeeder extends Seeder
         // 5. Insert Field Problems
         $problems = [
             ['pengawas_id' => $pengawasId, 'tanggal' => $today, 'waktu' => $waktuSekarang, 'masalah' => 'Ada tumpukan sampah yang menyumbat keras di got utama', 'tingkatan_masalah' => 'high', 'lokasi_masalah' => 'Desa Sukamaju RT 01'],
-            ['pengawas_id' => $pengawasId, 'tanggal' => $today, 'waktu' => $waktuSekarang, 'masalah' => 'Kurang alat untuk memilah sampah basah', 'tingkatan_masalah' => 'mediate', 'lokasi_masalah' => 'Bank Sampah RW 03']
+            ['pengawas_id' => $pengawasId, 'tanggal' => $today, 'waktu' => $waktuSekarang, 'masalah' => 'Kurang alat untuk memilah sampah basah', 'tingkatan_masalah' => 'mediate', 'lokasi_masalah' => 'Bank Sampah RW 03'],
+            ['pengawas_id' => $pengawasId, 'tanggal' => $today, 'waktu' => $waktuSekarang, 'masalah' => 'Jalan setapak licin setelah hujan, berbahaya bagi pekerja', 'tingkatan_masalah' => 'mediate', 'lokasi_masalah' => 'Jalan Mawar RT 02'],
         ];
 
         foreach ($problems as $probData) {

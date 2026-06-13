@@ -113,7 +113,7 @@
                             class="glass-panel"
                             style="padding: 1rem; cursor: pointer; transition: border 0.2s;"
                             :style="selectedSchedule?.id === {{ $s->id }} ? 'border: 2px solid var(--primary); background: rgba(16,185,129,0.05);' : 'border: 1px solid var(--border);'"
-                            @click="selectSchedule(@js(['id' => $s->id, 'tugas' => $s->tugas, 'tanggal' => $s->tanggal, 'status' => $s->status, 'progres_terakhir' => $s->progres_terakhir ?? 0]))"
+                            @click="selectSchedule(@js(['id' => $s->id, 'tugas' => $s->tugas, 'jenis_program' => $s->jenis_program, 'tanggal' => $s->tanggal, 'status' => $s->status, 'progres_terakhir' => $s->progres_terakhir ?? 0]))"
                         >
                             <div style="font-weight: 600; color: var(--text-main);">{{ $s->tugas }}</div>
                             <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0.35rem 0 0.5rem;">
@@ -165,6 +165,45 @@
                             <label class="form-label">Catatan progres</label>
                             <textarea name="catatan_progres" class="form-input" rows="3" placeholder="Uraian aktivitas hari ini..."></textarea>
                         </div>
+
+                        <template x-if="monitoringType === 'lingkungan'">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div class="form-group">
+                                    <label class="form-label">Luas area dibersihkan (m²)</label>
+                                    <input type="number" name="detail_monitoring[luas_area]" class="form-input" min="0" step="0.1" placeholder="Contoh: 120">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Berat sampah dikumpulkan (kg)</label>
+                                    <input type="number" name="detail_monitoring[berat_sampah]" class="form-input" min="0" step="0.1" placeholder="Contoh: 45">
+                                </div>
+                            </div>
+                        </template>
+
+                        <template x-if="monitoringType === 'pertanian'">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div class="form-group">
+                                    <label class="form-label">Jenis tanaman / kebun</label>
+                                    <input type="text" name="detail_monitoring[jenis_tanaman]" class="form-input" placeholder="Contoh: Bayam, Kangkung">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Luas kebun (m²)</label>
+                                    <input type="number" name="detail_monitoring[luas_kebun]" class="form-input" min="0" step="0.1" placeholder="Contoh: 80">
+                                </div>
+                            </div>
+                        </template>
+
+                        <template x-if="monitoringType === 'infrastruktur'">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div class="form-group">
+                                    <label class="form-label">Panjang area dikerjakan (m)</label>
+                                    <input type="number" name="detail_monitoring[panjang_area]" class="form-input" min="0" step="0.1" placeholder="Contoh: 25">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Material / alat dipakai</label>
+                                    <input type="text" name="detail_monitoring[material_dipakai]" class="form-input" placeholder="Contoh: Semen, cangkul">
+                                </div>
+                            </div>
+                        </template>
 
                         <div class="form-group">
                             <label class="form-label">Progres penyelesaian</label>
@@ -233,6 +272,13 @@
                         <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0 0 0.5rem;">
                             {{ $log->catatan_progres ?? $log->catatan ?? '—' }}
                         </p>
+                        @if(!empty($log->detail_monitoring))
+                            <div style="display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.5rem;">
+                                @foreach($log->detail_monitoring as $key => $value)
+                                    <span class="badge badge-success" style="font-size: 0.75rem;">{{ str_replace('_', ' ', $key) }}: {{ $value }}</span>
+                                @endforeach
+                            </div>
+                        @endif
                         <div class="progress-track" style="margin-bottom: 0.25rem;">
                             <div class="progress-fill" style="width: {{ min(100, (int)$log->progres_persentase) }}%;"></div>
                         </div>
@@ -289,6 +335,21 @@
             previewSesudah: null,
             today: new Date().toISOString().slice(0, 10),
 
+            get monitoringType() {
+                const jenis = (this.selectedSchedule?.jenis_program || '').toLowerCase();
+                const tugas = (this.selectedSchedule?.tugas || '').toLowerCase();
+                if (jenis.includes('lingkungan') || tugas.includes('kompos') || tugas.includes('sampah') || tugas.includes('pembersih')) {
+                    return 'lingkungan';
+                }
+                if (jenis.includes('pertanian') || tugas.includes('kebun') || tugas.includes('tanam')) {
+                    return 'pertanian';
+                }
+                if (jenis.includes('infrastruktur') || tugas.includes('jalan') || tugas.includes('saluran')) {
+                    return 'infrastruktur';
+                }
+                return null;
+            },
+
             init() {
                 setTimeout(() => lucide.createIcons(), 50);
             },
@@ -314,6 +375,7 @@
                 this.selectSchedule({
                     id: s.id,
                     tugas: s.tugas ?? (s.program ? s.program.nama_program : ''),
+                    jenis_program: s.jenis_program ?? s.program?.jenis_program ?? '',
                     tanggal: s.tanggal,
                     status: s.status,
                     progres_terakhir: s.progres_terakhir ?? 0,

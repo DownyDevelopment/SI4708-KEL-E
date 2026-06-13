@@ -5,8 +5,12 @@
 <div style="padding: 2rem;" x-data="pelaporanData()">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
         <div>
-            <h1 style="font-size: 1.5rem; font-weight: bold; color: var(--text-main); margin-bottom: 0.5rem;">Pelaporan Masalah Lapangan</h1>
-            <p style="color: var(--text-muted);">Catat dan kelola laporan masalah yang terjadi di area kerja.</p>
+            <h1 style="font-size: 1.5rem; font-weight: bold; color: var(--text-main); margin-bottom: 0.5rem;">
+                Pelaporan Masalah Lapangan
+            </h1>
+            <p style="color: var(--text-muted);">
+                Catat dan kelola laporan masalah yang terjadi di area kerja.
+            </p>
         </div>
         <button class="btn btn-primary" @click="showAddForm = true" style="background: #ef4444; border-color: #ef4444;">
             <i data-lucide="plus" style="width: 18px; height: 18px; margin-right: 8px;"></i>
@@ -50,7 +54,7 @@
 
                     <div>
                         <label style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem;">Deskripsi Masalah</label>
-                        <textarea name="masalah" class="search-input" style="width: 100%; min-height: 100px; resize: vertical;" required placeholder="Ceritakan detail masalah yang terjadi..."></textarea>
+                        <textarea name="masalah" class="search-input" style="width: 100%; min-height: 100px; resize: vertical;" required placeholder="Ceritakan detail masalah yang terjadi..." x-model="formMasalah"></textarea>
                     </div>
 
                     <div>
@@ -129,7 +133,7 @@
                             </span>
                         </td>
                         <td style="padding: 1rem;">
-                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
                                 <div style="width: 24px; height: 24px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold;" x-text="report.nama_pengawas?.charAt(0) || '?'"></div>
                                 <span style="font-size: 0.875rem; color: var(--text-main);" x-text="report.nama_pengawas || 'Unknown'"></span>
                             </div>
@@ -157,6 +161,7 @@
             reports: @json($reports),
             searchTerm: '',
             showAddForm: false,
+            formMasalah: '',
             today: new Date().toISOString().slice(0, 10),
             now: new Date().toTimeString().slice(0, 5),
 

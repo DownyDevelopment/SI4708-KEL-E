@@ -32,10 +32,18 @@ class LogbookController extends Controller
             'foto_bukti' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'foto_sebelum' => 'required|image|mimes:jpeg,png,jpg|max:2048',
             'foto_sesudah' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+            'detail_monitoring' => 'nullable|array',
+            'detail_monitoring.luas_area' => 'nullable|numeric|min:0',
+            'detail_monitoring.berat_sampah' => 'nullable|numeric|min:0',
+            'detail_monitoring.jenis_tanaman' => 'nullable|string|max:255',
+            'detail_monitoring.luas_kebun' => 'nullable|numeric|min:0',
+            'detail_monitoring.panjang_area' => 'nullable|numeric|min:0',
+            'detail_monitoring.material_dipakai' => 'nullable|string|max:255',
         ]);
 
         $schedule = WorkSchedule::findOrFail($validated['schedule_id']);
         $catatan = $validated['catatan_progres'] ?? $validated['catatan'] ?? null;
+        $detailMonitoring = $this->cleanDetailMonitoring($validated['detail_monitoring'] ?? null);
 
         $fotoSebelum = $this->storePhoto($request->file('foto_sebelum'));
         $fotoSesudah = $this->storePhoto(
@@ -57,6 +65,7 @@ class LogbookController extends Controller
             'foto_bukti_url' => $fotoSesudah,
             'lokasi_pekerjaan' => $validated['lokasi_pekerjaan'] ?? null,
             'pekerja_terlibat' => $validated['pekerja_terlibat'] ?? null,
+            'detail_monitoring' => $detailMonitoring,
         ]);
 
         $progres = (int) $validated['progres_persentase'];
@@ -85,6 +94,7 @@ class LogbookController extends Controller
             'foto_bukti' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'foto_sebelum' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'foto_sesudah' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'detail_monitoring' => 'nullable|array',
         ]);
 
         $catatan = $validated['catatan_progres'] ?? $validated['catatan'] ?? $logbook->catatan;
@@ -114,6 +124,7 @@ class LogbookController extends Controller
             'foto_sesudah' => $fotoSesudah,
             'foto_bukti' => $fotoSesudah,
             'foto_bukti_url' => $fotoSesudah,
+            'detail_monitoring' => $this->cleanDetailMonitoring($validated['detail_monitoring'] ?? $logbook->detail_monitoring),
         ]);
 
         $schedule = $logbook->schedule;
@@ -149,5 +160,18 @@ class LogbookController extends Controller
 
         $relative = str_replace('/storage/', '', $path);
         Storage::disk('public')->delete($relative);
+    }
+
+    private function cleanDetailMonitoring(?array $detail): ?array
+    {
+        if (!$detail) {
+            return null;
+        }
+
+        $cleaned = collect($detail)
+            ->filter(fn ($value) => $value !== null && $value !== '')
+            ->all();
+
+        return $cleaned === [] ? null : $cleaned;
     }
 }

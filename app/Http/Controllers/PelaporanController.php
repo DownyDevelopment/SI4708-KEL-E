@@ -14,7 +14,10 @@ class PelaporanController extends Controller
             ->select('field_problems.*', 'users.nama as nama_pengawas')
             ->orderBy('field_problems.created_at', 'desc')
             ->get();
-        return view('pengawas.pelaporan', compact('reports'));
+
+        return view('pengawas.pelaporan', [
+            'reports' => $reports,
+        ]);
     }
 
     public function store(Request $request)

@@ -5,7 +5,7 @@
 <div style="padding: 2rem;" class="animate-fade-in" x-data="userManagementData()">
     <div style="margin-bottom: 2rem;">
         <h1 style="font-size: 1.8rem; font-weight: bold; color: var(--text-main); margin-bottom: 0.5rem;">Manajemen Akses & Role</h1>
-        <p style="color: var(--text-muted);">Atur hak akses untuk Admin, Pengawas, Supervisor, dan Relawan.</p>
+        <p style="color: var(--text-muted);">Atur hak akses untuk Admin dan Pengawas.</p>
     </div>
 
     @if(session('success'))
@@ -55,8 +55,6 @@
                                 <select name="role" class="form-input" style="padding: 0.25rem 0.5rem; width: auto;" :value="u.role">
                                     <option value="admin" :selected="u.role === 'admin'">Admin</option>
                                     <option value="pengawas" :selected="u.role === 'pengawas'">Pengawas</option>
-                                    <option value="supervisor" :selected="u.role === 'supervisor'">Supervisor</option>
-                                    <option value="relawan" :selected="u.role === 'relawan'">Relawan</option>
                                 </select>
                                 <button type="submit" class="btn btn-outline btn-sm">Simpan</button>
                             </form>

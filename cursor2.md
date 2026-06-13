@@ -1,6 +1,6 @@
 # Work4Village — Catatan Lanjutan: Kesesuaian PBI (Setelah 11.A, 11.B, 11.C)
 
-> Dokumen ini melanjutkan `cursor.md`. Status terbaru: **Bagian 11.A, 11.B, dan 11.C sudah dikerjakan semua.** Dengan begitu, klaim-klaim "sudah jalan" di analisis kekurangan PBI (search bar, MonitoringSeeder, role supervisor/relawan, peta di Perencanaan, workflow validasi→upah otomatis) **konsisten** dengan progres yang sudah dilakukan — jadi tidak ada kejanggalan besar lagi seperti yang sempat saya curigai sebelumnya.
+> Dokumen ini melanjutkan `cursor.md`. Status terbaru: **Bagian 11.A, 11.B, dan 11.C sudah dikerjakan semua.** Klaim-klaim "sudah jalan" di analisis kekurangan PBI (search bar, MonitoringSeeder, peta di Perencanaan, workflow validasi→upah otomatis) **konsisten** dengan progres yang sudah dilakukan.
 
 Fokus dokumen ini sekarang: **apa saja gap PBI yang TERSISA** setelah semua perbaikan di `cursor.md` selesai, supaya kelompok bisa fokus ke sisa pekerjaan menjelang presentasi.
 
@@ -32,7 +32,7 @@ Fokus dokumen ini sekarang: **apa saja gap PBI yang TERSISA** setelah semua perb
 |---|---|---|
 | Registrasi Pekerja | ⚠️ Sebagian | Data warga masih terpecah di 2 menu (Keluarga vs Pekerja); usia disimpan sebagai `tanggal_lahir`, tidak ditampilkan sebagai usia; belum ada halaman registrasi terpadu. |
 | **Profil Pekerja** | ❌ Belum ada | **Tidak ada halaman profil** (ringkasan kemampuan + program yang diikuti + jadwal kerja). Menu **Profiling** ≠ ini — Profiling adalah analisis kesejahteraan ekonomi, bukan profil individu pekerja. |
-| Role & Permission | ⚠️ Sebagian | Role `supervisor`/`relawan` sudah diarahkan ke modul pengawas, tapi belum *granular per fitur* — semua role non-admin punya akses yang sama, belum ada pembatasan permission spesifik sesuai spek ("admin, petugas lapangan, supervisor, relawan" punya akses berbeda-beda). |
+| Role & Permission | ✅ Cukup | Hanya dua role: `admin` (panel admin) dan `pengawas` (modul lapangan). Middleware, sidebar, dan halaman Pengaturan Akses sudah selaras. |
 
 **🎯 Gap paling jelas:** halaman **Profil Pekerja** — ini satu-satunya PBI di seluruh proyek yang statusnya masih 0%/belum ada sama sekali (bukan sekadar "kurang lengkap").
 
@@ -44,7 +44,7 @@ Fokus dokumen ini sekarang: **apa saja gap PBI yang TERSISA** setelah semua perb
 |---|---|---|
 | Daftar Program Mikro | ✅ Cukup | Route `/admin/program` kemungkinan masih ada sebagai sisa duplikat backend — cek apakah sudah benar-benar dihapus/redirect ke `/admin/perencanaan`. |
 | Peta Area Kerja | ✅ Cukup | Marker hanya muncul jika program punya data `kordinat` di DB — pastikan semua program contoh/seeder punya koordinat supaya peta tidak kosong saat demo. |
-| Koordinasi Multi-Stakeholder | ⚠️ Sebagian | Masih sebatas catatan teks JSON — belum ada koneksi nyata ke akun user relawan/donatur atau notifikasi otomatis ke mereka. |
+| Koordinasi Multi-Stakeholder | ⚠️ Sebagian | Masih sebatas catatan teks JSON — belum ada koneksi nyata ke akun user atau notifikasi otomatis ke stakeholder. |
 
 ---
 
@@ -63,7 +63,7 @@ Fokus dokumen ini sekarang: **apa saja gap PBI yang TERSISA** setelah semua perb
 | PBI | Status | Yang masih kurang |
 |---|---|---|
 | Monitoring Pekerjaan | ⚠️ Sebagian | `progres_persentase` + `catatan` masih generik — belum ada field spesifik per jenis pekerjaan (luas area dibersihkan, jenis tanaman kebun, berat sampah dikumpulkan, dll). |
-| Pelaporan Masalah | ✅ Cukup | Relawan sudah bisa akses via middleware — pastikan ada UI/flow yang memang ditujukan untuk role relawan (bukan cuma "ikut numpang" di tampilan pengawas). |
+| Pelaporan Masalah | ✅ Cukup | Pengawas bisa akses form pelaporan dan daftar masalah lapangan. |
 | **Validasi Hasil Kerja (BARU)** | ⚠️ Sebagian | Workflow validasi→upah otomatis sudah ada ✅, tapi **upload foto masih cuma 1, belum before & after** seperti yang diminta spek ("foto bukti pekerjaan sebelum & sesudah"). |
 
 **🎯 Gap paling jelas:** **foto before/after** untuk validasi hasil kerja — ini PBI [BARU] skala menengah dan biasanya jadi sorotan penilaian, jadi worth diprioritaskan.
@@ -110,8 +110,7 @@ Berdasarkan dampak ke nilai presentasi (PBI yang masih **0%** atau **paling keli
 2. **Foto before/after untuk Validasi Hasil Kerja** (Anggota 4) — PBI [BARU], gampang didemo ("upload foto sebelum, upload foto sesudah, baru bisa divalidasi").
 3. **Form input Environmental Tracking + export PDF asli** (Anggota 7) — supaya "Laporan Dampak Program" bisa benar-benar didemo dengan data dan file PDF nyata.
 4. **Tren Produktivitas dari data logbook**, bukan dari status program (Anggota 7) — kalau belum, ganti sumber data grafik.
-5. **Permission granular per role** (Anggota 1) — kalau waktu cukup, beri pembatasan akses berbeda untuk supervisor vs relawan vs pengawas, bukan cuma "semua non-admin = pengawas".
-6. Item-item "✅ Cukup tapi kurang" lainnya — sifatnya polish, kerjakan kalau masih ada waktu: notifikasi tugas lebih lengkap, auto-link distribusi ke keluarga, edit/hapus edukasi, integrasi lintas program di kalkulator upah.
+5. Item-item "✅ Cukup tapi kurang" lainnya — sifatnya polish, kerjakan kalau masih ada waktu: notifikasi tugas lebih lengkap, auto-link distribusi ke keluarga, edit/hapus edukasi, integrasi lintas program di kalkulator upah.
 
 ---
 
@@ -121,8 +120,16 @@ Berdasarkan dampak ke nilai presentasi (PBI yang masih **0%** atau **paling keli
 - [x] **2. Foto before/after Validasi Hasil Kerja** — Kolom `foto_sebelum` & `foto_sesudah` di logbooks, form operasional dua upload, validasi admin wajib kedua foto.
 - [x] **3. Form Environmental Tracking + export PDF asli** — Form input di `/admin/analisis`, model `EnvironmentalTracking` diisi, unduh PDF via Dompdf (`/admin/analisis/pdf`).
 - [x] **4. Tren Produktivitas dari logbook/jadwal** — `ProduktivitasController` pakai data `WorkSchedule` + `Logbook`, bukan status program.
-- [x] **5. Permission granular per role** — Middleware `role.feature`: relawan (dashboard + pelaporan), supervisor (+ operasional, distribusi, profiling), pengawas (semua termasuk ekonomi).
+- [x] **5. Role disederhanakan** — Hanya `admin` dan `pengawas`; middleware, sidebar, seeder, dan Pengaturan Akses selaras.
 - [x] **6. Polish opsional** — Notifikasi jadwal edit/hapus + stok masuk, `household_id` di distribusi, edit/hapus edukasi, kalkulator upah lintas program keluarga.
+
+## Checklist Polish Demo (Sesi lanjutan)
+
+- [x] **7a. Tugas mingguan dashboard** — Filter `WorkSchedule` per minggu berjalan + label periode di widget.
+- [x] **7b. Stat keahlian dashboard** — Matching keyword fleksibel (Bertani/Petani, Membersihkan, Kerajinan).
+- [x] **7c. Usia pekerja** — Kolom usia di tabel pekerja (accessor `Worker::usia`).
+- [x] **7d. Monitoring per jenis pekerjaan** — Field `detail_monitoring` di logbook (luas area, berat sampah, tanaman, dll).
+- [x] **7e. Akun demo & seeder** — User `admin@village.com` / `pengawas@village.com`, keahlian seeder selaras dashboard.
 
 ---
 

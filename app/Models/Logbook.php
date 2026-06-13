@@ -22,6 +22,11 @@ class Logbook extends Model
         'foto_sesudah',
         'lokasi_pekerjaan',
         'pekerja_terlibat',
+        'detail_monitoring',
+    ];
+
+    protected $casts = [
+        'detail_monitoring' => 'array',
     ];
 
     public function schedule(): BelongsTo

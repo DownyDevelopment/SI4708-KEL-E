@@ -144,6 +144,7 @@ class JadwalController extends Controller
             ->map(function (WorkSchedule $item) {
                 $latestLogbook = $item->logbooks->sortByDesc('created_at')->first();
                 $item->tugas = $item->program?->nama_program;
+                $item->jenis_program = $item->program?->jenis_program;
                 $item->progres_terakhir = $latestLogbook?->progres_persentase ?? 0;
                 $item->pekerja_nama = $item->assignments
                     ->map(fn ($a) => $a->worker?->nama)

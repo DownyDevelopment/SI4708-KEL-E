@@ -51,7 +51,8 @@
             $totalTugasForProgress = $tugas['total'] === 0 ? 1 : $tugas['total'];
         @endphp
         <div class="glass-panel stat-card" style="padding: 2rem;">
-            <h3 class="stat-title" style="margin-bottom: 1rem; color: var(--text-main); font-size: 1rem; font-weight: 600;">Tugas Mingguan</h3>
+            <h3 class="stat-title" style="margin-bottom: 0.35rem; color: var(--text-main); font-size: 1rem; font-weight: 600;">Tugas Mingguan</h3>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">{{ $data['tugas']['periode_label'] ?? 'Minggu ini' }}</p>
             <div style="font-size: 3.5rem; font-weight: 800; color: var(--text-main); line-height: 1;">{{ $tugas['total'] }}</div>
             
             <div class="progress-list">

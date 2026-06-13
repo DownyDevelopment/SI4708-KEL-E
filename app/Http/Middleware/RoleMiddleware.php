@@ -23,7 +23,7 @@ class RoleMiddleware
                 if ($role === 'admin') {
                     return redirect('/admin/dashboard');
                 }
-                if (in_array($role, ['pengawas', 'supervisor', 'relawan'], true)) {
+                if ($role === 'pengawas') {
                     return redirect('/pengawas/dashboard');
                 }
             }

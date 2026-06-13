@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -28,6 +30,17 @@ class Worker extends Model
     public function household(): BelongsTo
     {
         return $this->belongsTo(Household::class);
+    }
+
+    protected function usia(): Attribute
+    {
+        return Attribute::get(function (): ?int {
+            if (!$this->tanggal_lahir) {
+                return null;
+            }
+
+            return Carbon::parse($this->tanggal_lahir)->age;
+        });
     }
 
     public function insentifs(): HasMany

@@ -100,6 +100,7 @@
                 <tr>
                     <th>ID</th>
                     <th>Nama</th>
+                    <th>Usia</th>
                     <th>Keahlian</th>
                     <th>Keluarga</th>
                     <th>Status</th>
@@ -111,6 +112,7 @@
                     <tr>
                         <td># {{ $w->id }}</td>
                         <td style="font-weight: 500;">{{ $w->nama }}</td>
+                        <td>{{ $w->usia !== null ? $w->usia . ' th' : '—' }}</td>
                         <td><span class="badge badge-success">{{ $w->kemampuan_utama ?: 'Umum' }}</span></td>
                         <td>
                             @php
@@ -125,7 +127,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Belum ada data pekerja.</td></tr>
+                    <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Belum ada data pekerja.</td></tr>
                 @endforelse
             </tbody>
         </table>

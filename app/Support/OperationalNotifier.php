@@ -9,7 +9,7 @@ class OperationalNotifier
 {
     public static function notify(string $judul, string $pesan, string $linkUrl = '/pengawas/operasional'): void
     {
-        $users = User::whereIn('role', ['pengawas', 'supervisor'])->get();
+        $users = User::where('role', 'pengawas')->get();
 
         foreach ($users as $user) {
             Notification::create([
