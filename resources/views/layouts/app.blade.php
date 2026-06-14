@@ -28,7 +28,7 @@
                 <x-sidebar-item icon="layout-dashboard" label="Dashboard Admin" to="/admin/dashboard" :active="request()->is('admin/dashboard')" />
                 <x-sidebar-item icon="bar-chart-2" label="Dashboard Analisis" to="/admin/analisis" :active="request()->is('admin/analisis')" />
                 <x-sidebar-item icon="users" label="Data Pekerja" to="/admin/pekerja" :active="request()->is('admin/pekerja')" />
-                <x-sidebar-item icon="square-user" label="Keluarga Miskin" to="/admin/keluarga" :active="request()->is('admin/keluarga')" />
+                <x-sidebar-item icon="square-user" label="Profiling Keluarga" to="/admin/keluarga" :active="request()->is('admin/keluarga')" />
                 <x-sidebar-item icon="map-pin" label="Perencanaan Program" to="/admin/perencanaan" :active="request()->is('admin/perencanaan') || request()->is('admin/program')" />
                 <x-sidebar-item icon="pie-chart" label="Profiling" to="/admin/profiling" :active="request()->is('admin/profiling')" />
                 <x-sidebar-item icon="dollar-sign" label="Ekonomi & Insentif" to="/admin/ekonomi" :active="request()->is('admin/ekonomi')" />

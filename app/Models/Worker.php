@@ -24,7 +24,24 @@ class Worker extends Model
         'status_rumah',
         'riwayat_penyakit',
         'kemampuan_utama',
+        'keahlian_kerja',
+        'pendidikan_terakhir',
+        'frekuensi_makan',
+        'kondisi_sanitasi',
+        'akses_air_bersih',
+        'status_gizi',
+        'kebiasaan',
+        'skor_vulnerabilitas',
+        'total_skor',
+        'prioritas',
+        'status_kesejahteraan',
+        'status_program',
+        'profiling_awal',
         'household_id',
+    ];
+
+    protected $casts = [
+        'profiling_awal' => 'array',
     ];
 
     public function household(): BelongsTo
@@ -51,6 +68,35 @@ class Worker extends Model
     public function schedules(): BelongsToMany
     {
         return $this->belongsToMany(WorkSchedule::class, 'schedule_assignments', 'worker_id', 'schedule_id');
+    }
+
+    public function profilingSnapshots(): HasMany
+    {
+        return $this->hasMany(ProfilingSnapshot::class);
+    }
+
+    public function profilingHistories(): HasMany
+    {
+        return $this->hasMany(ProfilingHistory::class);
+    }
+
+    public function getDesaAsalAttribute(): ?string
+    {
+        return $this->household?->nama_desa;
+    }
+
+    public function getPrioritasLabelAttribute(): string
+    {
+        return \App\Support\ProfilingScorer::prioritasLabel($this->prioritas ?? 'sedang');
+    }
+
+    public function getStatusProgramLabelAttribute(): string
+    {
+        return match ($this->status_program) {
+            'lulus' => 'Lulus Program',
+            'tidak_layak' => 'Tidak Layak',
+            default => 'Aktif',
+        };
     }
 
     /**

@@ -159,12 +159,21 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Pekerja ditugaskan</label>
-                        <div style="max-height: 160px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem;">
+                        <label class="form-label">Pekerja ditugaskan <span style="font-weight: normal; color: var(--text-muted);">(urut prioritas skor profiling)</span></label>
+                        @if(!empty($workerMatches))
+                        <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem; margin-bottom: 0.75rem; font-size: 0.85rem; color: var(--text-muted);">
+                            <strong style="color: var(--text-main);">Rekomendasi matching</strong> — pilih program dulu, lalu centang pekerja yang keahliannya cocok.
+                        </div>
+                        @endif
+                        <div style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem;">
                             @foreach($workers as $w)
                                 <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0; cursor: pointer; font-size: 0.9rem;">
                                     <input type="checkbox" name="worker_ids[]" value="{{ $w->id }}" :checked="form.worker_ids.includes('{{ $w->id }}')" @change="toggleWorker('{{ $w->id }}', $event.target.checked)">
-                                    {{ $w->nama }}
+                                    <span>{{ $w->nama }}</span>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);">· Skor {{ $w->skor_vulnerabilitas ?? '—' }} · {{ $w->kemampuan_utama }}</span>
+                                    @if($w->desa_asal)
+                                        <span style="font-size: 0.75rem; color: #d97706;">· {{ $w->desa_asal }}</span>
+                                    @endif
                                 </label>
                             @endforeach
                         </div>

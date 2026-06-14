@@ -60,6 +60,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     
     Route::get('/tugas', [\App\Http\Controllers\JadwalController::class, 'index'])->name('admin.tugas');
     Route::get('/profiling', [\App\Http\Controllers\ProfilingController::class, 'index'])->name('admin.profiling');
+    Route::post('/profiling/{workerId}/snapshot', [\App\Http\Controllers\ProfilingController::class, 'updateProfiling'])->name('admin.profiling.snapshot');
+    Route::post('/profiling/{workerId}/update', [\App\Http\Controllers\ProfilingController::class, 'updateProfiling'])->name('admin.profiling.update');
+    Route::post('/profiling/{workerId}/lulus', [\App\Http\Controllers\ProfilingController::class, 'markLulus'])->name('admin.profiling.lulus');
     Route::post('/tugas', [\App\Http\Controllers\JadwalController::class, 'store']);
     Route::put('/tugas/{id}', [\App\Http\Controllers\JadwalController::class, 'update']);
     Route::delete('/tugas/{id}', [\App\Http\Controllers\JadwalController::class, 'destroy']);
@@ -81,6 +84,8 @@ Route::middleware(['auth', 'role:pengawas'])->prefix('pengawas')->group(function
     Route::get('/pelaporan', [\App\Http\Controllers\PelaporanController::class, 'index'])->name('pengawas.pelaporan');
     Route::post('/pelaporan', [\App\Http\Controllers\PelaporanController::class, 'store']);
     Route::get('/profiling', [\App\Http\Controllers\ProfilingController::class, 'index'])->name('pengawas.profiling');
+    Route::post('/profiling/{workerId}/snapshot', [\App\Http\Controllers\ProfilingController::class, 'updateProfiling'])->name('pengawas.profiling.snapshot');
+    Route::post('/profiling/{workerId}/update', [\App\Http\Controllers\ProfilingController::class, 'updateProfiling'])->name('pengawas.profiling.update');
     Route::get('/pekerja/{id}/profil', [\App\Http\Controllers\WorkerController::class, 'profile'])->name('pengawas.pekerja.profil');
 });
 
@@ -170,7 +175,7 @@ Route::middleware('auth')->prefix('api')->group(function () {
                 ['Dashboard Admin', 'Ringkasan program kerja', '/admin/dashboard'],
                 ['Dashboard Analisis', 'Laporan dampak program', '/admin/analisis'],
                 ['Data Pekerja', 'Manajemen pekerja desa', '/admin/pekerja'],
-                ['Keluarga Miskin', 'Data rumah tangga prasejahtera', '/admin/keluarga'],
+                ['Profiling Keluarga', 'Data rumah tangga prasejahtera', '/admin/keluarga'],
                 ['Perencanaan Program', 'Program kerja mikro & area', '/admin/perencanaan'],
                 ['Ekonomi & Insentif', 'Insentif dan upah pekerja', '/admin/ekonomi'],
                 ['Inventaris', 'Stok hasil produksi', '/admin/inventaris'],

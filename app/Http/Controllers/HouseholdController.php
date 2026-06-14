@@ -21,6 +21,7 @@ class HouseholdController extends Controller
             'jumlah_anggota' => 'required|integer|min:1',
             'pendapatan_per_bulan' => 'required|numeric|min:0',
             'alamat' => 'required|string',
+            'nama_desa' => 'nullable|string|max:150',
         ]);
 
         Household::create($request->all());
@@ -36,11 +37,12 @@ class HouseholdController extends Controller
             'jumlah_anggota' => 'required|integer|min:1',
             'pendapatan_per_bulan' => 'required|numeric|min:0',
             'alamat' => 'required|string',
+            'nama_desa' => 'nullable|string|max:150',
         ]);
 
         $household = Household::findOrFail($id);
         $household->update($request->only([
-            'kepala_keluarga', 'rt_rw', 'jumlah_anggota', 'pendapatan_per_bulan', 'alamat',
+            'kepala_keluarga', 'rt_rw', 'jumlah_anggota', 'pendapatan_per_bulan', 'alamat', 'nama_desa',
         ]));
 
         return redirect()->back()->with('success', 'Data keluarga berhasil diperbarui.');

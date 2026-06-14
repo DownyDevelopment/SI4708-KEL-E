@@ -158,6 +158,17 @@
                 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
                     <div>
+                        <label class="form-label">Desa Lokasi Kerja</label>
+                        <input type="text" class="form-input" name="desa_lokasi" x-model="formData.desa_lokasi" placeholder="Desa tempat pekerjaan dilaksanakan (bisa beda desa asal pekerja)" style="width: 100%;" />
+                    </div>
+                    <div>
+                        <label class="form-label">Sektor Keahlian (Matching Profiling)</label>
+                        <input type="text" class="form-input" name="sektor_keahlian" x-model="formData.sektor_keahlian" placeholder="Contoh: Pertanian, Lingkungan, Kerajinan" style="width: 100%;" />
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <div>
                         <label class="form-label">Area / Lokasi Fokus</label>
                         <div style="position: relative;">
                             <div style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted);"><i data-lucide="map-pin" style="width: 18px; height: 18px;"></i></div>
@@ -268,8 +279,10 @@
             formData: {
                 nama_program: '',
                 jenis_program: '',
+                sektor_keahlian: '',
                 deskripsi: '',
                 lokasi: '',
+                desa_lokasi: '',
                 kordinat: '',
                 tanggal_mulai: '',
                 tanggal_selesai: '',
@@ -390,7 +403,7 @@
 
             resetForm() {
                 this.formData = {
-                    nama_program: '', jenis_program: '', deskripsi: '', lokasi: '',
+                    nama_program: '', jenis_program: '', sektor_keahlian: '', deskripsi: '', lokasi: '', desa_lokasi: '',
                     kordinat: '', tanggal_mulai: '', tanggal_selesai: '', status: 'planned'
                 };
                 this.stakeholders = [];
@@ -403,8 +416,10 @@
                 this.formData = {
                     nama_program: prog.nama_program,
                     jenis_program: prog.jenis_program,
+                    sektor_keahlian: prog.sektor_keahlian || '',
                     deskripsi: prog.deskripsi,
                     lokasi: prog.lokasi || '',
+                    desa_lokasi: prog.desa_lokasi || '',
                     kordinat: prog.kordinat || '',
                     tanggal_mulai: prog.tanggal_mulai ? prog.tanggal_mulai.substring(0, 10) : '',
                     tanggal_selesai: prog.tanggal_selesai ? prog.tanggal_selesai.substring(0, 10) : '',

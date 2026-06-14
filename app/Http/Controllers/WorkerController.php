@@ -2,17 +2,22 @@
 
 namespace App\Http\Controllers;
 
-use Carbon\Carbon;
-use Illuminate\Http\Request;
+use App\Models\ProfilingSnapshot;
 use App\Models\Worker;
+use App\Support\ProfilingScorer;
+use Illuminate\Http\Request;
 use App\Models\Household;
 
 class WorkerController extends Controller
 {
     public function index()
     {
-        $workers = Worker::all();
+        $workers = Worker::with('household')
+            ->orderByDesc('total_skor')
+            ->orderByDesc('skor_vulnerabilitas')
+            ->get();
         $households = Household::all();
+
         return view('admin.pekerja', compact('workers', 'households'));
     }
 
@@ -21,18 +26,54 @@ class WorkerController extends Controller
         $request->validate([
             'nama' => 'required|string|max:255',
             'kemampuan_utama' => 'required|string|max:255',
+            'frekuensi_makan' => 'required|string|max:30',
+            'kondisi_sanitasi' => 'required|string|max:80',
+            'pendidikan_terakhir' => 'required|string|max:50',
+            'akses_air_bersih' => 'nullable|string|max:50',
+            'status_gizi' => 'nullable|string|max:30',
+            'bukti_foto_kondisi' => 'nullable|image|max:5120',
         ]);
 
-        Worker::create($request->all());
+        $worker = new Worker($request->except('bukti_foto_kondisi'));
+        $worker->status_program = 'aktif';
+        ProfilingScorer::applyToWorker($worker, saveInitial: true);
 
-        return redirect()->back()->with('success', 'Pekerja berhasil ditambahkan.');
+        if ($worker->prioritas === 'tidak_layak' || $worker->total_skor < 7) {
+            $worker->status_program = 'tidak_layak';
+            $worker->status_kesejahteraan = 'Lulus/Tidak Layak';
+        }
+
+        $worker->save();
+
+        $photoPath = $this->storeProfilingPhoto($request->file('bukti_foto_kondisi'));
+        ProfilingScorer::createHistory($worker, $photoPath);
+
+        ProfilingSnapshot::create([
+            'worker_id' => $worker->id,
+            'recorded_by' => auth()->id(),
+            'skor_vulnerabilitas' => $worker->skor_vulnerabilitas,
+            'frekuensi_makan' => $worker->frekuensi_makan,
+            'kondisi_sanitasi' => $worker->kondisi_sanitasi,
+            'pendidikan_terakhir' => $worker->pendidikan_terakhir,
+            'pendapatan_per_kapita' => $worker->household
+                ? (int) round($worker->household->pendapatan_per_kapita)
+                : null,
+            'status_gizi' => $worker->status_gizi,
+            'catatan' => 'Survei profiling awal saat pendaftaran.',
+            'recorded_at' => now()->toDateString(),
+        ]);
+
+        $message = $worker->status_program === 'tidak_layak'
+            ? 'Data tersimpan. Total skor ' . $worker->total_skor . ' — di bawah threshold, tidak layak program.'
+            : 'Survei profiling berhasil. Total skor: ' . $worker->total_skor . ' (' . $worker->status_kesejahteraan . ').';
+
+        return redirect()->back()->with('success', $message);
     }
 
     public function show($id)
     {
         $worker = Worker::with('schedules.program')->findOrFail($id);
-        
-        // Format the response for the frontend JS modal
+
         $formatted = $worker->toArray();
         $formatted['schedules'] = $worker->schedules->map(function ($s) {
             return [
@@ -53,9 +94,11 @@ class WorkerController extends Controller
         ]);
 
         $worker = Worker::findOrFail($id);
-        $worker->update($request->all());
+        $worker->fill($request->all());
+        ProfilingScorer::applyToWorker($worker);
+        $worker->save();
 
-        return redirect()->back()->with('success', 'Data Pekerja berhasil diperbarui.');
+        return redirect()->back()->with('success', 'Data pekerja berhasil diperbarui. Skor: ' . $worker->total_skor);
     }
 
     public function profile(int $id)
@@ -63,6 +106,8 @@ class WorkerController extends Controller
         $worker = Worker::with([
             'household',
             'schedules.program',
+            'profilingHistories' => fn ($q) => $q->orderByDesc('created_at'),
+            'profilingSnapshots' => fn ($q) => $q->orderByDesc('recorded_at'),
             'insentifs' => fn ($q) => $q->orderByDesc('created_at')->limit(5),
         ])
             ->withSum('insentifs', 'jumlah_upah')
@@ -80,9 +125,18 @@ class WorkerController extends Controller
             ->values();
 
         $usia = $worker->tanggal_lahir
-            ? Carbon::parse($worker->tanggal_lahir)->age
+            ? \Carbon\Carbon::parse($worker->tanggal_lahir)->age
             : null;
 
         return view('admin.pekerja-profil', compact('worker', 'programs', 'schedules', 'usia'));
+    }
+
+    private function storeProfilingPhoto(?\Illuminate\Http\UploadedFile $file): ?string
+    {
+        if (!$file) {
+            return null;
+        }
+
+        return '/storage/' . $file->store('profiling', 'public');
     }
 }

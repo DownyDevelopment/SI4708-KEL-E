@@ -8,6 +8,7 @@ use App\Models\Worker;
 use App\Models\WorkSchedule;
 use App\Support\OperationalNotifier;
 use Illuminate\Http\Request;
+use App\Support\ProfilingScorer;
 use Illuminate\Support\Facades\DB;
 
 class JadwalController extends Controller
@@ -135,6 +136,33 @@ class JadwalController extends Controller
         return redirect()->back()->with('success', 'Jadwal kerja berhasil dihapus.');
     }
 
+    private function buildWorkerMatches($programs, $workers): array
+    {
+        $matches = [];
+
+        foreach ($programs as $program) {
+            $scored = $workers
+                ->filter(fn (Worker $w) => ProfilingScorer::layakProgram($w))
+                ->map(function (Worker $w) use ($program) {
+                    return [
+                        'worker_id' => $w->id,
+                        'nama' => $w->nama,
+                        'desa_asal' => $w->desa_asal,
+                        'prioritas' => $w->prioritas,
+                        'score' => ProfilingScorer::matchScore($w, $program->jenis_program, $program->sektor_keahlian),
+                    ];
+                })
+                ->sortByDesc('score')
+                ->take(5)
+                ->values()
+                ->all();
+
+            $matches[$program->id] = $scored;
+        }
+
+        return $matches;
+    }
+
     private function operasionalData(): array
     {
         $jadwal = WorkSchedule::with(['program', 'assignments.worker', 'logbooks'])
@@ -152,13 +180,27 @@ class JadwalController extends Controller
                     ->values()
                     ->all();
 
+                $item->desa_lokasi = $item->program?->desa_lokasi ?? $item->program?->lokasi;
+                $item->pekerja_desa = $item->assignments
+                    ->map(fn ($a) => $a->worker?->desa_asal)
+                    ->filter()
+                    ->unique()
+                    ->values()
+                    ->all();
+                $item->lintas_desa = collect($item->pekerja_desa)->contains(fn ($d) => $d && $item->desa_lokasi && $d !== $item->desa_lokasi);
+
                 return $item;
             });
 
         return [
             'jadwal' => $jadwal,
             'programs' => MicroProgram::orderBy('nama_program')->get(),
-            'workers' => Worker::orderBy('nama')->get(),
+            'workers' => Worker::with('household')
+                ->where('status_program', 'aktif')
+                ->where('prioritas', '!=', 'tidak_layak')
+                ->orderByDesc('skor_vulnerabilitas')
+                ->get(),
+            'workerMatches' => $this->buildWorkerMatches(MicroProgram::all(), Worker::with('household')->where('status_program', 'aktif')->get()),
             'logbooks' => \App\Models\Logbook::with(['schedule.program', 'worker', 'pengawas'])
                 ->orderByDesc('created_at')
                 ->limit(50)

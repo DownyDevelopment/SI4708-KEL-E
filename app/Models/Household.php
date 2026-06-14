@@ -13,6 +13,7 @@ class Household extends Model
     protected $fillable = [
         'kepala_keluarga',
         'alamat',
+        'nama_desa',
         'rt_rw',
         'jumlah_anggota',
         'pendapatan_per_bulan',

@@ -1,12 +1,12 @@
 @extends('layouts.app')
-@section('title', 'Data Keluarga Prasejahtera')
+@section('title', 'Profiling Keluarga Prasejahtera')
 
 @section('content')
 <div class="animate-fade-in" x-data="keluargaData()">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
         <div>
-            <h1 style="font-size: 1.8rem;">Data Keluarga Prasejahtera</h1>
-            <p>Manajemen data rumah tangga penerima manfaat program desa.</p>
+            <h1 style="font-size: 1.8rem;">Profiling Keluarga Prasejahtera</h1>
+            <p>Data awal rumah tangga — indikator kemiskinan, kelaparan (SDG 2), dan kesehatan (SDG 3).</p>
         </div>
         <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
             <a href="/admin/pekerja" class="btn btn-outline" style="text-decoration: none;">
@@ -49,6 +49,10 @@
                 <input type="text" name="kepala_keluarga" class="form-input" required x-model="householdData.kepala_keluarga" />
             </div>
             <div class="form-group">
+                <label class="form-label">Nama Desa / Kelurahan</label>
+                <input type="text" name="nama_desa" class="form-input" placeholder="Contoh: Desa Karya Makmur" x-model="householdData.nama_desa" />
+            </div>
+            <div class="form-group">
                 <label class="form-label">RT / RW</label>
                 <input type="text" name="rt_rw" class="form-input" placeholder="Contoh: 002/005" required x-model="householdData.rt_rw" />
             </div>
@@ -80,6 +84,7 @@
                 <tr>
                     <th>ID</th>
                     <th>Kepala Keluarga</th>
+                    <th>Desa</th>
                     <th>RT/RW</th>
                     <th>Anggota</th>
                     <th>Pendapatan</th>
@@ -96,6 +101,7 @@
                                 <span style="font-weight: 500;" x-text="h.kepala_keluarga"></span>
                             </div>
                         </td>
+                        <td x-text="h.nama_desa || '—'"></td>
                         <td x-text="h.rt_rw"></td>
                         <td>
                             <div style="display: flex; align-items: center; gap: 4px;">
@@ -109,7 +115,7 @@
                     </tr>
                 </template>
                 <template x-if="filteredHouseholds.length === 0">
-                    <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Tidak ada data keluarga yang cocok.</td></tr>
+                    <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Tidak ada data keluarga yang cocok.</td></tr>
                 </template>
             </tbody>
         </table>
@@ -130,6 +136,7 @@
                 jumlah_anggota: 1,
                 pendapatan_per_bulan: 0,
                 alamat: '',
+                nama_desa: '',
             },
 
             get filteredHouseholds() {
@@ -152,6 +159,7 @@
                     jumlah_anggota: 1,
                     pendapatan_per_bulan: 0,
                     alamat: '',
+                    nama_desa: '',
                 };
                 this.showForm = true;
             },
