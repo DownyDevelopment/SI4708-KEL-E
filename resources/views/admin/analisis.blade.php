@@ -27,7 +27,7 @@
             </div>
             
             <button 
-                onclick="window.location.href='/admin/analisis/pdf?period={{ $period }}'"
+                @click="window.location.href='/admin/analisis/pdf?period=' + period"
                 style="display: flex; align-items: center; gap: 0.5rem; background: var(--primary); color: white; border: none; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer;"
             >
                 <i data-lucide="download" style="width: 18px; height: 18px;"></i>

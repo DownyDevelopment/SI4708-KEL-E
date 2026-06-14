@@ -32,7 +32,7 @@
         </p>
     </div>
 
-    <div x-show="showForm" class="glass-panel" style="padding: 2rem; margin-bottom: 2rem; display: none;">
+    <div x-show="showForm" x-cloak class="glass-panel" style="padding: 2rem; margin-bottom: 2rem;">
         <h3 style="margin-bottom: 1.5rem;" x-text="editMode ? 'Edit Data Pekerja' : 'Pendaftaran Pekerja Baru'"></h3>
         <form method="POST" :action="editMode ? '/admin/pekerja/' + workerData.id : '/admin/pekerja'" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
             @csrf
@@ -175,6 +175,14 @@
                     age--;
                 }
                 return age >= 0 ? age : null;
+            },
+
+            init() {
+                const params = new URLSearchParams(window.location.search);
+                const editId = params.get('edit');
+                if (editId) {
+                    this.handleEdit(editId);
+                }
             },
 
             openAddForm() {

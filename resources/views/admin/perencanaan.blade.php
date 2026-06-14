@@ -38,7 +38,7 @@
         <div style="height: 320px; width: 100%; border-radius: 12px; overflow: hidden;" :style="isAddingMode ? 'border: 3px dashed var(--primary); cursor: crosshair;' : 'border: 1px solid var(--border);'">
             <div id="perencanaan-map" style="height: 100%; width: 100%; z-index: 0;"></div>
         </div>
-        <div x-show="isAddingMode" style="font-size: 0.8rem; color: var(--primary); margin-top: 0.5rem; text-align: center; display: none;">
+        <div x-show="isAddingMode" x-cloak style="font-size: 0.8rem; color: var(--primary); margin-top: 0.5rem; text-align: center;">
             Klik pada peta untuk menambahkan titik lokasi program baru.
         </div>
     </div>
@@ -127,7 +127,7 @@
     </div>
 
     <!-- Modal Form -->
-    <div x-show="showModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 1rem; display: none;">
+    <div x-show="showModal" x-cloak class="modal-overlay modal-overlay--blur" style="padding: 1rem;">
         <div class="glass-panel animate-fade-in" style="width: 100%; max-width: 750px; padding: 0; max-height: 90vh; overflow-y: auto; background: var(--surface);">
             <div style="padding: 1.5rem 2rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: var(--surface); z-index: 10;">
                 <h2 style="font-size: 1.5rem; font-weight: bold; display: flex; align-items: center; gap: 0.75rem;">

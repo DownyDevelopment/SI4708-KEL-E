@@ -32,7 +32,7 @@
     @endif
 
     <!-- Modal Tambah Barang -->
-    <div x-show="showAddForm" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 99; display: flex; justify-content: center; align-items: center; display: none;">
+    <div x-show="showAddForm" x-cloak class="modal-overlay">
         <div style="background: white; padding: 2rem; border-radius: 12px; width: 100%; max-width: 500px;" @click.stop>
             <h3 style="margin-bottom: 1.5rem; font-weight: 600; font-size: 1.25rem;">Tambah Barang Inventaris</h3>
             <form method="POST" action="{{ route('admin.inventaris') }}" style="display: flex; flex-direction: column; gap: 1rem;">
@@ -71,7 +71,7 @@
     </div>
 
     <!-- Modal Kurangi/Tambah/Jual Stok -->
-    <div x-show="activeAction && (activeAction.type === 'tambah' || activeAction.type === 'kurang' || activeAction.type === 'jual')" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 99; display: flex; justify-content: center; align-items: center; display: none;">
+    <div x-show="activeAction && (activeAction.type === 'tambah' || activeAction.type === 'kurang' || activeAction.type === 'jual')" x-cloak class="modal-overlay">
         <div style="background: white; padding: 2rem; border-radius: 12px; width: 100%; max-width: 450px;" @click.stop>
             <h3 style="margin-bottom: 1.5rem; font-weight: bold; display: flex; align-items: center; gap: 0.5rem;" :style="'color: ' + (activeAction?.type === 'tambah' ? '#10b981' : (activeAction?.type === 'jual' ? '#f59e0b' : '#ef4444'))">
                 <i :data-lucide="activeAction?.type === 'tambah' ? 'arrow-down-to-line' : (activeAction?.type === 'kurang' ? 'arrow-up-to-line' : 'shopping-cart')"></i>
@@ -129,7 +129,7 @@
     </div>
 
     <!-- Modal Riwayat Stok -->
-    <div x-show="activeAction && activeAction.type === 'history'" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 99; display: flex; justify-content: center; align-items: center; display: none;" @click="activeAction = null">
+    <div x-show="activeAction && activeAction.type === 'history'" x-cloak class="modal-overlay" @click="activeAction = null">
         <div style="background: white; padding: 0; border-radius: 12px; width: 100%; max-width: 600px; max-height: 80vh; display: flex; flex-direction: column;" @click.stop>
             <div style="padding: 1.5rem; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
                 <h3 style="font-weight: bold; display: flex; align-items: center; gap: 0.5rem; color: var(--text-main);">

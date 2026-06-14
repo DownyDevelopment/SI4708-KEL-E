@@ -10,18 +10,35 @@
             <h1>Halo, Admin Desa!</h1>
             <p>Selamat datang di sistem manajemen Work4Village. Pantau progres program kerja mikro hari ini.</p>
         </div>
-        <button class="btn btn-white">
+        <a href="/admin/analisis" class="btn btn-white" style="text-decoration: none;">
             Laporan Harian
-        </button>
+        </a>
     </div>
 
     <!-- Grid Atas -->
+    @php
+        $tugas = $data['tugas'];
+        $totalTugasForProgress = $tugas['total'] === 0 ? 1 : $tugas['total'];
+        $prof = $data['profiling'];
+        $profTotal = max(1, $prof['total']);
+        $petaniPct = ($prof['petani'] / $profTotal) * 100;
+        $pembersihPct = ($prof['pembersih'] / $profTotal) * 100;
+        $donutGradient = $prof['total'] === 0
+            ? 'conic-gradient(var(--border) 0% 100%)'
+            : sprintf(
+                'conic-gradient(var(--success) 0%% %s%%, var(--orange) %s%% %s%%, var(--purple) %s%% 100%%)',
+                $petaniPct,
+                $petaniPct,
+                $petaniPct + $pembersihPct,
+                $petaniPct + $pembersihPct
+            );
+    @endphp
     <div class="dashboard-grid">
         <!-- Total Profiling -->
         <div class="glass-panel stat-card" style="padding: 2rem;">
             <h3 class="stat-title" style="margin-bottom: 1.5rem; color: var(--text-main); font-size: 1rem; font-weight: 600;">Total Profiling</h3>
             <div class="donut-chart-container">
-                <div class="donut-chart">
+                <div class="donut-chart" style="background: {{ $donutGradient }};">
                     <div class="donut-inner">
                         <span class="donut-value">{{ $data['profiling']['total'] }}</span>
                         <span class="donut-label">Profiling</span>
@@ -46,10 +63,6 @@
         </div>
 
         <!-- Tugas Mingguan -->
-        @php
-            $tugas = $data['tugas'];
-            $totalTugasForProgress = $tugas['total'] === 0 ? 1 : $tugas['total'];
-        @endphp
         <div class="glass-panel stat-card" style="padding: 2rem;">
             <h3 class="stat-title" style="margin-bottom: 0.35rem; color: var(--text-main); font-size: 1rem; font-weight: 600;">Tugas Mingguan</h3>
             <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">{{ $data['tugas']['periode_label'] ?? 'Minggu ini' }}</p>

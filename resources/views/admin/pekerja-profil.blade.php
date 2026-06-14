@@ -15,7 +15,7 @@
             <p style="color: var(--text-muted); margin: 0.35rem 0 0;">Ringkasan kemampuan, program diikuti, dan jadwal kerja.</p>
         </div>
         @if(auth()->user()->role === 'admin')
-            <button class="btn btn-outline btn-sm" onclick="window.location.href='/admin/pekerja'">Edit Data Pekerja</button>
+            <a href="/admin/pekerja?edit={{ $worker->id }}" class="btn btn-outline btn-sm" style="text-decoration: none;">Edit Data Pekerja</a>
         @endif
     </div>
 

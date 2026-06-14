@@ -31,7 +31,7 @@
                 <x-sidebar-item icon="square-user" label="Keluarga Miskin" to="/admin/keluarga" :active="request()->is('admin/keluarga')" />
                 <x-sidebar-item icon="map-pin" label="Perencanaan Program" to="/admin/perencanaan" :active="request()->is('admin/perencanaan') || request()->is('admin/program')" />
                 <x-sidebar-item icon="pie-chart" label="Profiling" to="/admin/profiling" :active="request()->is('admin/profiling')" />
-                <x-sidebar-item icon="dollar-sign" label="Keuangan" to="/admin/ekonomi" :active="request()->is('admin/ekonomi')" />
+                <x-sidebar-item icon="dollar-sign" label="Ekonomi & Insentif" to="/admin/ekonomi" :active="request()->is('admin/ekonomi')" />
                 <x-sidebar-item icon="book-open" label="Edukasi" to="/admin/edukasi" :active="request()->is('admin/edukasi')" />
                 <x-sidebar-item icon="shield-check" label="Pengaturan Akses" to="/admin/roles" :active="request()->is('admin/roles')" />
                 <x-sidebar-item icon="trending-up" label="Tren Produktivitas" to="/admin/produktivitas" :active="request()->is('admin/produktivitas')" />
@@ -66,7 +66,7 @@
                 <i data-lucide="search" class="search-icon" style="width: 18px; height: 18px;"></i>
                 <input type="text" class="search-input" placeholder="Cari navigasi, pekerja, atau program..." x-model="searchQuery" @input="handleSearch" @focus="if(searchQuery.length > 2) showSearch = true" />
                 
-                <div x-show="showSearch && searchResults.length > 0" style="position: absolute; top: 110%; left: 0; width: 100%; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 50; max-height: 300px; overflow-y: auto;" style="display: none;">
+                <div x-show="showSearch && searchResults.length > 0" x-cloak class="dropdown-panel" style="top: 110%; left: 0; width: 100%; max-height: 300px; overflow-y: auto;">
                     <template x-for="r in searchResults">
                         <a :href="r.link" style="padding: 0.75rem 1rem; border-bottom: 1px solid #f1f5f9; cursor: pointer; display: flex; flex-direction: column; text-decoration: none;">
                             <span style="font-size: 0.9rem; font-weight: 600; color: var(--text-main)" x-text="r.title"></span>
@@ -74,7 +74,7 @@
                         </a>
                     </template>
                 </div>
-                <div x-show="showSearch && searchResults.length === 0" style="position: absolute; top: 110%; left: 0; width: 100%; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 50; padding: 1rem; text-align: center; color: var(--text-muted); display: none;">
+                <div x-show="showSearch && searchResults.length === 0" x-cloak class="dropdown-panel" style="top: 110%; left: 0; width: 100%; padding: 1rem; text-align: center; color: var(--text-muted);">
                     Tidak ada hasil ditemukan.
                 </div>
             </div>
@@ -84,9 +84,9 @@
                 <div style="position: relative;" @click.outside="showNotif = false">
                     <button class="icon-btn" @click="showNotif = !showNotif; if(showNotif) fetchNotifications()">
                         <i data-lucide="bell" style="width: 20px; height: 20px;"></i>
-                        <div x-show="unreadNotifs > 0" class="badge-dot" style="position: absolute; top: 5px; right: 5px; width: 8px; height: 8px; background: red; border-radius: 50%; display: none;"></div>
+                        <div x-show="unreadNotifs > 0" x-cloak class="badge-dot" style="position: absolute; top: 5px; right: 5px; width: 8px; height: 8px; background: red; border-radius: 50%;"></div>
                     </button>
-                    <div x-show="showNotif" style="position: absolute; right: 0; top: 120%; width: 300px; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 60; overflow: hidden; display: none;">
+                    <div x-show="showNotif" x-cloak class="topbar-dropdown" style="width: 300px;">
                         <div style="padding: 1rem; border-bottom: 1px solid #f1f5f9; font-weight: 600;">Notifikasi</div>
                         <div style="max-height: 300px; overflow-y: auto;">
                             <template x-if="notifications.length === 0">
@@ -110,7 +110,7 @@
                     <button class="icon-btn" @click="showMsg = !showMsg; if(showMsg) { fetchMessages(); fetchUsers(); }">
                         <i data-lucide="mail" style="width: 20px; height: 20px;"></i>
                     </button>
-                    <div x-show="showMsg" style="position: absolute; right: 0; top: 120%; width: 320px; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 60; overflow: hidden; display: flex; flex-direction: column; display: none;">
+                    <div x-show="showMsg" x-cloak class="topbar-dropdown" style="width: 320px; display: flex; flex-direction: column;">
                         <div style="padding: 1rem; border-bottom: 1px solid #f1f5f9; font-weight: 600;">Pesan Internal</div>
                         <div style="max-height: 250px; overflow-y: auto; padding: 0.5rem;">
                             <template x-if="messages.length === 0">
@@ -182,6 +182,7 @@
                 searchQuery: '',
                 searchResults: [],
                 showSearch: false,
+                searchTimer: null,
                 notifications: [],
                 showNotif: false,
                 messages: [],
@@ -222,14 +223,18 @@
                 async handleSearch() {
                     if (this.searchQuery.length > 2) {
                         this.showSearch = true;
-                        try {
-                            const res = await fetch(`/api/search?q=${this.searchQuery}`);
-                            this.searchResults = await res.json();
-                        } catch (err) {
-                            this.searchResults = [];
-                        }
+                        clearTimeout(this.searchTimer);
+                        this.searchTimer = setTimeout(async () => {
+                            try {
+                                const res = await fetch(`/api/search?q=${encodeURIComponent(this.searchQuery)}`);
+                                this.searchResults = await res.json();
+                            } catch (err) {
+                                this.searchResults = [];
+                            }
+                        }, 300);
                     } else {
                         this.showSearch = false;
+                        this.searchResults = [];
                     }
                 },
 

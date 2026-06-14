@@ -20,7 +20,7 @@
         </div>
     @endif
 
-    <div x-show="showForm" style="background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #e1e4e8; margin-bottom: 2rem; display: none;">
+    <div x-show="showForm" x-cloak style="background: white; padding: 1.5rem; border-radius: 12px; border: 1px solid #e1e4e8; margin-bottom: 2rem;">
         <h3 style="margin-bottom: 1rem; font-weight: 600;">Upload Materi Baru</h3>
         <form method="POST" action="{{ route('admin.edukasi') }}" style="display: flex; flex-direction: column; gap: 1rem;">
             @csrf
@@ -114,7 +114,7 @@
     </div>
 
     <!-- Modal Edit Konten -->
-    <div x-show="editContent" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9998; display: flex; justify-content: center; align-items: center; padding: 2rem; display: none;" @click="editContent = null">
+    <div x-show="editContent" x-cloak class="modal-overlay" style="z-index: 9998; padding: 2rem;" @click="editContent = null">
         <div style="background: white; padding: 1.5rem; border-radius: 12px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto;" @click.stop>
             <h3 style="margin-bottom: 1rem; font-weight: 600;">Edit Materi Edukasi</h3>
             <form method="POST" :action="'/admin/edukasi/' + editContent?.id" style="display: flex; flex-direction: column; gap: 1rem;">
@@ -160,7 +160,7 @@
     </div>
 
     <!-- Modul & Video Modal -->
-    <div x-show="activeModul" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 9999; display: flex; justify-content: center; align-items: center; padding: 2rem; display: none;" @click="activeModul = null">
+    <div x-show="activeModul" x-cloak class="modal-overlay" style="background: rgba(0,0,0,0.6); z-index: 9999; padding: 2rem;" @click="activeModul = null">
         <div :style="'background: ' + (activeModul?.startsWith('video:') ? 'black' : 'white') + '; width: 100%; max-width: ' + (activeModul?.startsWith('video:') ? '900px' : '700px') + '; max-height: 90vh; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);'" @click.stop>
             <div style="padding: 1.5rem; border-bottom: 1px solid #e1e4e8; display: flex; justify-content: space-between; align-items: center; background: #f8f9fa;">
                 <h2 style="font-size: 1.25rem; font-weight: bold; display: flex; align-items: center; gap: 0.5rem; color: var(--text-main);">
@@ -184,7 +184,7 @@
                 </template>
 
                 <!-- Static Moduls translated from React -->
-                <div x-show="activeModul === 'menanam-sayur'" style="display: none;">
+                <div x-show="activeModul === 'menanam-sayur'" x-cloak>
                     <h1 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 1.5rem; color: #1a202c;">Panduan Lengkap: Cara Menanam Sayur Organik di Pekarangan</h1>
                     <h3 style="font-size: 1.2rem; font-weight: bold; margin-top: 1.5rem; color: var(--primary);">1. Persiapan Lahan dan Media Tanam</h3>
                     <p style="margin-bottom: 1rem;">Gunakan campuran tanah gembur, pupuk kompos, dan sekam bakar dengan perbandingan 1:1:1. Media tanam ini akan memastikan tanaman mendapatkan nutrisi organik yang cukup tanpa perlu pupuk kimia. Masukkan campuran ke dalam polybag atau bedengan kecil di pekarangan.</p>
@@ -196,7 +196,7 @@
                     <p style="margin-bottom: 1rem;">Lakukan penyiraman 1-2 kali sehari sesuai cuaca. Untuk mencegah hama, semprotkan pestisida nabati secara rutin sekali seminggu. Sayuran daun biasanya sudah bisa dipanen pada umur 25-30 hari setelah tanam.</p>
                 </div>
 
-                <div x-show="activeModul === 'kerajinan'" style="display: none;">
+                <div x-show="activeModul === 'kerajinan'" x-cloak>
                     <h1 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 1.5rem; color: #1a202c;">Keterampilan: Membuat Kerajinan Bernilai Jual dari Barang Bekas</h1>
                     <h3 style="font-size: 1.2rem; font-weight: bold; margin-top: 1.5rem; color: var(--primary);">A. Mengubah Botol Bekas Menjadi Pot Menggantung</h3>
                     <p style="margin-bottom: 1rem;">Potong botol plastik bekas air mineral menjadi dua bagian. Warnai botol dengan cat akrilik agar lebih menarik. Lubangi bagian sisi botol untuk memasang tali gantungan. Pot ini sangat cocok digunakan dengan metode taman vertikal (vertical garden) yang ditanami tanaman hias.</p>
@@ -206,7 +206,7 @@
                     <p style="margin-bottom: 1rem;">Pecahan keramik bekas rumah atau mangkuk pecah dapat diubah menjadi hiasan pot, tatakan gelas (coaster), atau meja. Gunakan lem keramik untuk merekatkan pecahan tersebut lalu lumuri celah dengan semen nat agar terlihat tertutup dan artistik bernilai jual tinggi.</p>
                 </div>
 
-                <div x-show="activeModul === 'tips-kompos'" style="display: none;">
+                <div x-show="activeModul === 'tips-kompos'" x-cloak>
                     <h1 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 1.5rem; color: #1a202c;">Tips & Trik: Membuat Kompos Kualitas Tinggi</h1>
                     <h3 style="font-size: 1.2rem; font-weight: bold; margin-top: 1.5rem; color: var(--primary);">1. Jaga Rasio Karbon dan Nitrogen</h3>
                     <p style="margin-bottom: 1rem;">Campurkan bahan kaya karbon (daun kering, ranting, serbuk gergaji) dengan bahan kaya nitrogen (sisa sayuran, buah, ampas kopi) dengan rasio 2:1 atau 3:1. Hal ini membantu mikroorganisme bekerja lebih cepat.</p>
@@ -216,7 +216,7 @@
                     <p style="margin-bottom: 1rem;">Kompos yang baik harus memiliki kelembapan seperti spons yang diperas. Jika terlalu kering, tambahkan air. Jika terlalu basah, tambahkan bahan cokelat (daun kering/kertas).</p>
                 </div>
 
-                <div x-show="activeModul === 'tips-air'" style="display: none;">
+                <div x-show="activeModul === 'tips-air'" x-cloak>
                     <h1 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 1.5rem; color: #1a202c;">Tips & Trik: Menghemat Air Pertanian</h1>
                     <h3 style="font-size: 1.2rem; font-weight: bold; margin-top: 1.5rem; color: var(--primary);">1. Gunakan Mulsa Organik</h3>
                     <p style="margin-bottom: 1rem;">Tutup permukaan tanah di sekitar tanaman dengan mulsa organik (jerami, daun kering, atau potongan rumput). Mulsa dapat menahan penguapan air dari tanah hingga 70%.</p>
@@ -226,7 +226,7 @@
                     <p style="margin-bottom: 1rem;">Sistem irigasi tetes sangat efisien karena memberikan air langsung ke akar tanaman secara perlahan. Ini mengurangi limpasan air dan penguapan secara signifikan dibandingkan penyiraman manual.</p>
                 </div>
 
-                <div x-show="activeModul === 'tips-kesehatan'" style="display: none;">
+                <div x-show="activeModul === 'tips-kesehatan'" x-cloak>
                     <h1 style="font-size: 1.8rem; font-weight: 800; margin-bottom: 1.5rem; color: #1a202c;">Tips & Trik: Keselamatan Kerja Lapangan</h1>
                     <h3 style="font-size: 1.2rem; font-weight: bold; margin-top: 1.5rem; color: var(--primary);">1. Selalu Gunakan Alat Pelindung Diri (APD)</h3>
                     <p style="margin-bottom: 1rem;">Gunakan sarung tangan, sepatu bot tebal, dan topi lebar saat bekerja di lahan terbuka. Hal ini akan melindungi Anda dari benda tajam, gigitan serangga, dan sengatan matahari berlebih.</p>

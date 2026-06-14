@@ -172,7 +172,7 @@ Route::middleware('auth')->prefix('api')->group(function () {
                 ['Data Pekerja', 'Manajemen pekerja desa', '/admin/pekerja'],
                 ['Keluarga Miskin', 'Data rumah tangga prasejahtera', '/admin/keluarga'],
                 ['Perencanaan Program', 'Program kerja mikro & area', '/admin/perencanaan'],
-                ['Keuangan', 'Insentif dan upah pekerja', '/admin/ekonomi'],
+                ['Ekonomi & Insentif', 'Insentif dan upah pekerja', '/admin/ekonomi'],
                 ['Inventaris', 'Stok hasil produksi', '/admin/inventaris'],
                 ['Tugas', 'Penjadwalan pekerjaan', '/admin/tugas'],
                 ['Pengaturan Akses', 'Manajemen role pengguna', '/admin/roles'],

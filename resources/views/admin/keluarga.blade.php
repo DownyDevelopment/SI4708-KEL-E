@@ -37,7 +37,7 @@
         </div>
     </div>
 
-    <div x-show="showForm" class="glass-panel" style="padding: 2rem; margin-bottom: 2rem; display: none;">
+    <div x-show="showForm" x-cloak class="glass-panel" style="padding: 2rem; margin-bottom: 2rem;">
         <h3 style="margin-bottom: 1.5rem;" x-text="editMode ? 'Edit Data Keluarga' : 'Input Data Keluarga Baru'"></h3>
         <form method="POST" :action="editMode ? '/admin/keluarga/' + householdData.id : '{{ route('admin.keluarga') }}'" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
             @csrf
