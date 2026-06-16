@@ -64,7 +64,7 @@
 
     /* ── Hero ── */
     .profil-hero {
-        background: linear-gradient(135deg, var(--primary) 0%, #0d9488 50%, #0891b2 100%);
+        background: linear-gradient(135deg, #1e3a5f 0%, #0f766e 50%, #0891b2 100%);
         padding: 2rem 2rem 5rem;
         position: relative;
         overflow: hidden;
