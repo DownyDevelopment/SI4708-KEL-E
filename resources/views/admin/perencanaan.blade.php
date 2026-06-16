@@ -855,16 +855,38 @@
 @endpush
 
 @section('content')
-<div class="perencanaan-page animate-fade-in" x-data="perencanaanData()">
+<div class="perencanaan-page animate-fade-in" x-data="{ activeTab: new URLSearchParams(window.location.search).get('tab') || 'program', updateUrl(tab) { window.history.replaceState(null, null, '?tab=' + tab); setTimeout(() => lucide.createIcons(), 50); window.dispatchEvent(new CustomEvent('tab-changed', { detail: tab })); } }" x-init="setTimeout(() => { window.dispatchEvent(new CustomEvent('tab-changed', { detail: activeTab })); }, 150)">
 
-    <x-hero-banner title="Perencanaan Program & Area" description="Kelola program kerja mikro, petakan area fokus desa, dan koordinasikan stakeholder multi-pihak dalam satu dashboard.">
+    <x-hero-banner title="Program & Operasional Desa" description="Perencanaan program kerja desa, penugasan pekerja, dan penjadwalan aktivitas operasional lapangan.">
         <x-slot:actions>
-            <button @click="resetForm(); showModal = true" class="global-hero-banner-btn-white" style="display: flex; align-items: center; gap: 0.5rem;">
-                <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
-                Tambah Program
-            </button>
+            <template x-if="activeTab === 'program'">
+                <button @click="window.dispatchEvent(new CustomEvent('open-add-program-form'))" class="global-hero-banner-btn-white" style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
+                    Tambah Program
+                </button>
+            </template>
+            <template x-if="activeTab === 'tugas'">
+                <button @click="window.dispatchEvent(new CustomEvent('open-add-tugas-form'))" class="global-hero-banner-btn-white" style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
+                    Tambah Jadwal
+                </button>
+            </template>
         </x-slot:actions>
     </x-hero-banner>
+
+    <div class="global-tabs">
+        <button type="button" class="global-tab" :class="{ 'active': activeTab === 'program' }" @click="activeTab = 'program'; updateUrl('program')">
+            <i data-lucide="map-pin" style="width: 16px; height: 16px;"></i>
+            Program Kerja
+        </button>
+        <button type="button" class="global-tab" :class="{ 'active': activeTab === 'tugas' }" @click="activeTab = 'tugas'; updateUrl('tugas')">
+            <i data-lucide="file-text" style="width: 16px; height: 16px;"></i>
+            Penjadwalan Tugas
+        </button>
+    </div>
+
+    <!-- TAB 1: Program Kerja -->
+    <div x-show="activeTab === 'program'" x-data="perencanaanData()" x-init="window.addEventListener('open-add-program-form', () => { resetForm(); showModal = true; })" x-on:tab-changed.window="if ($event.detail === 'program') { $nextTick(() => { if (map) map.invalidateSize(); else initMap(); }) }">
 
     {{-- Stats --}}
     <div class="perencanaan-stats">
@@ -1291,7 +1313,218 @@
             </form>
         </div>
     </div>
+    </div>
+
+    <!-- TAB 2: Penjadwalan Tugas -->
+    <div x-show="activeTab === 'tugas'" x-data="tugasData()" x-init="window.addEventListener('open-add-tugas-form', () => openCreateModal())">
+        @if(session('success') && request()->get('tab') === 'tugas')
+            <div class="perencanaan-alert">
+                <i data-lucide="check-circle" style="width: 18px; height: 18px; flex-shrink: 0;"></i>
+                {{ session('success') }}
+            </div>
+        @endif
+        @if(session('error'))
+            <div class="glass-panel" style="margin-bottom: 1rem; padding: 0.85rem 1.25rem; border-left: 4px solid var(--danger); color: var(--danger); background: var(--surface);">
+                {{ session('error') }}
+            </div>
+        @endif
+        @if($errors->any())
+            <div class="glass-panel" style="margin-bottom: 1rem; padding: 0.85rem 1.25rem; border-left: 4px solid var(--danger); color: var(--danger); background: var(--surface);">
+                @foreach($errors->all() as $error)
+                    <p style="margin:0;">{{ $error }}</p>
+                @endforeach
+            </div>
+        @endif
+
+        <div class="perencanaan-table-panel" style="padding: 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); margin-top: 1.5rem;">
+            <div class="perencanaan-table-header" style="border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1rem;">
+                <div>
+                    <h2 style="font-size: 1.1rem; font-weight: 600; color: var(--text-main); margin: 0;">Daftar Penjadwalan Tugas</h2>
+                    <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0.2rem 0 0;">Kelola jadwal operasional harian kelompok kerja di lapangan</p>
+                </div>
+            </div>
+            <div style="overflow-x: auto;">
+                <table class="perencanaan-table" style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--border); text-align: left;">
+                            <th style="padding: 0.75rem;">Program</th>
+                            <th style="padding: 0.75rem;">Tanggal</th>
+                            <th style="padding: 0.75rem;">Shift / Jam</th>
+                            <th style="padding: 0.75rem;">Kelompok</th>
+                            <th style="padding: 0.75rem;">Progres</th>
+                            <th style="padding: 0.75rem;">Status</th>
+                            <th style="padding: 0.75rem;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($jadwal as $item)
+                            <tr style="border-bottom: 1px solid var(--border);">
+                                <td style="padding: 0.75rem; font-weight: 600; color: var(--text-main);">{{ $item->tugas ?? '—' }}</td>
+                                <td style="padding: 0.75rem;">{{ $item->tanggal ? \Carbon\Carbon::parse($item->tanggal)->format('d M Y') : '—' }}</td>
+                                <td style="padding: 0.75rem; font-size: 0.85rem;">
+                                    {{ $item->shift_label ?? '—' }}
+                                    @if($item->jam_mulai)
+                                        <br><span style="color: var(--text-muted);">{{ $item->jam_mulai }}@if($item->jam_selesai) – {{ $item->jam_selesai }}@endif</span>
+                                    @endif
+                                </td>
+                                <td style="padding: 0.75rem; font-size: 0.85rem;">
+                                    @if($item->kelompok_nama)
+                                        <strong>{{ $item->kelompok_nama }}</strong>
+                                        @if(!empty($item->pekerja_nama))
+                                            <br><span style="color: var(--text-muted);">{{ implode(', ', array_slice($item->pekerja_nama, 0, 2)) }}@if(count($item->pekerja_nama) > 2) +{{ count($item->pekerja_nama) - 2 }}@endif</span>
+                                        @endif
+                                    @else
+                                        —
+                                    @endif
+                                </td>
+                                <td style="padding: 0.75rem; min-width: 120px;">
+                                    <div class="progress-track">
+                                        <div class="progress-fill" style="width: {{ min(100, (int)($item->progres_terakhir ?? 0)) }}%;"></div>
+                                    </div>
+                                    <span style="font-size: 0.8rem; color: var(--text-muted);">{{ (int)($item->progres_terakhir ?? 0) }}%</span>
+                                </td>
+                                <td style="padding: 0.75rem;">
+                                    @php
+                                        $statusClass = match($item->status) {
+                                            'completed' => 'badge-success',
+                                            'in_progress' => 'badge-primary',
+                                            default => 'badge-warning',
+                                        };
+                                        $statusLabel = match($item->status) {
+                                            'completed' => 'Selesai',
+                                            'in_progress' => 'Berjalan',
+                                            'scheduled' => 'Terjadwal',
+                                            default => $item->status,
+                                        };
+                                    @endphp
+                                    <span class="badge {{ $statusClass }}">{{ $statusLabel }}</span>
+                                </td>
+                                <td style="padding: 0.75rem;">
+                                    <div style="display: flex; gap: 0.35rem;">
+                                        <button type="button" class="perencanaan-action-btn" style="background: rgba(15, 118, 110, 0.08); color: var(--primary);" @click="openEditModal(@js($item))">
+                                            <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i>
+                                        </button>
+                                        <form method="POST" action="{{ url('/admin/tugas/' . $item->id) }}" onsubmit="return confirm('Hapus jadwal ini?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="perencanaan-action-btn" style="background: rgba(239, 68, 68, 0.08); color: var(--danger);">
+                                                <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7" style="padding: 1.5rem; text-align: center; color: var(--text-muted);">Belum ada jadwal.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {{-- Modal Input Jadwal --}}
+        <div class="perencanaan-modal-backdrop" x-show="showModal">
+            <div class="perencanaan-modal">
+                <div class="perencanaan-modal-header">
+                    <div>
+                        <h3 x-text="isEdit ? 'Edit Jadwal Kerja' : 'Tambah Jadwal Baru'"></h3>
+                        <p>Atur penugasan dan shift operasional lapangan</p>
+                    </div>
+                    <button type="button" @click="showModal = false" class="perencanaan-modal-close">
+                        <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+                    </button>
+                </div>
+                <form :method="'POST'" :action="formAction">
+                    @csrf
+                    <template x-if="isEdit">
+                        <input type="hidden" name="_method" value="PUT">
+                    </template>
+                    <input type="hidden" name="tab" value="tugas" />
+
+                    <div class="perencanaan-form-section" style="margin-top: 0;">
+                        <i data-lucide="info" style="width: 14px; height: 14px; color: var(--primary);"></i>
+                        <span>Program & Kelompok</span>
+                    </div>
+
+                    <div class="perencanaan-form-grid">
+                        <div style="grid-column: 1 / -1;">
+                            <label class="form-label">Program Kerja</label>
+                            <select name="program_id" class="form-input" x-model="form.program_id" required style="width:100%;">
+                                <option value="">— Pilih program —</option>
+                                @foreach($programs as $p)
+                                    <option value="{{ $p->id }}">{{ $p->nama_program }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div style="grid-column: 1 / -1;">
+                            <label class="form-label">Kelompok Kerja</label>
+                            <select name="worker_group_id" class="form-input" x-model="form.worker_group_id" required style="width:100%;">
+                                <option value="">— Pilih kelompok —</option>
+                                @foreach($workerGroups as $g)
+                                    <option value="{{ $g->id }}">{{ $g->nama_kelompok }} ({{ $g->workers_count }} anggota)</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="perencanaan-form-section">
+                        <i data-lucide="calendar" style="width: 14px; height: 14px; color: var(--primary);"></i>
+                        <span>Jadwal Waktu</span>
+                    </div>
+
+                    <div class="perencanaan-form-grid">
+                        <div>
+                            <label class="form-label">Tanggal Pelaksanaan</label>
+                            <input type="date" name="tanggal" class="form-input" x-model="form.tanggal" required style="width:100%;" />
+                        </div>
+                        <div>
+                            <label class="form-label">Status Awal</label>
+                            <select name="status" class="form-input" x-model="form.status" required style="width:100%;">
+                                <option value="scheduled">Terjadwal</option>
+                                <option value="in_progress">Berjalan</option>
+                                <option value="completed">Selesai</option>
+                                <option value="delayed">Tertunda</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label">Jam Mulai</label>
+                            <input type="time" name="jam_mulai" class="form-input" x-model="form.jam_mulai" style="width:100%;" />
+                        </div>
+                        <div>
+                            <label class="form-label">Jam Selesai</label>
+                            <input type="time" name="jam_selesai" class="form-input" x-model="form.jam_selesai" style="width:100%;" />
+                        </div>
+                        <div>
+                            <label class="form-label">Label Shift</label>
+                            <input type="text" name="shift_label" class="form-input" x-model="form.shift_label" placeholder="Pagi / Siang" style="width:100%;" />
+                        </div>
+                    </div>
+
+                    <div class="perencanaan-form-section">
+                        <i data-lucide="file-text" style="width: 14px; height: 14px; color: var(--primary);"></i>
+                        <span>Deskripsi Pekerjaan</span>
+                    </div>
+                    <div class="form-group" style="margin-bottom:1rem;">
+                        <textarea name="deskripsi" class="form-input" rows="2" x-model="form.deskripsi" placeholder="Detail instruksi/pekerjaan hari ini..." style="width:100%;"></textarea>
+                    </div>
+
+                    <div class="perencanaan-form-footer">
+                        <button type="button" @click="showModal = false" class="btn btn-outline">Batal</button>
+                        <button type="submit" class="btn btn-primary">Simpan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
 </div>
+
+<style>
+    .progress-track { height: 8px; background: var(--border); border-radius: 999px; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--primary), #34d399); border-radius: 999px; }
+</style>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
@@ -1563,6 +1796,60 @@
                 if (now >= end) return 100;
                 return Math.round(((now - start) / (end - start)) * 100);
             }
+        }));
+
+        Alpine.data('tugasData', () => ({
+            showModal: false,
+            isEdit: false,
+            formAction: '{{ url('/admin/tugas') }}',
+            form: {
+                program_id: '',
+                tanggal: '',
+                status: 'scheduled',
+                jam_mulai: '',
+                jam_selesai: '',
+                shift_label: '',
+                deskripsi: '',
+                worker_group_id: '',
+            },
+
+            init() {
+                setTimeout(() => lucide.createIcons(), 50);
+            },
+
+            openCreateModal() {
+                this.isEdit = false;
+                this.formAction = '{{ url('/admin/tugas') }}';
+                this.form = {
+                    program_id: '',
+                    tanggal: new Date().toISOString().slice(0, 10),
+                    status: 'scheduled',
+                    jam_mulai: '',
+                    jam_selesai: '',
+                    shift_label: '',
+                    deskripsi: '',
+                    worker_group_id: '',
+                };
+                this.showModal = true;
+                setTimeout(() => lucide.createIcons(), 50);
+            },
+
+            openEditModal(item) {
+                this.isEdit = true;
+                this.formAction = '{{ url('/admin/tugas') }}/' + item.id;
+                this.form = {
+                    program_id: String(item.program_id || ''),
+                    tanggal: item.tanggal ? String(item.tanggal).slice(0, 10) : '',
+                    status: item.status || 'scheduled',
+                    jam_mulai: item.jam_mulai || '',
+                    jam_selesai: item.jam_selesai || '',
+                    shift_label: item.shift_label || '',
+                    deskripsi: item.deskripsi || '',
+                    worker_group_id: String(item.worker_group_id || ''),
+                };
+                this.showModal = true;
+                setTimeout(() => lucide.createIcons(), 50);
+            },
         }));
     });
 </script>

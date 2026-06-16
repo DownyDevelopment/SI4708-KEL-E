@@ -10,16 +10,7 @@ class WorkerGroupController extends Controller
 {
     public function index()
     {
-        $groups = WorkerGroup::withCount('workers')
-            ->with('workers')
-            ->orderBy('nama_kelompok')
-            ->get();
-
-        $availableWorkers = Worker::with('workerGroups')
-            ->orderBy('nama')
-            ->get();
-
-        return view('pengawas.groups.index', compact('groups', 'availableWorkers'));
+        return redirect()->route('pengawas.profiling', ['tab' => 'kelompok']);
     }
 
     public function store(Request $request)

@@ -598,19 +598,40 @@
 @endpush
 
 @section('content')
-<div class="animate-fade-in pekerja-page" x-data="pekerjaData()">
-    <x-hero-banner title="Data Pekerja" description="Profiling & pendaftaran pekerja berbasis skoring BPS/Kemensos — prioritas penugasan dari skor tertinggi.">
+<div class="animate-fade-in pekerja-page" x-data="{ activeTab: new URLSearchParams(window.location.search).get('tab') || 'pekerja', updateUrl(tab) { window.history.replaceState(null, null, '?tab=' + tab); setTimeout(() => lucide.createIcons(), 50); } }">
+    <x-hero-banner title="Kependudukan &amp; Profiling" description="Manajemen data warga prasejahtera, skoring kerentanan keluarga, dan monitoring kelulusan program kemiskinan.">
         <x-slot:actions>
-            <a href="/admin/keluarga" class="global-hero-banner-btn-ghost">
-                <i data-lucide="home" style="width: 16px; height: 16px;"></i>
-                Data Keluarga
-            </a>
-            <button class="global-hero-banner-btn-white" @click="openAddForm()">
-                <i data-lucide="clipboard-list" style="width: 16px; height: 16px;"></i>
-                Survei Profiling Baru
-            </button>
+            <template x-if="activeTab === 'pekerja'">
+                <button class="global-hero-banner-btn-white" @click="window.dispatchEvent(new CustomEvent('open-add-worker-form'))">
+                    <i data-lucide="clipboard-list" style="width: 16px; height: 16px;"></i>
+                    Survei Profiling Baru
+                </button>
+            </template>
+            <template x-if="activeTab === 'keluarga'">
+                <button class="global-hero-banner-btn-white" @click="window.dispatchEvent(new CustomEvent('open-add-family-form'))">
+                    <i data-lucide="plus-circle" style="width: 18px; height: 18px; margin-right: 8px;"></i>
+                    Tambah Keluarga
+                </button>
+            </template>
         </x-slot:actions>
     </x-hero-banner>
+
+    <div class="global-tabs">
+        <button type="button" class="global-tab" :class="{ 'active': activeTab === 'pekerja' }" @click="activeTab = 'pekerja'; updateUrl('pekerja')">
+            <i data-lucide="users" style="width: 16px; height: 16px;"></i>
+            Daftar Pekerja
+        </button>
+        <button type="button" class="global-tab" :class="{ 'active': activeTab === 'profiling' }" @click="activeTab = 'profiling'; updateUrl('profiling')">
+            <i data-lucide="pie-chart" style="width: 16px; height: 16px;"></i>
+            Profiling Kesejahteraan
+        </button>
+        <button type="button" class="global-tab" :class="{ 'active': activeTab === 'keluarga' }" @click="activeTab = 'keluarga'; updateUrl('keluarga')">
+            <i data-lucide="square-user" style="width: 16px; height: 16px;"></i>
+            Data Keluarga
+        </button>
+    </div>
+
+    <div x-show="activeTab === 'pekerja'" x-data="pekerjaData()" x-init="window.addEventListener('open-add-worker-form', () => openAddForm())">
 
     {{-- Stats --}}
     <div class="pekerja-stats">
@@ -1058,6 +1079,15 @@
                 </form>
             </div>
         </div>
+    </div>
+    </div>
+
+    <div x-show="activeTab === 'profiling'" x-cloak>
+        @include('pengawas.profiling.index', ['isIncluded' => true])
+    </div>
+
+    <div x-show="activeTab === 'keluarga'" x-cloak>
+        @include('admin.keluarga')
     </div>
 </div>
 

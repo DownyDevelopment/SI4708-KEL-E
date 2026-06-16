@@ -17,12 +17,18 @@ class EkonomiController extends Controller
         $workers = Worker::orderBy('nama')->get();
         $pendingLogbooks = collect();
         $now = now();
+        $reports = collect();
 
         if (auth()->user()->role === 'admin') {
             $pendingLogbooks = Logbook::with(['worker', 'schedule.program'])
                 ->where('progres_persentase', '>=', 100)
                 ->where('status_validasi', 'menunggu')
                 ->orderByDesc('created_at')
+                ->get();
+        } else {
+            $reports = \App\Models\FieldProblem::join('users', 'field_problems.pengawas_id', '=', 'users.id')
+                ->select('field_problems.*', 'users.nama as nama_pengawas')
+                ->orderBy('field_problems.created_at', 'desc')
                 ->get();
         }
 
@@ -77,6 +83,31 @@ class EkonomiController extends Controller
             ->orderByDesc('id')
             ->get();
 
+        // 1. Hitung total penjualan dari inventaris_histories
+        $totalSales = 0;
+        $histories = \App\Models\InventarisHistory::where('tipe_perubahan', 'kurang')
+            ->where('keterangan', 'like', '%Penjualan%')
+            ->get();
+
+        foreach ($histories as $h) {
+            if (preg_match('/Total:\s*Rp[^\d]*([\d\.,]+)/u', $h->keterangan, $matches)) {
+                $cleaned = str_replace('.', '', $matches[1]);
+                $cleaned = str_replace(',', '.', $cleaned);
+                $totalSales += (float)$cleaned;
+            }
+        }
+
+        // 2. Hitung total yang sudah dicairkan ke PADes
+        $totalDisbursed = \App\Models\PadesPencairan::sum('nominal');
+
+        // 3. Saldo siap cair
+        $availableBalance = max(0, $totalSales - $totalDisbursed);
+
+        // 4. Riwayat pencairan PADes terurut dari yang terbaru
+        $pencairans = \App\Models\PadesPencairan::orderByDesc('tanggal_pencairan')
+            ->orderByDesc('id')
+            ->get();
+
         return view('admin.ekonomi', [
             'workers' => $workers,
             'pendingLogbooks' => $pendingLogbooks,
@@ -92,6 +123,11 @@ class EkonomiController extends Controller
             'allInsentifs' => $allInsentifs,
             'allRewards' => $allRewards,
             'bulanLabel' => $monthLabels[$now->month] . ' ' . $now->year,
+            'totalSales' => $totalSales,
+            'totalDisbursed' => $totalDisbursed,
+            'availableBalance' => $availableBalance,
+            'pencairans' => $pencairans,
+            'reports' => $reports,
         ]);
     }
 

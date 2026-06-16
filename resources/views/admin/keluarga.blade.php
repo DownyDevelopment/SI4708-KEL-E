@@ -1,18 +1,4 @@
-@extends('layouts.app')
-@section('title', 'Profiling Keluarga Prasejahtera')
-
-@section('content')
-<div class="animate-fade-in" x-data="keluargaData()">
-    <x-hero-banner title="Profiling Keluarga Prasejahtera" description="Data awal rumah tangga — indikator kemiskinan, kelaparan (SDG 2), dan kesehatan (SDG 3).">
-        <x-slot:actions>
-            <a href="/admin/pekerja" class="global-hero-banner-btn-ghost" style="text-decoration: none;">
-                <i data-lucide="user" style="width: 18px; height: 18px; margin-right: 8px;"></i> Data Pekerja
-            </a>
-            <button class="global-hero-banner-btn-white" @click="openAddForm()">
-                <i data-lucide="plus-circle" style="width: 18px; height: 18px; margin-right: 8px;"></i> Tambah Keluarga
-            </button>
-        </x-slot:actions>
-    </x-hero-banner>
+<div class="animate-fade-in" x-data="keluargaData()" x-init="window.addEventListener('open-add-family-form', () => openAddForm()); init();">
 
     @if(session('success'))
         <div style="background: #f0fdf4; color: #166534; padding: 0.75rem; border-radius: var(--radius-sm); margin-bottom: 1.5rem; font-size: 0.85rem; text-align: center;">
@@ -175,4 +161,3 @@
         }));
     });
 </script>
-@endsection

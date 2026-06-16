@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends(isset($isIncluded) && $isIncluded ? 'layouts.empty' : 'layouts.app')
 @section('title', 'Kelompok Kerja')
 
 @php
@@ -655,6 +655,9 @@
     workerFilter: 'all',
     groupSearch: '',
     noGroupResults: false,
+    init() {
+        window.addEventListener('open-add-group-form', () => this.openForm());
+    },
     checkGroupResults() {
         this.$nextTick(() => {
             const cards = this.$el.querySelectorAll('.group-card');
@@ -682,7 +685,8 @@
         return (name + ' ' + desc + ' ' + members).toLowerCase().includes(q);
     }
 }">
-    <x-hero-banner title="Kelompok Kerja" description="Kelola kelompok pekerja untuk penugasan lapangan dan evaluasi berbasis tim.">
+    @if(!(isset($isIncluded) && $isIncluded))
+    <x-hero-banner title="Kelompok & Profiling" description="Pembagian tim kerja lapangan bagi para pekerja prasejahtera, serta monitoring tingkat kesejahteraan mereka.">
         <x-slot:actions>
             <button type="button" class="global-hero-banner-btn-white" @click="openForm()">
                 <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
@@ -690,6 +694,18 @@
             </button>
         </x-slot:actions>
     </x-hero-banner>
+
+    <div class="global-tabs">
+        <a href="/pengawas/groups" class="global-tab active">
+            <i data-lucide="users" style="width: 16px; height: 16px;"></i>
+            Kelompok Kerja
+        </a>
+        <a href="/pengawas/profiling" class="global-tab">
+            <i data-lucide="pie-chart" style="width: 16px; height: 16px;"></i>
+            Profiling Pekerja
+        </a>
+    </div>
+    @endif
 
     {{-- Stats --}}
     <div class="groups-stats">

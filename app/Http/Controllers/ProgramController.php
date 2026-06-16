@@ -11,7 +11,8 @@ class ProgramController extends Controller
     public function perencanaanIndex()
     {
         $programs = MicroProgram::all();
-        return view('admin.perencanaan', compact('programs'));
+        $jadwalData = app(\App\Http\Controllers\JadwalController::class)->operasionalData();
+        return view('admin.perencanaan', array_merge(compact('programs'), $jadwalData));
     }
 
     public function programIndex()

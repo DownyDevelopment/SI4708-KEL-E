@@ -634,338 +634,426 @@
 @endpush
 
 @section('content')
-<div class="analisis-page animate-fade-in" x-data="analisisData()">
+<div class="analisis-page animate-fade-in" x-data="{ activeTab: new URLSearchParams(window.location.search).get('tab') || 'dampak', updateUrl(tab) { window.history.replaceState(null, null, '?tab=' + tab); setTimeout(() => lucide.createIcons(), 50); window.dispatchEvent(new CustomEvent('tab-changed', { detail: tab })); } }" x-init="setTimeout(() => { window.dispatchEvent(new CustomEvent('tab-changed', { detail: activeTab })); }, 150)">
 
-    <x-hero-banner title="Dashboard Analisis Desa" description="Pusat evaluasi pencapaian program kerja mikro, partisipasi warga prasejahtera, dan dampak lingkungan berkelanjutan.">
+    <x-hero-banner title="Analisis & Kinerja Desa" description="Pusat evaluasi pencapaian program kerja, partisipasi warga prasejahtera, dan metrik keberlanjutan.">
         <x-slot:actions>
-            <div class="analisis-period-select no-print">
-                <i data-lucide="calendar-range" style="width: 16px; height: 16px; color: rgba(255,255,255,0.85);"></i>
-                <select x-model="period" @change="changePeriod">
-                    <option value="mingguan">Mingguan</option>
-                    <option value="bulanan">Bulanan</option>
-                    <option value="tahunan">Tahunan</option>
-                </select>
-            </div>
-            <button class="global-hero-banner-btn-white no-print" @click="downloadPdf">
-                <i data-lucide="download" style="width: 16px; height: 16px;"></i>
-                Unduh PDF
-            </button>
+            <template x-if="activeTab === 'dampak'">
+                <div style="display: flex; gap: 0.65rem; align-items: center;">
+                    <div class="analisis-period-select no-print">
+                        <i data-lucide="calendar-range" style="width: 16px; height: 16px; color: rgba(255,255,255,0.85);"></i>
+                        <select @change="window.location.href = '/admin/analisis?period=' + $event.target.value + '&tab=dampak'">
+                            <option value="mingguan" {{ $period === 'mingguan' ? 'selected' : '' }}>Mingguan</option>
+                            <option value="bulanan" {{ $period === 'bulanan' ? 'selected' : '' }}>Bulanan</option>
+                            <option value="tahunan" {{ $period === 'tahunan' ? 'selected' : '' }}>Tahunan</option>
+                        </select>
+                    </div>
+                    <button class="global-hero-banner-btn-white no-print" @click="window.location.href = '/admin/analisis/pdf?period={{ $period }}'">
+                        <i data-lucide="download" style="width: 16px; height: 16px;"></i>
+                        Unduh PDF
+                    </button>
+                </div>
+            </template>
         </x-slot:actions>
     </x-hero-banner>
 
-    @if(session('success'))
-        <div class="analisis-alert no-print">
-            <i data-lucide="check-circle" style="width: 18px; height: 18px; flex-shrink: 0;"></i>
-            {{ session('success') }}
-        </div>
-    @endif
+    <div class="global-tabs no-print">
+        <button type="button" class="global-tab" :class="{ 'active': activeTab === 'dampak' }" @click="activeTab = 'dampak'; updateUrl('dampak')">
+            <i data-lucide="bar-chart-2" style="width: 16px; height: 16px;"></i>
+            Dampak & SDG
+        </button>
+        <button type="button" class="global-tab" :class="{ 'active': activeTab === 'produktivitas' }" @click="activeTab = 'produktivitas'; updateUrl('produktivitas')">
+            <i data-lucide="trending-up" style="width: 16px; height: 16px;"></i>
+            Tren Produktivitas
+        </button>
+    </div>
 
-    {{-- KPI Cards --}}
-    <div class="analisis-kpis">
-        <div class="analisis-kpi analisis-kpi--workers">
-            <div class="analisis-kpi-top">
-                <div class="analisis-kpi-icon" style="background: rgba(59,130,246,0.1); color: #2563eb;">
-                    <i data-lucide="users" style="width: 22px; height: 22px;"></i>
+    <!-- TAB 1: Dampak & SDG -->
+    <div x-show="activeTab === 'dampak'" x-data="analisisData()" x-on:tab-changed.window="if ($event.detail === 'dampak') $nextTick(() => renderCharts())">
+        @if(session('success'))
+            <div class="analisis-alert no-print">
+                <i data-lucide="check-circle" style="width: 18px; height: 18px; flex-shrink: 0;"></i>
+                {{ session('success') }}
+            </div>
+        @endif
+
+        {{-- KPI Cards --}}
+        <div class="analisis-kpis">
+            <div class="analisis-kpi analisis-kpi--workers">
+                <div class="analisis-kpi-top">
+                    <div class="analisis-kpi-icon" style="background: rgba(59,130,246,0.1); color: #2563eb;">
+                        <i data-lucide="users" style="width: 22px; height: 22px;"></i>
+                    </div>
+                    @if($trenDelta !== 0)
+                        <span class="analisis-kpi-badge {{ $trenDelta >= 0 ? 'analisis-kpi-badge--up' : 'analisis-kpi-badge--down' }}">
+                            {{ $trenDelta >= 0 ? '+' : '' }}{{ $trenDelta }}%
+                        </span>
+                    @else
+                        <span class="analisis-kpi-badge analisis-kpi-badge--neutral">Stabil</span>
+                    @endif
                 </div>
-                @if($trenDelta !== 0)
-                    <span class="analisis-kpi-badge {{ $trenDelta >= 0 ? 'analisis-kpi-badge--up' : 'analisis-kpi-badge--down' }}">
-                        {{ $trenDelta >= 0 ? '+' : '' }}{{ $trenDelta }}%
-                    </span>
-                @else
-                    <span class="analisis-kpi-badge analisis-kpi-badge--neutral">Stabil</span>
+                <div class="analisis-kpi-value">{{ $data['total_warga_bekerja'] }}</div>
+                <div class="analisis-kpi-label">Warga Prasejahtera Bekerja</div>
+                <div class="analisis-kpi-sub">{{ $trenTotal }} pendaftaran baru dalam periode ini</div>
+            </div>
+
+            <div class="analisis-kpi analisis-kpi--env">
+                <div class="analisis-kpi-top">
+                    <div class="analisis-kpi-icon" style="background: rgba(34,197,94,0.1); color: #16a34a;">
+                        <i data-lucide="leaf" style="width: 22px; height: 22px;"></i>
+                    </div>
+                </div>
+                <div class="analisis-kpi-value">
+                    {{ number_format($data['dampak_lingkungan']['value'], 0, ',', '.') }}
+                    <span class="analisis-kpi-unit">{{ $data['dampak_lingkungan']['unit'] }}</span>
+                </div>
+                <div class="analisis-kpi-label">Akumulasi Dampak Lingkungan</div>
+                <div class="analisis-kpi-sub">{{ number_format($totalEmisi, 1, ',', '.') }} Kg CO₂ emisi berkurang</div>
+            </div>
+
+            <div class="analisis-kpi analisis-kpi--money">
+                <div class="analisis-kpi-top">
+                    <div class="analisis-kpi-icon" style="background: rgba(245,158,11,0.1); color: #d97706;">
+                        <i data-lucide="wallet" style="width: 22px; height: 22px;"></i>
+                    </div>
+                </div>
+                <div class="analisis-kpi-value" style="font-size: 1.45rem;">
+                    Rp {{ number_format($data['total_insentif'], 0, ',', '.') }}
+                </div>
+                <div class="analisis-kpi-label">Total Dana Insentif</div>
+                <div class="analisis-kpi-sub">Distribusi upah pekerja desa</div>
+            </div>
+
+            <div class="analisis-kpi analisis-kpi--programs">
+                <div class="analisis-kpi-top">
+                    <div class="analisis-kpi-icon" style="background: rgba(139,92,246,0.1); color: #7c3aed;">
+                        <i data-lucide="target" style="width: 22px; height: 22px;"></i>
+                    </div>
+                    <span class="analisis-kpi-badge analisis-kpi-badge--up">{{ $completionRate }}%</span>
+                </div>
+                <div class="analisis-kpi-value">{{ $programTotal }}</div>
+                <div class="analisis-kpi-label">Program Kerja Terdaftar</div>
+                <div class="analisis-kpi-sub">{{ $programSelesai }} selesai · {{ $programAktif }} aktif</div>
+            </div>
+        </div>
+
+        {{-- Charts row --}}
+        <div class="analisis-main">
+            <div class="analisis-panel">
+                <div class="analisis-panel-header">
+                    <div>
+                        <h2>
+                            <i data-lucide="trending-up" style="width: 17px; height: 17px; color: var(--primary);"></i>
+                            Tren Partisipasi Warga
+                        </h2>
+                        <p>{{ $periodShort }} · {{ $periodLabel }}</p>
+                    </div>
+                </div>
+                @if($trenTotal === 0)
+                    <div class="analisis-chart-hint">
+                        <i data-lucide="info" style="width: 14px; height: 14px;"></i>
+                        Belum ada pekerja baru terdaftar dalam periode ini. Grafik menampilkan timeline kosong.
+                    </div>
+                @elseif($trenActivePeriods === 1)
+                    <div class="analisis-chart-hint">
+                        <i data-lucide="info" style="width: 14px; height: 14px;"></i>
+                        {{ $trenTotal }} pekerja terdaftar dalam 1 periode. Bulan tanpa pendaftaran ditampilkan sebagai 0.
+                    </div>
+                @endif
+                <div class="analisis-chart-wrap">
+                    <canvas id="trenChart"></canvas>
+                </div>
+            </div>
+
+            <div class="analisis-panel">
+                <div class="analisis-panel-header">
+                    <div>
+                        <h2>
+                            <i data-lucide="pie-chart" style="width: 17px; height: 17px; color: #7c3aed;"></i>
+                            Sebaran Sektor Program
+                        </h2>
+                        <p>{{ $sebaran->count() }} jenis sektor</p>
+                    </div>
+                </div>
+                <div class="analisis-chart-wrap analisis-chart-wrap--sm">
+                    <canvas id="sebaranChart"></canvas>
+                </div>
+                @if($sebaran->count() > 0)
+                    <div class="analisis-sebaran-list">
+                        @php $colors = ['#0f766e', '#3b82f6', '#f59e0b', '#8b5cf6', '#22c55e', '#ec4899']; @endphp
+                        @foreach($sebaran as $i => $item)
+                            @php $pct = round(($item->value / $sebaranTotal) * 100); @endphp
+                            <div class="analisis-sebaran-item">
+                                <div class="analisis-sebaran-dot" style="background: {{ $colors[$i % count($colors)] }};"></div>
+                                <div class="analisis-sebaran-info">
+                                    <div class="analisis-sebaran-name">{{ $item->name ?: 'Tanpa Kategori' }}</div>
+                                    <div class="analisis-sebaran-bar-track">
+                                        <div class="analisis-sebaran-bar-fill" style="width: {{ $pct }}%; background: {{ $colors[$i % count($colors)] }};"></div>
+                                    </div>
+                                </div>
+                                <div class="analisis-sebaran-val">{{ $item->value }}</div>
+                            </div>
+                        @endforeach
+                    </div>
                 @endif
             </div>
-            <div class="analisis-kpi-value">{{ $data['total_warga_bekerja'] }}</div>
-            <div class="analisis-kpi-label">Warga Prasejahtera Bekerja</div>
-            <div class="analisis-kpi-sub">{{ $trenTotal }} pendaftaran baru dalam periode ini</div>
         </div>
 
-        <div class="analisis-kpi analisis-kpi--env">
-            <div class="analisis-kpi-top">
-                <div class="analisis-kpi-icon" style="background: rgba(34,197,94,0.1); color: #16a34a;">
-                    <i data-lucide="leaf" style="width: 22px; height: 22px;"></i>
+        {{-- Bottom: env + completion --}}
+        <div class="analisis-bottom">
+            <div class="analisis-panel no-print">
+                <div class="analisis-panel-header">
+                    <div>
+                        <h2>
+                            <i data-lucide="recycle" style="width: 17px; height: 17px; color: #16a34a;"></i>
+                            Input Dampak Lingkungan
+                        </h2>
+                        <p>Catat volume limbah dan estimasi emisi berkurang</p>
+                    </div>
                 </div>
-            </div>
-            <div class="analisis-kpi-value">
-                {{ number_format($data['dampak_lingkungan']['value'], 0, ',', '.') }}
-                <span class="analisis-kpi-unit">{{ $data['dampak_lingkungan']['unit'] }}</span>
-            </div>
-            <div class="analisis-kpi-label">Akumulasi Dampak Lingkungan</div>
-            <div class="analisis-kpi-sub">{{ number_format($totalEmisi, 1, ',', '.') }} Kg CO₂ emisi berkurang</div>
-        </div>
 
-        <div class="analisis-kpi analisis-kpi--money">
-            <div class="analisis-kpi-top">
-                <div class="analisis-kpi-icon" style="background: rgba(245,158,11,0.1); color: #d97706;">
-                    <i data-lucide="wallet" style="width: 22px; height: 22px;"></i>
+                <div class="analisis-env-summary">
+                    <div class="analisis-env-stat">
+                        <div class="analisis-env-stat-val" style="color: #16a34a;">{{ $environmentalRecords->count() }}</div>
+                        <div class="analisis-env-stat-label">Entri Tercatat</div>
+                    </div>
+                    <div class="analisis-env-stat">
+                        <div class="analisis-env-stat-val">{{ number_format($environmentalRecords->sum('volume_kg'), 1, ',', '.') }}</div>
+                        <div class="analisis-env-stat-label">Total Volume (Kg)</div>
+                    </div>
+                    <div class="analisis-env-stat">
+                        <div class="analisis-env-stat-val" style="color: #0891b2;">{{ number_format($totalEmisi, 1, ',', '.') }}</div>
+                        <div class="analisis-env-stat-label">CO₂ Berkurang (Kg)</div>
+                    </div>
                 </div>
-            </div>
-            <div class="analisis-kpi-value" style="font-size: 1.45rem;">
-                Rp {{ number_format($data['total_insentif'], 0, ',', '.') }}
-            </div>
-            <div class="analisis-kpi-label">Total Dana Insentif</div>
-            <div class="analisis-kpi-sub">Distribusi upah pekerja desa</div>
-        </div>
 
-        <div class="analisis-kpi analisis-kpi--programs">
-            <div class="analisis-kpi-top">
-                <div class="analisis-kpi-icon" style="background: rgba(139,92,246,0.1); color: #7c3aed;">
-                    <i data-lucide="target" style="width: 22px; height: 22px;"></i>
-                </div>
-                <span class="analisis-kpi-badge analisis-kpi-badge--up">{{ $completionRate }}%</span>
-            </div>
-            <div class="analisis-kpi-value">{{ $programTotal }}</div>
-            <div class="analisis-kpi-label">Program Kerja Terdaftar</div>
-            <div class="analisis-kpi-sub">{{ $programSelesai }} selesai · {{ $programAktif }} aktif</div>
-        </div>
-    </div>
+                <form method="POST" action="{{ route('admin.analisis.dampak') }}" class="analisis-env-form">
+                    @csrf
+                    <div class="form-group">
+                        <label class="form-label">Tanggal</label>
+                        <input type="date" name="tanggal" class="form-input" value="{{ now()->toDateString() }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Jenis Limbah</label>
+                        <select name="jenis_limbah" class="form-input" required>
+                            <option value="Organik">Organik</option>
+                            <option value="Kompos">Kompos</option>
+                            <option value="Plastik Daur Ulang">Plastik Daur Ulang</option>
+                            <option value="Sampah Terpilah">Sampah Terpilah</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Volume (Kg)</label>
+                        <input type="number" name="volume_kg" class="form-input" min="0" step="0.01" placeholder="25.5" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Emisi Berkurang (Kg CO₂)</label>
+                        <input type="number" name="estimasi_emisi_berkurang_kg" class="form-input" min="0" step="0.01" placeholder="10">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="height: fit-content; white-space: nowrap;">
+                        <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
+                        Simpan
+                    </button>
+                </form>
 
-    {{-- Charts row --}}
-    <div class="analisis-main">
-        <div class="analisis-panel">
-            <div class="analisis-panel-header">
-                <div>
-                    <h2>
-                        <i data-lucide="trending-up" style="width: 17px; height: 17px; color: var(--primary);"></i>
-                        Tren Partisipasi Warga
-                    </h2>
-                    <p>{{ $periodShort }} · {{ $periodLabel }}</p>
-                </div>
+                @if($environmentalRecords->count())
+                    <div class="analisis-table-wrap" style="margin-top: 1.15rem;">
+                        <table class="analisis-table">
+                            <thead>
+                                <tr>
+                                    <th>Tanggal</th>
+                                    <th>Jenis</th>
+                                    <th>Volume</th>
+                                    <th>Emisi ↓</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($environmentalRecords as $record)
+                                    <tr>
+                                        <td>{{ $record->tanggal->format('d/m/Y') }}</td>
+                                        <td>{{ $record->jenis_limbah }}</td>
+                                        <td>{{ number_format($record->volume_kg, 1, ',', '.') }} Kg</td>
+                                        <td style="color: #16a34a; font-weight: 600;">{{ number_format($record->estimasi_emisi_berkurang_kg, 1, ',', '.') }} Kg</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @endif
             </div>
-            @if($trenTotal === 0)
-                <div class="analisis-chart-hint">
-                    <i data-lucide="info" style="width: 14px; height: 14px;"></i>
-                    Belum ada pekerja baru terdaftar dalam periode ini. Grafik menampilkan timeline kosong.
-                </div>
-            @elseif($trenActivePeriods === 1)
-                <div class="analisis-chart-hint">
-                    <i data-lucide="info" style="width: 14px; height: 14px;"></i>
-                    {{ $trenTotal }} pekerja terdaftar dalam 1 periode. Bulan tanpa pendaftaran ditampilkan sebagai 0.
-                </div>
-            @endif
-            <div class="analisis-chart-wrap">
-                <canvas id="trenChart"></canvas>
-            </div>
-        </div>
 
-        <div class="analisis-panel">
-            <div class="analisis-panel-header">
-                <div>
-                    <h2>
-                        <i data-lucide="pie-chart" style="width: 17px; height: 17px; color: #7c3aed;"></i>
-                        Sebaran Sektor Program
-                    </h2>
-                    <p>{{ $sebaran->count() }} jenis sektor</p>
+            <div class="analisis-panel">
+                <div class="analisis-panel-header">
+                    <div>
+                        <h2>
+                            <i data-lucide="award" style="width: 17px; height: 17px; color: #d97706;"></i>
+                            Ringkasan Capaian
+                        </h2>
+                        <p>Progress program kerja desa</p>
+                    </div>
                 </div>
-            </div>
-            <div class="analisis-chart-wrap analisis-chart-wrap--sm">
-                <canvas id="sebaranChart"></canvas>
-            </div>
-            @if($sebaran->count() > 0)
-                <div class="analisis-sebaran-list">
-                    @php $colors = ['#0f766e', '#3b82f6', '#f59e0b', '#8b5cf6', '#22c55e', '#ec4899']; @endphp
-                    @foreach($sebaran as $i => $item)
-                        @php $pct = round(($item->value / $sebaranTotal) * 100); @endphp
-                        <div class="analisis-sebaran-item">
-                            <div class="analisis-sebaran-dot" style="background: {{ $colors[$i % count($colors)] }};"></div>
-                            <div class="analisis-sebaran-info">
-                                <div class="analisis-sebaran-name">{{ $item->name ?: 'Tanpa Kategori' }}</div>
-                                <div class="analisis-sebaran-bar-track">
-                                    <div class="analisis-sebaran-bar-fill" style="width: {{ $pct }}%; background: {{ $colors[$i % count($colors)] }};"></div>
-                                </div>
-                            </div>
-                            <div class="analisis-sebaran-val">{{ $item->value }}</div>
+
+                <div class="analisis-completion">
+                    <div class="analisis-completion-ring" style="background: conic-gradient(#22c55e 0% {{ $completionRate }}%, var(--border) {{ $completionRate }}% 100%);">
+                        <div class="analisis-completion-ring-inner">{{ $completionRate }}%</div>
+                    </div>
+                    <div class="analisis-completion-stats">
+                        <div class="analisis-completion-row">
+                            <span>Total Program</span>
+                            <span>{{ $programTotal }}</span>
                         </div>
-                    @endforeach
+                        <div class="analisis-completion-row">
+                            <span>Aktif / Berjalan</span>
+                            <span style="color: #2563eb;">{{ $programAktif }}</span>
+                        </div>
+                        <div class="analisis-completion-row">
+                            <span>Selesai</span>
+                            <span style="color: #16a34a;">{{ $programSelesai }}</span>
+                        </div>
+                        <div class="analisis-completion-row">
+                            <span>Direncanakan</span>
+                            <span style="color: #d97706;">{{ $programTotal - $programSelesai - $programAktif }}</span>
+                        </div>
+                    </div>
                 </div>
-            @endif
-        </div>
-    </div>
 
-    {{-- Bottom: env + completion --}}
-    <div class="analisis-bottom">
-        <div class="analisis-panel no-print">
+                <div class="analisis-chart-wrap analisis-chart-wrap--sm" style="margin-top: 1rem;">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        {{-- Program table --}}
+        <div class="analisis-panel">
             <div class="analisis-panel-header">
                 <div>
                     <h2>
-                        <i data-lucide="recycle" style="width: 17px; height: 17px; color: #16a34a;"></i>
-                        Input Dampak Lingkungan
+                        <i data-lucide="list-checks" style="width: 17px; height: 17px; color: var(--primary);"></i>
+                        Rincian Capaian Program Kerja
                     </h2>
-                    <p>Catat volume limbah dan estimasi emisi berkurang</p>
+                    <p>Daftar lengkap program dan status pencapaiannya</p>
                 </div>
+                <a href="/admin/perencanaan" class="analisis-panel-link">
+                    Kelola program <i data-lucide="arrow-right" style="width: 12px; height: 12px;"></i>
+                </a>
             </div>
 
-            <div class="analisis-env-summary">
-                <div class="analisis-env-stat">
-                    <div class="analisis-env-stat-val" style="color: #16a34a;">{{ $environmentalRecords->count() }}</div>
-                    <div class="analisis-env-stat-label">Entri Tercatat</div>
-                </div>
-                <div class="analisis-env-stat">
-                    <div class="analisis-env-stat-val">{{ number_format($environmentalRecords->sum('volume_kg'), 1, ',', '.') }}</div>
-                    <div class="analisis-env-stat-label">Total Volume (Kg)</div>
-                </div>
-                <div class="analisis-env-stat">
-                    <div class="analisis-env-stat-val" style="color: #0891b2;">{{ number_format($totalEmisi, 1, ',', '.') }}</div>
-                    <div class="analisis-env-stat-label">CO₂ Berkurang (Kg)</div>
-                </div>
-            </div>
-
-            <form method="POST" action="{{ route('admin.analisis.dampak') }}" class="analisis-env-form">
-                @csrf
-                <div class="form-group">
-                    <label class="form-label">Tanggal</label>
-                    <input type="date" name="tanggal" class="form-input" value="{{ now()->toDateString() }}" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Jenis Limbah</label>
-                    <select name="jenis_limbah" class="form-input" required>
-                        <option value="Organik">Organik</option>
-                        <option value="Kompos">Kompos</option>
-                        <option value="Plastik Daur Ulang">Plastik Daur Ulang</option>
-                        <option value="Sampah Terpilah">Sampah Terpilah</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Volume (Kg)</label>
-                    <input type="number" name="volume_kg" class="form-input" min="0" step="0.01" placeholder="25.5" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Emisi Berkurang (Kg CO₂)</label>
-                    <input type="number" name="estimasi_emisi_berkurang_kg" class="form-input" min="0" step="0.01" placeholder="10">
-                </div>
-                <button type="submit" class="btn btn-primary" style="height: fit-content; white-space: nowrap;">
-                    <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
-                    Simpan
-                </button>
-            </form>
-
-            @if($environmentalRecords->count())
-                <div class="analisis-table-wrap" style="margin-top: 1.15rem;">
+            @if($programs->count())
+                <div class="analisis-table-wrap">
                     <table class="analisis-table">
                         <thead>
                             <tr>
-                                <th>Tanggal</th>
-                                <th>Jenis</th>
-                                <th>Volume</th>
-                                <th>Emisi ↓</th>
+                                <th>Program</th>
+                                <th>Sektor</th>
+                                <th>Mulai</th>
+                                <th>Selesai</th>
+                                <th>Status</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach($environmentalRecords as $record)
+                            @foreach($programs as $item)
+                                @php
+                                    $isDone = in_array($item->status, ['selesai', 'completed']);
+                                    $isActive = in_array($item->status, ['active', 'ongoing', 'in_progress', 'berjalan']);
+                                    $statusClass = $isDone ? 'analisis-status--done' : ($isActive ? 'analisis-status--active' : 'analisis-status--planned');
+                                    $statusLabel = $isDone ? 'Selesai' : ($isActive ? 'Aktif' : 'Direncanakan');
+                                    $statusIcon = $isDone ? 'check-circle' : ($isActive ? 'play-circle' : 'clock');
+                                @endphp
                                 <tr>
-                                    <td>{{ $record->tanggal->format('d/m/Y') }}</td>
-                                    <td>{{ $record->jenis_limbah }}</td>
-                                    <td>{{ number_format($record->volume_kg, 1, ',', '.') }} Kg</td>
-                                    <td style="color: #16a34a; font-weight: 600;">{{ number_format($record->estimasi_emisi_berkurang_kg, 1, ',', '.') }} Kg</td>
+                                    <td style="font-weight: 600;">{{ $item->nama_program }}</td>
+                                    <td>{{ $item->jenis_program ?: '-' }}</td>
+                                    <td>{{ $item->tanggal_mulai ? \Carbon\Carbon::parse($item->tanggal_mulai)->format('d/m/Y') : '-' }}</td>
+                                    <td>{{ $item->tanggal_selesai ? \Carbon\Carbon::parse($item->tanggal_selesai)->format('d/m/Y') : '-' }}</td>
+                                    <td>
+                                        <span class="analisis-status {{ $statusClass }}">
+                                            <i data-lucide="{{ $statusIcon }}" style="width: 12px; height: 12px;"></i>
+                                            {{ $statusLabel }}
+                                        </span>
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
                 </div>
+            @else
+                <div class="analisis-empty">
+                    <i data-lucide="briefcase" style="width: 32px; height: 32px;"></i>
+                    Belum ada data program kerja.<br>
+                    <span style="font-size: 0.78rem; margin-top: 0.35rem;">Tambahkan program melalui halaman Perencanaan.</span>
+                </div>
             @endif
         </div>
+    </div>
 
-        <div class="analisis-panel">
-            <div class="analisis-panel-header">
-                <div>
-                    <h2>
-                        <i data-lucide="award" style="width: 17px; height: 17px; color: #d97706;"></i>
-                        Ringkasan Capaian
-                    </h2>
-                    <p>Progress program kerja desa</p>
+    <!-- TAB 2: Tren Produktivitas -->
+    <div x-show="activeTab === 'produktivitas'" x-data="produktivitasData()" x-on:tab-changed.window="if ($event.detail === 'produktivitas') $nextTick(() => renderCharts())">
+        <!-- Summary Cards -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+            <div class="card" style="background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid var(--border-color);">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 0.5rem;">Total Pekerjaan Selesai</p>
+                        <h3 style="font-size: 1.8rem; font-weight: bold; color: var(--text-main);" x-text="totalSelesai"></h3>
+                    </div>
+                    <div style="background: var(--primary-light); padding: 0.75rem; border-radius: 8px; color: var(--primary);">
+                        <i data-lucide="check-circle" style="width: 24px; height: 24px;"></i>
+                    </div>
+                </div>
+                <div style="margin-top: 1rem; font-size: 0.875rem; color: var(--text-muted);">
+                    Dari <span x-text="data.length"></span> periode tercatat
                 </div>
             </div>
 
-            <div class="analisis-completion">
-                <div class="analisis-completion-ring" style="background: conic-gradient(#22c55e 0% {{ $completionRate }}%, var(--border) {{ $completionRate }}% 100%);">
-                    <div class="analisis-completion-ring-inner">{{ $completionRate }}%</div>
+            <div class="card" style="background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid var(--border-color);">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 0.5rem;">Rata-rata Penyelesaian</p>
+                        <h3 style="font-size: 1.8rem; font-weight: bold; color: var(--text-main);" x-text="avgSelesai"></h3>
+                    </div>
+                    <div style="background: #e0e7ff; padding: 0.75rem; border-radius: 8px; color: #4f46e5;">
+                        <i data-lucide="activity" style="width: 24px; height: 24px;"></i>
+                    </div>
                 </div>
-                <div class="analisis-completion-stats">
-                    <div class="analisis-completion-row">
-                        <span>Total Program</span>
-                        <span>{{ $programTotal }}</span>
-                    </div>
-                    <div class="analisis-completion-row">
-                        <span>Aktif / Berjalan</span>
-                        <span style="color: #2563eb;">{{ $programAktif }}</span>
-                    </div>
-                    <div class="analisis-completion-row">
-                        <span>Selesai</span>
-                        <span style="color: #16a34a;">{{ $programSelesai }}</span>
-                    </div>
-                    <div class="analisis-completion-row">
-                        <span>Direncanakan</span>
-                        <span style="color: #d97706;">{{ $programTotal - $programSelesai - $programAktif }}</span>
-                    </div>
+                <div style="margin-top: 1rem; font-size: 0.875rem; color: var(--text-muted);">
+                    Pekerjaan per bulan
                 </div>
             </div>
 
-            <div class="analisis-chart-wrap analisis-chart-wrap--sm" style="margin-top: 1rem;">
-                <canvas id="statusChart"></canvas>
+            <div class="card" style="background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid var(--border-color);">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 0.5rem;">Tren Bulan Terakhir</p>
+                        <h3 style="font-size: 1.8rem; font-weight: bold;" :style="'color: ' + (isPositiveTrend ? '#16a34a' : '#dc2626')">
+                            <span x-text="(isPositiveTrend ? '+' : '') + trendPercentage.toFixed(1) + '%'"></span>
+                        </h3>
+                    </div>
+                    <div :style="'background: ' + (isPositiveTrend ? '#dcfce7' : '#fee2e2') + '; padding: 0.75rem; border-radius: 8px; color: ' + (isPositiveTrend ? '#16a34a' : '#dc2626')">
+                        <i data-lucide="trending-up" style="width: 24px; height: 24px;"></i>
+                    </div>
+                </div>
+                <div style="margin-top: 1rem; font-size: 0.875rem; color: var(--text-muted);">
+                    Dibanding bulan sebelumnya
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div style="display: grid; grid-template-columns: 1fr; gap: 2rem;">
+            <!-- Bar Chart -->
+            <div class="card" style="background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid var(--border-color);">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
+                    <i data-lucide="activity" style="width: 20px; height: 20px; color: var(--secondary);"></i>
+                    <h3 style="font-size: 1.125rem; font-weight: bold; color: var(--text-main); margin: 0;">
+                        Perbandingan Antar Periode (Batang)
+                    </h3>
+                </div>
+                <div style="height: 380px; width: 100%;">
+                    <canvas id="barChart"></canvas>
+                </div>
             </div>
         </div>
     </div>
 
-    {{-- Program table --}}
-    <div class="analisis-panel">
-        <div class="analisis-panel-header">
-            <div>
-                <h2>
-                    <i data-lucide="list-checks" style="width: 17px; height: 17px; color: var(--primary);"></i>
-                    Rincian Capaian Program Kerja
-                </h2>
-                <p>Daftar lengkap program dan status pencapaiannya</p>
-            </div>
-            <a href="/admin/perencanaan" class="analisis-panel-link">
-                Kelola program <i data-lucide="arrow-right" style="width: 12px; height: 12px;"></i>
-            </a>
-        </div>
-
-        @if($programs->count())
-            <div class="analisis-table-wrap">
-                <table class="analisis-table">
-                    <thead>
-                        <tr>
-                            <th>Program</th>
-                            <th>Sektor</th>
-                            <th>Mulai</th>
-                            <th>Selesai</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($programs as $item)
-                            @php
-                                $isDone = in_array($item->status, ['selesai', 'completed']);
-                                $isActive = in_array($item->status, ['active', 'ongoing', 'in_progress', 'berjalan']);
-                                $statusClass = $isDone ? 'analisis-status--done' : ($isActive ? 'analisis-status--active' : 'analisis-status--planned');
-                                $statusLabel = $isDone ? 'Selesai' : ($isActive ? 'Aktif' : 'Direncanakan');
-                                $statusIcon = $isDone ? 'check-circle' : ($isActive ? 'play-circle' : 'clock');
-                            @endphp
-                            <tr>
-                                <td style="font-weight: 600;">{{ $item->nama_program }}</td>
-                                <td>{{ $item->jenis_program ?: '-' }}</td>
-                                <td>{{ $item->tanggal_mulai ? \Carbon\Carbon::parse($item->tanggal_mulai)->format('d/m/Y') : '-' }}</td>
-                                <td>{{ $item->tanggal_selesai ? \Carbon\Carbon::parse($item->tanggal_selesai)->format('d/m/Y') : '-' }}</td>
-                                <td>
-                                    <span class="analisis-status {{ $statusClass }}">
-                                        <i data-lucide="{{ $statusIcon }}" style="width: 12px; height: 12px;"></i>
-                                        {{ $statusLabel }}
-                                    </span>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        @else
-            <div class="analisis-empty">
-                <i data-lucide="briefcase" style="width: 32px; height: 32px;"></i>
-                Belum ada data program kerja.<br>
-                <span style="font-size: 0.78rem; margin-top: 0.35rem;">Tambahkan program melalui halaman Perencanaan.</span>
-            </div>
-        @endif
-    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -977,22 +1065,10 @@
             programSelesai: {{ $programSelesai }},
             programAktif: {{ $programAktif }},
             programPlanned: {{ $programTotal - $programSelesai - $programAktif }},
+            chartInstances: {},
 
             init() {
-                this.$nextTick(() => {
-                    setTimeout(() => {
-                        if (typeof lucide !== 'undefined') lucide.createIcons();
-                        this.renderCharts();
-                    }, 50);
-                });
-            },
-
-            changePeriod() {
-                window.location.href = `/admin/analisis?period=${this.period}`;
-            },
-
-            downloadPdf() {
-                window.location.href = `/admin/analisis/pdf?period=${this.period}`;
+                // Renders when tab-changed is fired
             },
 
             renderCharts() {
@@ -1005,11 +1081,14 @@
 
                 const ctxTren = document.getElementById('trenChart');
                 if (ctxTren) {
+                    if (this.chartInstances.tren) {
+                        this.chartInstances.tren.destroy();
+                    }
                     const gradient = ctxTren.getContext('2d').createLinearGradient(0, 0, 0, 300);
                     gradient.addColorStop(0, 'rgba(15, 118, 110, 0.35)');
                     gradient.addColorStop(1, 'rgba(15, 118, 110, 0.02)');
 
-                    new Chart(ctxTren.getContext('2d'), {
+                    this.chartInstances.tren = new Chart(ctxTren.getContext('2d'), {
                         type: 'line',
                         data: {
                             labels: trenLabels,
@@ -1077,7 +1156,10 @@
 
                 const ctxSebaran = document.getElementById('sebaranChart');
                 if (ctxSebaran) {
-                    new Chart(ctxSebaran.getContext('2d'), {
+                    if (this.chartInstances.sebaran) {
+                        this.chartInstances.sebaran.destroy();
+                    }
+                    this.chartInstances.sebaran = new Chart(ctxSebaran.getContext('2d'), {
                         type: 'doughnut',
                         data: {
                             labels: sebaranLabels,
@@ -1111,7 +1193,10 @@
 
                 const ctxStatus = document.getElementById('statusChart');
                 if (ctxStatus) {
-                    new Chart(ctxStatus.getContext('2d'), {
+                    if (this.chartInstances.status) {
+                        this.chartInstances.status.destroy();
+                    }
+                    this.chartInstances.status = new Chart(ctxStatus.getContext('2d'), {
                         type: 'bar',
                         data: {
                             labels: ['Aktif', 'Selesai', 'Direncanakan'],
@@ -1142,6 +1227,93 @@
                     });
                 }
             },
+        }));
+
+        Alpine.data('produktivitasData', () => ({
+            data: @json($produktivitasData),
+            chartInstance: null,
+            
+            get totalSelesai() {
+                return this.data.reduce((sum, item) => sum + item.PekerjaanSelesai, 0);
+            },
+            
+            get avgSelesai() {
+                return this.data.length > 0 ? (this.totalSelesai / this.data.length).toFixed(1) : 0;
+            },
+            
+            get trendPercentage() {
+                if (this.data.length >= 2) {
+                    const lastMonth = this.data[this.data.length - 1].PekerjaanSelesai;
+                    const prevMonth = this.data[this.data.length - 2].PekerjaanSelesai;
+                    if (prevMonth > 0) {
+                        return ((lastMonth - prevMonth) / prevMonth) * 100;
+                    }
+                }
+                return 0;
+            },
+            
+            get isPositiveTrend() {
+                return this.trendPercentage >= 0;
+            },
+
+            init() {
+                // Renders when tab-changed is fired
+            },
+
+            renderCharts() {
+                if (typeof Chart === 'undefined') return;
+                const canvas = document.getElementById('barChart');
+                if (!canvas) return;
+
+                if (this.chartInstance) {
+                    this.chartInstance.destroy();
+                }
+
+                const labels = this.data.map(d => d.name);
+                const dataRencana = this.data.map(d => d.PekerjaanRencana);
+                const dataBerjalan = this.data.map(d => d.PekerjaanBerjalan);
+                const dataSelesai = this.data.map(d => d.PekerjaanSelesai);
+
+                const ctxBar = canvas.getContext('2d');
+                this.chartInstance = new Chart(ctxBar, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'Jumlah Pekerjaan Rencana',
+                                data: dataRencana,
+                                backgroundColor: '#cbd5e1',
+                                borderRadius: 4
+                            },
+                            {
+                                label: 'Jumlah Pekerjaan Berjalan',
+                                data: dataBerjalan,
+                                backgroundColor: '#fbbf24',
+                                borderRadius: 4
+                            },
+                            {
+                                label: 'Jumlah Pekerjaan Selesai',
+                                data: dataSelesai,
+                                backgroundColor: '#10b981',
+                                borderRadius: 4
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            mode: 'index',
+                            intersect: false,
+                        },
+                        scales: {
+                            y: { beginAtZero: true },
+                            x: { grid: { display: false } }
+                        }
+                    }
+                });
+            }
         }));
     });
 </script>

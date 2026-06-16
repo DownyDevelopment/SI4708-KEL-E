@@ -135,8 +135,7 @@
 @section('content')
 <div class="pades-page animate-fade-in" x-data="padesData()">
     
-    {{-- Banner --}}
-    <x-hero-banner title="Pencairan PADes" description="Lacak hasil penjualan inventaris desa dan cairkan ke kas Pendapatan Asli Desa (PADes).">
+    <x-hero-banner title="Keuangan Desa" description="Manajemen upah dan insentif pekerja desa, validasi bukti kerja harian, serta pencairan PADes hasil penjualan inventaris.">
         <x-slot:actions>
             <button type="button" class="global-hero-banner-btn-white" @click="openModal()">
                 <i data-lucide="wallet-cards" style="width: 16px; height: 16px;"></i>
@@ -144,6 +143,17 @@
             </button>
         </x-slot:actions>
     </x-hero-banner>
+
+    <div class="global-tabs">
+        <a href="/admin/ekonomi" class="global-tab">
+            <i data-lucide="dollar-sign" style="width: 16px; height: 16px;"></i>
+            Gaji & Insentif
+        </a>
+        <a href="/admin/pades" class="global-tab active">
+            <i data-lucide="wallet" style="width: 16px; height: 16px;"></i>
+            Kas PADes
+        </a>
+    </div>
 
     {{-- Alerts --}}
     @if(session('success'))

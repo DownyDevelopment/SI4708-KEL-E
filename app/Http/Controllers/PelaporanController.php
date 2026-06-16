@@ -10,14 +10,7 @@ class PelaporanController extends Controller
 {
     public function index()
     {
-        $reports = FieldProblem::join('users', 'field_problems.pengawas_id', '=', 'users.id')
-            ->select('field_problems.*', 'users.nama as nama_pengawas')
-            ->orderBy('field_problems.created_at', 'desc')
-            ->get();
-
-        return view('pengawas.pelaporan', [
-            'reports' => $reports,
-        ]);
+        return redirect()->route('pengawas.ekonomi', ['tab' => 'laporan']);
     }
 
     public function store(Request $request)

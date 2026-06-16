@@ -815,23 +815,69 @@
 @endpush
 
 @section('content')
-<div class="eko-page animate-fade-in" x-data="ekonomiData()">
+<div class="eko-page animate-fade-in" x-data="{ hubTab: new URLSearchParams(window.location.search).get('hub') || 'gaji', updateHubUrl(tab) { window.history.replaceState(null, null, '?hub=' + tab); setTimeout(() => lucide.createIcons(), 50); window.dispatchEvent(new CustomEvent('hub-changed', { detail: tab })); } }" x-init="setTimeout(() => { window.dispatchEvent(new CustomEvent('hub-changed', { detail: hubTab })); }, 150)">
 
     {{-- Hero --}}
-    <x-hero-banner title="Ekonomi, Insentif & Reward" description="Dashboard keuangan desa — pantau tren pencairan, validasi hasil kerja, catat upah & voucher, serta kelola penghargaan pekerja dalam satu tempat.">
+    <x-hero-banner 
+        :title="$isAdmin ? 'Keuangan Desa' : 'Laporan & Ekonomi'" 
+        :description="$isAdmin ? 'Manajemen upah dan insentif pekerja desa, validasi bukti kerja harian, serta pencairan PADes hasil penjualan inventaris.' : 'Rekapitulasi penerimaan upah/insentif pekerja desa dan pelaporan masalah operasional lapangan.'">
         <x-slot:actions>
-            @if($isAdmin && $pendingCount > 0)
-                <button type="button" class="global-hero-banner-btn-white" @click="activeTab = 'ringkasan'; scrollToValidasi()">
-                    <i data-lucide="clipboard-check" style="width: 16px; height: 16px;"></i>
-                    {{ $pendingCount }} Validasi Menunggu
-                </button>
+            <template x-if="hubTab === 'gaji'">
+                <div style="display: flex; gap: 0.65rem; align-items: center;">
+                    @if($isAdmin && $pendingCount > 0)
+                        <button type="button" class="global-hero-banner-btn-white" @click="window.dispatchEvent(new CustomEvent('go-to-validasi'))">
+                            <i data-lucide="clipboard-check" style="width: 16px; height: 16px;"></i>
+                            {{ $pendingCount }} Validasi Menunggu
+                        </button>
+                    @endif
+                    <button type="button" class="global-hero-banner-btn-white" @click="window.dispatchEvent(new CustomEvent('go-to-catat'))">
+                        <i data-lucide="user-plus" style="width: 16px; height: 16px;"></i>
+                        Catat Insentif
+                    </button>
+                </div>
+            </template>
+            @if($isAdmin)
+                <template x-if="hubTab === 'pades'">
+                    <button type="button" class="global-hero-banner-btn-white" @click="window.dispatchEvent(new CustomEvent('open-pades-modal'))">
+                        <i data-lucide="wallet-cards" style="width: 16px; height: 16px;"></i>
+                        Cairkan ke PADes
+                    </button>
+                </template>
+            @else
+                <template x-if="hubTab === 'laporan'">
+                    <button type="button" class="global-hero-banner-btn-white" @click="window.dispatchEvent(new CustomEvent('open-laporan-modal'))" style="background: #ef4444; border-color: #ef4444; color: white;">
+                        <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
+                        <span>Lapor Masalah</span>
+                    </button>
+                </template>
             @endif
-            <button type="button" class="global-hero-banner-btn-white" @click="activeTab = 'kelola'">
-                <i data-lucide="user-plus" style="width: 16px; height: 16px;"></i>
-                Catat Insentif
-            </button>
         </x-slot:actions>
     </x-hero-banner>
+
+    <div class="global-tabs">
+        @if($isAdmin)
+            <button type="button" class="global-tab" :class="{ 'active': hubTab === 'gaji' }" @click="hubTab = 'gaji'; updateHubUrl('gaji')">
+                <i data-lucide="dollar-sign" style="width: 16px; height: 16px;"></i>
+                Gaji & Insentif
+            </button>
+            <button type="button" class="global-tab" :class="{ 'active': hubTab === 'pades' }" @click="hubTab = 'pades'; updateHubUrl('pades')">
+                <i data-lucide="wallet" style="width: 16px; height: 16px;"></i>
+                Kas PADes
+            </button>
+        @else
+            <button type="button" class="global-tab" :class="{ 'active': hubTab === 'gaji' }" @click="hubTab = 'gaji'; updateHubUrl('gaji')">
+                <i data-lucide="dollar-sign" style="width: 16px; height: 16px;"></i>
+                Insentif & Upah
+            </button>
+            <button type="button" class="global-tab" :class="{ 'active': hubTab === 'laporan' }" @click="hubTab = 'laporan'; updateHubUrl('laporan')">
+                <i data-lucide="alert-triangle" style="width: 16px; height: 16px;"></i>
+                Pelaporan Masalah
+            </button>
+        @endif
+    </div>
+
+    <!-- TAB 1: Gaji & Insentif -->
+    <div x-show="hubTab === 'gaji'" x-data="ekonomiData()" x-init="window.addEventListener('go-to-validasi', () => { activeTab = 'ringkasan'; scrollToValidasi(); }); window.addEventListener('go-to-catat', () => { activeTab = 'kelola'; });" x-on:hub-changed.window="if ($event.detail === 'gaji' && activeTab === 'ringkasan' && !chartsRendered) { setTimeout(() => renderOverviewCharts(), 80); }">
 
     @if(session('success'))
         <div class="eko-alert eko-alert--success">
@@ -1504,7 +1550,322 @@
     </template>
 
     </div>{{-- end kelola tab --}}
-</div>
+    </div>
+
+    @if($isAdmin)
+    <!-- TAB 2: Kas PADes (Admin) -->
+    <div x-show="hubTab === 'pades'" x-data="padesData()" x-init="window.addEventListener('open-pades-modal', () => openModal())">
+        @if(session('success') && request()->get('hub') === 'pades')
+            <div class="pades-alert pades-alert--success" style="margin-top: 1.5rem;">
+                <i data-lucide="check-circle" style="width: 18px; height: 18px; flex-shrink: 0;"></i>
+                <div>{{ session('success') }}</div>
+            </div>
+        @endif
+        @if($errors->any() && request()->get('hub') === 'pades')
+            <div class="pades-alert pades-alert--error" style="margin-top: 1.5rem;">
+                <i data-lucide="alert-circle" style="width: 18px; height: 18px; flex-shrink: 0;"></i>
+                <div>
+                    @foreach($errors->all() as $error)
+                        <p style="margin:0;">{{ $error }}</p>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
+        {{-- KPI Cards Grid --}}
+        <div class="pades-kpis" style="margin-top: 1.5rem;">
+            <div class="pades-kpi pades-kpi--balance">
+                <div class="pades-kpi-top">
+                    <div class="pades-kpi-icon" style="background: rgba(34, 197, 94, 0.1); color: var(--success);">
+                        <i data-lucide="wallet" style="width: 24px; height: 24px;"></i>
+                    </div>
+                    <span class="badge badge-success">Siap Cair</span>
+                </div>
+                <div class="pades-kpi-value">Rp {{ number_format($availableBalance, 0, ',', '.') }}</div>
+                <div class="pades-kpi-label">Saldo Siap Cair</div>
+            </div>
+
+            <div class="pades-kpi pades-kpi--disbursed">
+                <div class="pades-kpi-top">
+                    <div class="pades-kpi-icon" style="background: rgba(59, 130, 246, 0.1); color: var(--secondary);">
+                        <i data-lucide="landmark" style="width: 24px; height: 24px;"></i>
+                    </div>
+                    <span class="badge badge-primary">Masuk PADes</span>
+                </div>
+                <div class="pades-kpi-value">Rp {{ number_format($totalDisbursed, 0, ',', '.') }}</div>
+                <div class="pades-kpi-label">Total Dicairkan ke PADes</div>
+            </div>
+
+            <div class="pades-kpi pades-kpi--sales">
+                <div class="pades-kpi-top">
+                    <div class="pades-kpi-icon" style="background: rgba(245, 158, 11, 0.1); color: var(--warning);">
+                        <i data-lucide="shopping-bag" style="width: 24px; height: 24px;"></i>
+                    </div>
+                    <span class="badge badge-warning">Komersial</span>
+                </div>
+                <div class="pades-kpi-value">Rp {{ number_format($totalSales, 0, ',', '.') }}</div>
+                <div class="pades-kpi-label">Total Hasil Penjualan Inventaris</div>
+            </div>
+        </div>
+
+        {{-- History Table Panel --}}
+        <div class="glass-panel" style="padding: 1.75rem;">
+            <h3 style="margin-bottom: 1.25rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+                <i data-lucide="history" style="width: 20px; height: 20px; color: var(--primary);"></i>
+                Riwayat Penyetoran PADes
+            </h3>
+            
+            <div style="overflow-x: auto;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 160px;">Tanggal Pencairan</th>
+                            <th style="width: 180px;">Nominal (Rp)</th>
+                            <th>Keterangan / Catatan</th>
+                            <th style="width: 120px; text-align: center;">Bukti Foto</th>
+                            <th style="width: 180px;">Waktu Pencatatan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($pencairans as $p)
+                            <tr>
+                                <td style="font-weight: 600;">{{ $p->tanggal_pencairan->format('d M Y') }}</td>
+                                <td style="font-weight: 700; color: var(--primary);">Rp {{ number_format($p->nominal, 0, ',', '.') }}</td>
+                                <td style="font-size: 0.9rem; color: var(--text-muted);">{{ $p->keterangan }}</td>
+                                <td style="text-align: center;">
+                                    @if($p->bukti_foto)
+                                        <button type="button" @click="viewPhoto('{{ $p->bukti_foto }}')" style="background: none; border: none; padding: 0; cursor: pointer;" title="Lihat Bukti Foto">
+                                            <img src="{{ $p->bukti_foto }}" alt="Bukti Foto" style="width: 48px; height: 32px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border);" />
+                                        </button>
+                                    @else
+                                        <span style="color: var(--text-muted); font-size: 0.8rem;">Tidak Ada</span>
+                                    @endif
+                                </td>
+                                <td style="font-size: 0.85rem; color: var(--text-muted);">{{ $p->created_at->format('d M Y H:i') }}</td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 3rem;">
+                                    <i data-lucide="info" style="width: 24px; height: 24px; margin-bottom: 0.5rem; opacity: 0.5;"></i>
+                                    <p style="margin: 0;">Belum ada riwayat pencairan hasil penjualan ke PADes.</p>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {{-- Form Pencairan Modal --}}
+        <div x-show="showModal" x-cloak class="modal-overlay modal-overlay--blur" @click="closeModal()">
+            <div class="modal-box" @click.stop style="background: white; padding: 2.25rem; border-radius: var(--radius-md); width: 100%; max-width: 500px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); position: relative;">
+                <h3 style="margin-bottom: 1.5rem; font-weight: 700; font-size: 1.2rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+                    <i data-lucide="wallet-cards" style="width: 22px; height: 22px; color: var(--primary);"></i>
+                    Formulir Pencairan PADes
+                </h3>
+                
+                <form method="POST" action="{{ route('admin.pades.store') }}" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 1.25rem;">
+                    @csrf
+                    <input type="hidden" name="hub" value="pades" />
+
+                    <div class="form-group">
+                        <label class="form-label">Nominal Pencairan (Rp)</label>
+                        <div style="position: relative;">
+                            <span style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); font-weight: 700; color: var(--text-muted);">Rp</span>
+                            <input type="number" name="nominal" class="form-input" style="padding-left: 2.75rem; font-weight: 700;" required min="1" max="{{ $availableBalance }}" placeholder="Cth: 500000" x-model="nominalInput" />
+                        </div>
+                        <small style="color: var(--text-muted); margin-top: 0.25rem; display: block;">
+                            Batas maksimum penarikan: <strong style="color: var(--primary);">Rp {{ number_format($availableBalance, 0, ',', '.') }}</strong>
+                        </small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Tanggal Pencairan</label>
+                        <input type="date" name="tanggal_pencairan" class="form-input" required value="{{ date('Y-m-d') }}" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Catatan / Keterangan</label>
+                        <textarea name="keterangan" class="form-input" rows="3" required placeholder="Tulis rincian pencairan ke kas PADes..." style="resize: vertical;"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Bukti Foto / Kuitansi (Opsional)</label>
+                        <input type="file" name="bukti_foto" class="form-input" accept="image/*" />
+                        <small style="color: var(--text-muted); margin-top: 0.25rem;">Gunakan format JPG, PNG, atau JPEG max. 5MB.</small>
+                    </div>
+
+                    <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem;">
+                        <button type="button" class="btn btn-outline" @click="closeModal()">Batal</button>
+                        <button type="submit" class="btn btn-primary" :disabled="nominalInput <= 0 || nominalInput > {{ $availableBalance }}">
+                            <i data-lucide="check" style="width: 16px; height: 16px;"></i>
+                            Konfirmasi Pencairan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {{-- Bukti Foto Preview Modal --}}
+        <div x-show="activePhoto" x-cloak class="modal-overlay modal-overlay--blur" @click="activePhoto = null">
+            <div class="photo-preview-box" @click.stop style="background: rgba(15, 23, 42, 0.95); padding: 1rem; border-radius: var(--radius-md); max-width: 90vw; max-height: 90vh; display: flex; flex-direction: column; align-items: center; position: relative;">
+                <button type="button" @click="activePhoto = null" style="position: absolute; top: -1rem; right: -1rem; background: white; border: none; width: 2rem; height: 2rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" title="Tutup">
+                    <i data-lucide="x" style="width: 16px; height: 16px; color: var(--text-main);"></i>
+                </button>
+                <img :src="activePhoto" alt="Bukti Foto Preview" style="max-width: 100%; max-height: 80vh; object-fit: contain; border-radius: 8px;" />
+            </div>
+        </div>
+    </div>
+    @else
+    <!-- TAB 2: Pelaporan Masalah (Pengawas) -->
+    <div x-show="hubTab === 'laporan'" x-data="pelaporanData()" x-init="window.addEventListener('open-laporan-modal', () => { showAddForm = true; })">
+        @if(session('success') && request()->get('hub') === 'laporan')
+            <div class="eko-alert eko-alert--success" style="margin-top: 1.5rem;">
+                <i data-lucide="check-circle" style="width: 18px; height: 18px; flex-shrink: 0;"></i>
+                {{ session('success') }}
+            </div>
+        @endif
+
+        {{-- Search bar --}}
+        <div style="display: flex; gap: 0.65rem; align-items: center; margin-bottom: 1.5rem; margin-top: 1.5rem;">
+            <div class="perencanaan-search" style="flex: 1; max-width: 400px; display: flex; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem 0.75rem; gap: 0.5rem;">
+                <i data-lucide="search" style="width: 16px; height: 16px; color: var(--text-muted);"></i>
+                <input type="text" placeholder="Cari masalah atau lokasi..." x-model="searchTerm" style="border: none; outline: none; background: transparent; width: 100%; font-size: 0.85rem;" />
+            </div>
+        </div>
+
+        {{-- Table --}}
+        <div class="glass-panel" style="padding: 1.5rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md);">
+            <div style="overflow-x: auto;">
+                <table class="perencanaan-table" style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--border); text-align: left;">
+                            <th style="padding: 0.75rem;">Masalah</th>
+                            <th style="padding: 0.75rem;">Waktu & Lokasi</th>
+                            <th style="padding: 0.75rem;">Tingkatan</th>
+                            <th style="padding: 0.75rem;">Pelapor</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template x-for="report in filteredReports" :key="report.id">
+                            <tr style="border-bottom: 1px solid var(--border);">
+                                <td style="padding: 1rem; max-width: 300px;">
+                                    <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+                                        <div style="background: #fef2f2; padding: 0.5rem; border-radius: 8px; flex-shrink: 0;" :style="'color: ' + getSeverityColor(report.tingkatan_masalah)">
+                                            <i data-lucide="alert-triangle" style="width: 20px; height: 20px;"></i>
+                                        </div>
+                                        <span style="font-weight: 500; color: var(--text-main); line-height: 1.4;" x-text="report.masalah"></span>
+                                    </div>
+                                </td>
+                                <td style="padding: 1rem;">
+                                    <div style="font-size: 0.875rem; color: var(--text-main); font-weight: 500;">
+                                        <span x-text="formatDate(report.tanggal)"></span> <span x-text="report.waktu.substring(0,5)"></span>
+                                    </div>
+                                    <div style="font-size: 0.8rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.25rem; margin-top: 0.25rem;">
+                                        <i data-lucide="map-pin" style="width: 14px; height: 14px;"></i> <span x-text="report.lokasi_masalah"></span>
+                                        <template x-if="report.kordinat">
+                                            <a :href="'https://maps.google.com/?q=' + report.kordinat" target="_blank" rel="noreferrer" style="color: #3b82f6; margin-left: 0.5rem;" title="Lihat di Peta">
+                                                <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
+                                            </a>
+                                        </template>
+                                    </div>
+                                </td>
+                                <td style="padding: 1rem;">
+                                    <span style="display: inline-block; padding: 0.25rem 0.75rem; border-radius: 99px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;" 
+                                          :style="'background: ' + getSeverityColor(report.tingkatan_masalah) + '15; color: ' + getSeverityColor(report.tingkatan_masalah) + '; border: 1px solid ' + getSeverityColor(report.tingkatan_masalah) + '40;'">
+                                        <span x-text="report.tingkatan_masalah"></span>
+                                    </span>
+                                </td>
+                                <td style="padding: 1rem;">
+                                    <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                                        <div style="width: 24px; height: 24px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold;" x-text="report.nama_pengawas?.charAt(0) || '?'"></div>
+                                        <span style="font-size: 0.875rem; color: var(--text-main);" x-text="report.nama_pengawas || 'Unknown'"></span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </template>
+                        <template x-if="filteredReports.length === 0">
+                            <tr>
+                                <td colspan="4" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                                    <div style="margin: 0 auto 1rem; width: 48px; height: 48px; display: flex; justify-content: center; align-items: center; color: #d9d9d9;">
+                                        <i data-lucide="alert-triangle" style="width: 48px; height: 48px;"></i>
+                                    </div>
+                                    Belum ada laporan masalah
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {{-- Modal Input Laporan --}}
+        <div class="perencanaan-modal-backdrop" x-show="showAddForm">
+            <div class="perencanaan-modal" style="max-width: 600px;">
+                <div class="perencanaan-modal-header">
+                    <div>
+                        <h3 style="margin: 0; font-weight: 600; font-size: 1.25rem; display: flex; align-items: center; gap: 0.5rem; color: #ef4444;">
+                            <i data-lucide="alert-triangle" style="width: 24px; height: 24px;"></i>
+                            Formulir Pelaporan Masalah
+                        </h3>
+                        <p style="margin: 0.2rem 0 0; font-size: 0.8rem; color: var(--text-muted);">Laporkan kendala/masalah operasional lapangan</p>
+                    </div>
+                    <button type="button" @click="showAddForm = false" class="perencanaan-modal-close">
+                        <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+                    </button>
+                </div>
+                <form method="POST" action="/pengawas/pelaporan" style="display: flex; flex-direction: column; gap: 1rem; padding: 1.5rem;">
+                    @csrf
+                    <input type="hidden" name="hub" value="laporan" />
+                    
+                    <div style="display: flex; gap: 1rem;">
+                        <div style="flex: 1;">
+                            <label class="form-label">Tanggal Kejadian</label>
+                            <input type="date" name="tanggal" class="form-input" style="width: 100%;" required :value="today" />
+                        </div>
+                        <div style="flex: 1;">
+                            <label class="form-label">Waktu Kejadian</label>
+                            <input type="time" name="waktu" class="form-input" style="width: 100%;" required :value="now" />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="form-label">Deskripsi Masalah</label>
+                        <textarea name="masalah" class="form-input" style="width: 100%; min-height: 100px; resize: vertical;" required placeholder="Ceritakan detail masalah yang terjadi..." x-model="formMasalah"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="form-label">Tingkatan Masalah</label>
+                        <select name="tingkatan_masalah" class="form-input" style="width: 100%;">
+                            <option value="low">Rendah (Low) - Masalah ringan</option>
+                            <option value="mediate">Sedang (Mediate) - Cukup mengganggu</option>
+                            <option value="high">Tinggi (High) - Kritis / berbahaya</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="form-label">
+                            <i data-lucide="map-pin" style="width: 14px; height: 14px;"></i> Lokasi Kejadian
+                        </label>
+                        <input type="text" name="lokasi_masalah" class="form-input" style="width: 100%;" required placeholder="Cth: Lahan RT 03 / Area Tanam" />
+                    </div>
+
+                    <div>
+                        <label class="form-label">Koordinat Geografis (Opsional)</label>
+                        <input type="text" name="kordinat" class="form-input" style="width: 100%;" placeholder="Cth: -6.2146, 106.8451" />
+                    </div>
+
+                    <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1rem;">
+                        <button type="button" class="btn btn-outline" @click="showAddForm = false">Batal</button>
+                        <button type="submit" class="btn btn-primary" style="background: #ef4444; border-color: #ef4444;">Kirim Laporan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
@@ -1685,6 +2046,66 @@
 
                 this.chartsRendered = true;
             },
+        }));
+
+        Alpine.data('padesData', () => ({
+            showModal: false,
+            activePhoto: null,
+            nominalInput: '',
+
+            openModal() {
+                this.showModal = true;
+                this.nominalInput = '';
+            },
+
+            closeModal() {
+                this.showModal = false;
+            },
+
+            viewPhoto(url) {
+                this.activePhoto = url;
+                setTimeout(() => lucide.createIcons(), 50);
+            }
+        }));
+
+        Alpine.data('pelaporanData', () => ({
+            reports: @json($reports),
+            searchTerm: '',
+            showAddForm: false,
+            formMasalah: '',
+            today: new Date().toISOString().slice(0, 10),
+            now: new Date().toTimeString().slice(0, 5),
+
+            get filteredReports() {
+                if (this.searchTerm === '') {
+                    return this.reports;
+                }
+                const term = this.searchTerm.toLowerCase();
+                return this.reports.filter(r => 
+                    r.masalah.toLowerCase().includes(term) ||
+                    r.lokasi_masalah.toLowerCase().includes(term)
+                );
+            },
+
+            init() {
+                this.$watch('filteredReports', () => {
+                    setTimeout(() => lucide.createIcons(), 50);
+                });
+                this.$watch('showAddForm', () => {
+                    setTimeout(() => lucide.createIcons(), 50);
+                });
+                setTimeout(() => lucide.createIcons(), 50);
+            },
+
+            getSeverityColor(level) {
+                if (level === 'high') return '#ef4444';
+                if (level === 'mediate') return '#f59e0b';
+                return '#10b981';
+            },
+
+            formatDate(dateStr) {
+                return new Date(dateStr).toLocaleDateString('id-ID');
+            }
         }));
     });
 </script>

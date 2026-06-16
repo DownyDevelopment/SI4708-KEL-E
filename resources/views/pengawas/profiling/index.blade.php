@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends(isset($isIncluded) && $isIncluded ? 'layouts.empty' : 'layouts.app')
 @section('title', 'Profiling & Analisis Kesejahteraan')
 
 @php
@@ -755,22 +755,55 @@
 @endpush
 
 @section('content')
-<div class="prof-page animate-fade-in" x-data="profilingData()">
+<div class="prof-page animate-fade-in" x-data="{ activeTab: new URLSearchParams(window.location.search).get('tab') || 'kelompok', updateUrl(tab) { window.history.replaceState(null, null, '?tab=' + tab); setTimeout(() => lucide.createIcons(), 50); } }">
 
-    <x-hero-banner title="Profiling & Analisis Kesejahteraan" description="Survei indikator kesejahteraan pekerja desa — filter threshold layak/tidak layak, prioritas penugasan, dan pemantauan progres SDG 1, 2, 3.">
+    @if(!(isset($isIncluded) && $isIncluded))
+    <x-hero-banner 
+        title="Kelompok &amp; Profiling" 
+        description="Pembagian tim kerja lapangan bagi para pekerja prasejahtera, serta monitoring tingkat kesejahteraan mereka.">
         <x-slot:actions>
-            @if($isAdmin)
-                <a href="/admin/pekerja" class="global-hero-banner-btn-white">
-                    <i data-lucide="clipboard-list" style="width: 16px; height: 16px;"></i>
-                    Survei Baru
-                </a>
-            @endif
-            <a href="{{ $isAdmin ? '/admin/keluarga' : '#' }}" class="global-hero-banner-btn-ghost" @if(!$isAdmin) style="pointer-events: none; opacity: 0.6;" @endif>
-                <i data-lucide="users-round" style="width: 16px; height: 16px;"></i>
-                Data Keluarga
-            </a>
+            <template x-if="activeTab === 'kelompok'">
+                <button type="button" class="global-hero-banner-btn-white" @click="window.dispatchEvent(new CustomEvent('open-add-group-form'))">
+                    <i data-lucide="plus" style="width: 18px; height: 18px; margin-right: 6px;"></i> Tambah Kelompok
+                </button>
+            </template>
         </x-slot:actions>
     </x-hero-banner>
+
+    <div class="global-tabs">
+        @if($isAdmin)
+            <a href="/admin/pekerja" class="global-tab">
+                <i data-lucide="users" style="width: 16px; height: 16px;"></i>
+                Daftar Pekerja
+            </a>
+            <a href="/admin/profiling" class="global-tab active">
+                <i data-lucide="pie-chart" style="width: 16px; height: 16px;"></i>
+                Profiling Kesejahteraan
+            </a>
+            <a href="/admin/keluarga" class="global-tab">
+                <i data-lucide="square-user" style="width: 16px; height: 16px;"></i>
+                Data Keluarga
+            </a>
+        @else
+            <button type="button" class="global-tab" :class="{ 'active': activeTab === 'kelompok' }" @click="activeTab = 'kelompok'; updateUrl('kelompok')">
+                <i data-lucide="users" style="width: 16px; height: 16px;"></i>
+                Kelompok Kerja
+            </button>
+            <button type="button" class="global-tab" :class="{ 'active': activeTab === 'profiling' }" @click="activeTab = 'profiling'; updateUrl('profiling')">
+                <i data-lucide="pie-chart" style="width: 16px; height: 16px;"></i>
+                Profiling Pekerja
+            </button>
+        @endif
+    </div>
+    @endif
+
+    @if(!(isset($isIncluded) && $isIncluded))
+    <div x-show="activeTab === 'kelompok'" x-cloak>
+        @include('pengawas.groups.index', ['isIncluded' => true])
+    </div>
+    @endif
+
+    <div x-show="{{ (isset($isIncluded) && $isIncluded) ? 'true' : 'false' }} || activeTab === 'profiling'" x-data="profilingData()">
 
     @if(session('success'))
         <div class="prof-alert">
@@ -1070,6 +1103,7 @@
             </div>
         @endif
     </div>
+</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

@@ -34,91 +34,22 @@
 
         <nav class="sidebar-nav" style="display: flex; flex-direction: column; gap: 0.75rem;">
             @if(auth()->user()->role === 'admin')
-                <!-- Group 1: Analisis & Dashboard -->
-                <div x-data="{ open: {{ request()->is('admin/dashboard') || request()->is('admin/analisis') || request()->is('admin/produktivitas') ? 'true' : 'false' }} }" style="display: flex; flex-direction: column; gap: 0.25rem;">
-                    <button x-show="sidebarOpen" @click="open = !open" class="nav-item" style="justify-content: space-between; background: transparent; border: none; width: 100%; cursor: pointer; text-align: left; padding: 0.5rem 0.75rem;">
-                        <span style="display: flex; align-items: center; gap: 0.65rem; font-weight: 700; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">
-                            <i data-lucide="layout" style="width: 16px; height: 16px; opacity: 0.7;"></i>
-                            <span>Analisis & Kinerja</span>
-                        </span>
-                        <i data-lucide="chevron-down" :style="open ? 'transform: rotate(180deg); transition: transform 0.2s;' : 'transition: transform 0.2s;'" style="width: 14px; height: 14px; color: var(--text-muted);"></i>
-                    </button>
-                    <div x-show="!sidebarOpen || open" style="display: flex; flex-direction: column; gap: 0.25rem;" :style="sidebarOpen ? 'padding-left: 0.5rem;' : ''">
-                        <x-sidebar-item icon="layout-dashboard" label="Dashboard Admin" to="/admin/dashboard" :active="request()->is('admin/dashboard')" />
-                        <x-sidebar-item icon="bar-chart-2" label="Dashboard Analisis" to="/admin/analisis" :active="request()->is('admin/analisis')" />
-                        <x-sidebar-item icon="trending-up" label="Tren Produktivitas" to="/admin/produktivitas" :active="request()->is('admin/produktivitas')" />
-                    </div>
-                </div>
+                <!-- Admin Navigation -->
+                <x-sidebar-item icon="layout-dashboard" label="Dashboard Admin" to="/admin/dashboard" :active="request()->is('admin/dashboard')" />
+                <x-sidebar-item icon="users" label="Kependudukan & Profiling" to="/admin/pekerja?tab=pekerja" :active="request()->is('admin/pekerja') || request()->is('admin/keluarga') || request()->is('admin/profiling')" />
+                <x-sidebar-item icon="bar-chart-2" label="Analisis & Kinerja" to="/admin/analisis?tab=dampak" :active="request()->is('admin/analisis') || request()->is('admin/produktivitas')" />
+                <x-sidebar-item icon="map-pin" label="Program & Operasional" to="/admin/perencanaan?tab=program" :active="request()->is('admin/perencanaan') || request()->is('admin/tugas') || request()->is('admin/program')" />
+                <x-sidebar-item icon="wallet" label="Keuangan Desa" to="/admin/ekonomi?tab=ringkasan" :active="request()->is('admin/ekonomi') || request()->is('admin/insentif') || request()->is('admin/pades')" />
+                <x-sidebar-item icon="book-open" label="Edukasi Pekerja" to="/admin/edukasi" :active="request()->is('admin/edukasi')" />
+                <x-sidebar-item icon="mail" label="Pesan" to="/admin/pesan" :active="request()->is('admin/pesan')" />
+                <x-sidebar-item icon="bell" label="Notifikasi" to="/admin/notifikasi" :active="request()->is('admin/notifikasi')" />
 
-                <!-- Group 2: Pekerja & Profiling -->
-                <div x-data="{ open: {{ request()->is('admin/pekerja') || request()->is('admin/keluarga') || request()->is('admin/profiling') || request()->is('admin/pekerja/*/profil') ? 'true' : 'false' }} }" style="display: flex; flex-direction: column; gap: 0.25rem;">
-                    <button x-show="sidebarOpen" @click="open = !open" class="nav-item" style="justify-content: space-between; background: transparent; border: none; width: 100%; cursor: pointer; text-align: left; padding: 0.5rem 0.75rem;">
-                        <span style="display: flex; align-items: center; gap: 0.65rem; font-weight: 700; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">
-                            <i data-lucide="users" style="width: 16px; height: 16px; opacity: 0.7;"></i>
-                            <span>Manajemen Pekerja</span>
-                        </span>
-                        <i data-lucide="chevron-down" :style="open ? 'transform: rotate(180deg); transition: transform 0.2s;' : 'transition: transform 0.2s;'" style="width: 14px; height: 14px; color: var(--text-muted);"></i>
-                    </button>
-                    <div x-show="!sidebarOpen || open" style="display: flex; flex-direction: column; gap: 0.25rem;" :style="sidebarOpen ? 'padding-left: 0.5rem;' : ''">
-                        <x-sidebar-item icon="users" label="Data Pekerja" to="/admin/pekerja" :active="request()->is('admin/pekerja')" />
-                        <x-sidebar-item icon="square-user" label="Profiling Keluarga" to="/admin/keluarga" :active="request()->is('admin/keluarga')" />
-                        <x-sidebar-item icon="pie-chart" label="Profiling" to="/admin/profiling" :active="request()->is('admin/profiling')" />
-                    </div>
-                </div>
-
-                <!-- Group 3: Operasional & Aset -->
-                <div x-data="{ open: {{ request()->is('admin/tugas') || request()->is('admin/perencanaan') || request()->is('admin/program') || request()->is('admin/inventaris') ? 'true' : 'false' }} }" style="display: flex; flex-direction: column; gap: 0.25rem;">
-                    <button x-show="sidebarOpen" @click="open = !open" class="nav-item" style="justify-content: space-between; background: transparent; border: none; width: 100%; cursor: pointer; text-align: left; padding: 0.5rem 0.75rem;">
-                        <span style="display: flex; align-items: center; gap: 0.65rem; font-weight: 700; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">
-                            <i data-lucide="clipboard-list" style="width: 16px; height: 16px; opacity: 0.7;"></i>
-                            <span>Operasional & Aset</span>
-                        </span>
-                        <i data-lucide="chevron-down" :style="open ? 'transform: rotate(180deg); transition: transform 0.2s;' : 'transition: transform 0.2s;'" style="width: 14px; height: 14px; color: var(--text-muted);"></i>
-                    </button>
-                    <div x-show="!sidebarOpen || open" style="display: flex; flex-direction: column; gap: 0.25rem;" :style="sidebarOpen ? 'padding-left: 0.5rem;' : ''">
-                        <x-sidebar-item icon="file-text" label="Tugas" to="/admin/tugas" :active="request()->is('admin/tugas')" />
-                        <x-sidebar-item icon="map-pin" label="Perencanaan Program" to="/admin/perencanaan" :active="request()->is('admin/perencanaan') || request()->is('admin/program')" />
-                        <x-sidebar-item icon="package" label="Inventaris" to="/admin/inventaris" :active="request()->is('admin/inventaris')" />
-                    </div>
-                </div>
-
-                <!-- Group 4: Keuangan & PADes -->
-                <div x-data="{ open: {{ request()->is('admin/ekonomi') || request()->is('admin/insentif') || request()->is('admin/pades') ? 'true' : 'false' }} }" style="display: flex; flex-direction: column; gap: 0.25rem;">
-                    <button x-show="sidebarOpen" @click="open = !open" class="nav-item" style="justify-content: space-between; background: transparent; border: none; width: 100%; cursor: pointer; text-align: left; padding: 0.5rem 0.75rem;">
-                        <span style="display: flex; align-items: center; gap: 0.65rem; font-weight: 700; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">
-                            <i data-lucide="wallet" style="width: 16px; height: 16px; opacity: 0.7;"></i>
-                            <span>Keuangan Desa</span>
-                        </span>
-                        <i data-lucide="chevron-down" :style="open ? 'transform: rotate(180deg); transition: transform 0.2s;' : 'transition: transform 0.2s;'" style="width: 14px; height: 14px; color: var(--text-muted);"></i>
-                    </button>
-                    <div x-show="!sidebarOpen || open" style="display: flex; flex-direction: column; gap: 0.25rem;" :style="sidebarOpen ? 'padding-left: 0.5rem;' : ''">
-                        <x-sidebar-item icon="dollar-sign" label="Ekonomi & Insentif" to="/admin/ekonomi" :active="request()->is('admin/ekonomi') || request()->is('admin/insentif')" />
-                        <x-sidebar-item icon="wallet" label="Pencairan PADes" to="/admin/pades" :active="request()->is('admin/pades')" />
-                    </div>
-                </div>
-
-                <!-- Group 5: Komunikasi & Edukasi -->
-                <div x-data="{ open: {{ request()->is('admin/edukasi') || request()->is('admin/pesan') || request()->is('admin/notifikasi') ? 'true' : 'false' }} }" style="display: flex; flex-direction: column; gap: 0.25rem;">
-                    <button x-show="sidebarOpen" @click="open = !open" class="nav-item" style="justify-content: space-between; background: transparent; border: none; width: 100%; cursor: pointer; text-align: left; padding: 0.5rem 0.75rem;">
-                        <span style="display: flex; align-items: center; gap: 0.65rem; font-weight: 700; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">
-                            <i data-lucide="message-square" style="width: 16px; height: 16px; opacity: 0.7;"></i>
-                            <span>Komunikasi & Edukasi</span>
-                        </span>
-                        <i data-lucide="chevron-down" :style="open ? 'transform: rotate(180deg); transition: transform 0.2s;' : 'transition: transform 0.2s;'" style="width: 14px; height: 14px; color: var(--text-muted);"></i>
-                    </button>
-                    <div x-show="!sidebarOpen || open" style="display: flex; flex-direction: column; gap: 0.25rem;" :style="sidebarOpen ? 'padding-left: 0.5rem;' : ''">
-                        <x-sidebar-item icon="book-open" label="Edukasi" to="/admin/edukasi" :active="request()->is('admin/edukasi')" />
-                        <x-sidebar-item icon="mail" label="Pesan" to="/admin/pesan" :active="request()->is('admin/pesan')" />
-                        <x-sidebar-item icon="bell" label="Notifikasi" to="/admin/notifikasi" :active="request()->is('admin/notifikasi')" />
-                    </div>
-                </div>
-
-                <!-- Group 6: Konfigurasi -->
+                <!-- Collapsible Pengaturan Group -->
                 <div x-data="{ open: {{ request()->is('admin/roles') || request()->is('admin/settings') ? 'true' : 'false' }} }" style="display: flex; flex-direction: column; gap: 0.25rem;">
                     <button x-show="sidebarOpen" @click="open = !open" class="nav-item" style="justify-content: space-between; background: transparent; border: none; width: 100%; cursor: pointer; text-align: left; padding: 0.5rem 0.75rem;">
                         <span style="display: flex; align-items: center; gap: 0.65rem; font-weight: 700; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">
                             <i data-lucide="settings" style="width: 16px; height: 16px; opacity: 0.7;"></i>
-                            <span>Konfigurasi</span>
+                            <span>Pengaturan</span>
                         </span>
                         <i data-lucide="chevron-down" :style="open ? 'transform: rotate(180deg); transition: transform 0.2s;' : 'transition: transform 0.2s;'" style="width: 14px; height: 14px; color: var(--text-muted);"></i>
                     </button>
@@ -136,55 +67,11 @@
                     </button>
                 </form>
             @else
-                <!-- Pengawas Dashboard -->
+                <!-- Pengawas Navigation -->
                 <x-sidebar-item icon="layout-dashboard" label="Dashboard Pengawas" to="/pengawas/dashboard" :active="request()->is('pengawas/dashboard')" />
-
-                <!-- Group 1: Pengawas - Pekerja & Tim -->
-                <div x-data="{ open: {{ request()->is('pengawas/groups') || request()->is('pengawas/profiling') || request()->is('pengawas/pekerja/*/profil') ? 'true' : 'false' }} }" style="display: flex; flex-direction: column; gap: 0.25rem;">
-                    <button x-show="sidebarOpen" @click="open = !open" class="nav-item" style="justify-content: space-between; background: transparent; border: none; width: 100%; cursor: pointer; text-align: left; padding: 0.5rem 0.75rem;">
-                        <span style="display: flex; align-items: center; gap: 0.65rem; font-weight: 700; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">
-                            <i data-lucide="users" style="width: 16px; height: 16px; opacity: 0.7;"></i>
-                            <span>Kelompok & Profiling</span>
-                        </span>
-                        <i data-lucide="chevron-down" :style="open ? 'transform: rotate(180deg); transition: transform 0.2s;' : 'transition: transform 0.2s;'" style="width: 14px; height: 14px; color: var(--text-muted);"></i>
-                    </button>
-                    <div x-show="!sidebarOpen || open" style="display: flex; flex-direction: column; gap: 0.25rem;" :style="sidebarOpen ? 'padding-left: 0.5rem;' : ''">
-                        <x-sidebar-item icon="users" label="Kelompok Kerja" to="/pengawas/groups" :active="request()->is('pengawas/groups')" />
-                        <x-sidebar-item icon="pie-chart" label="Profiling Pekerja" to="/pengawas/profiling" :active="request()->is('pengawas/profiling') || request()->is('pengawas/pekerja/*/profil')" />
-                    </div>
-                </div>
-
-                <!-- Group 2: Pengawas - Aktivitas Lapangan -->
-                <div x-data="{ open: {{ request()->is('pengawas/operasional') || request()->is('pengawas/jadwal') || request()->is('pengawas/logbook') || request()->is('pengawas/distribusi') ? 'true' : 'false' }} }" style="display: flex; flex-direction: column; gap: 0.25rem;">
-                    <button x-show="sidebarOpen" @click="open = !open" class="nav-item" style="justify-content: space-between; background: transparent; border: none; width: 100%; cursor: pointer; text-align: left; padding: 0.5rem 0.75rem;">
-                        <span style="display: flex; align-items: center; gap: 0.65rem; font-weight: 700; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">
-                            <i data-lucide="calendar-clock" style="width: 16px; height: 16px; opacity: 0.7;"></i>
-                            <span>Aktivitas Lapangan</span>
-                        </span>
-                        <i data-lucide="chevron-down" :style="open ? 'transform: rotate(180deg); transition: transform 0.2s;' : 'transition: transform 0.2s;'" style="width: 14px; height: 14px; color: var(--text-muted);"></i>
-                    </button>
-                    <div x-show="!sidebarOpen || open" style="display: flex; flex-direction: column; gap: 0.25rem;" :style="sidebarOpen ? 'padding-left: 0.5rem;' : ''">
-                        <x-sidebar-item icon="calendar-clock" label="Operasional" to="/pengawas/operasional" :active="request()->is('pengawas/operasional') || request()->is('pengawas/jadwal') || request()->is('pengawas/logbook')" />
-                        <x-sidebar-item icon="send" label="Distribusi Hasil" to="/pengawas/distribusi" :active="request()->is('pengawas/distribusi')" />
-                    </div>
-                </div>
-
-                <!-- Group 3: Pengawas - Laporan & Ekonomi -->
-                <div x-data="{ open: {{ request()->is('pengawas/ekonomi') || request()->is('pengawas/pelaporan') ? 'true' : 'false' }} }" style="display: flex; flex-direction: column; gap: 0.25rem;">
-                    <button x-show="sidebarOpen" @click="open = !open" class="nav-item" style="justify-content: space-between; background: transparent; border: none; width: 100%; cursor: pointer; text-align: left; padding: 0.5rem 0.75rem;">
-                        <span style="display: flex; align-items: center; gap: 0.65rem; font-weight: 700; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">
-                            <i data-lucide="alert-triangle" style="width: 16px; height: 16px; opacity: 0.7;"></i>
-                            <span>Laporan & Ekonomi</span>
-                        </span>
-                        <i data-lucide="chevron-down" :style="open ? 'transform: rotate(180deg); transition: transform 0.2s;' : 'transition: transform 0.2s;'" style="width: 14px; height: 14px; color: var(--text-muted);"></i>
-                    </button>
-                    <div x-show="!sidebarOpen || open" style="display: flex; flex-direction: column; gap: 0.25rem;" :style="sidebarOpen ? 'padding-left: 0.5rem;' : ''">
-                        <x-sidebar-item icon="dollar-sign" label="Insentif & Upah" to="/pengawas/ekonomi" :active="request()->is('pengawas/ekonomi')" />
-                        <x-sidebar-item icon="alert-triangle" label="Pelaporan Masalah" to="/pengawas/pelaporan" :active="request()->is('pengawas/pelaporan')" />
-                    </div>
-                </div>
-
-                <!-- Pengawas Edukasi -->
+                <x-sidebar-item icon="users" label="Kelompok & Profiling" to="/pengawas/profiling?tab=kelompok" :active="request()->is('pengawas/profiling') || request()->is('pengawas/groups') || request()->is('pengawas/pekerja/*/profil')" />
+                <x-sidebar-item icon="calendar-clock" label="Aktivitas Lapangan" to="/pengawas/operasional?tab=operasional" :active="request()->is('pengawas/operasional') || request()->is('pengawas/jadwal') || request()->is('pengawas/logbook') || request()->is('pengawas/distribusi')" />
+                <x-sidebar-item icon="alert-triangle" label="Laporan & Keuangan" to="/pengawas/ekonomi?tab=insentif" :active="request()->is('pengawas/ekonomi') || request()->is('pengawas/pelaporan')" />
                 <x-sidebar-item icon="book-open" label="Edukasi" to="/pengawas/edukasi" :active="request()->is('pengawas/edukasi')" />
 
                 <form method="POST" action="{{ route('logout') }}" style="width: 100%; margin-top: 0.25rem;">

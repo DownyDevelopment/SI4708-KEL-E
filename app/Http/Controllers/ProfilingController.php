@@ -12,6 +12,10 @@ class ProfilingController extends Controller
 {
     public function index()
     {
+        if (request()->is('admin/*')) {
+            return redirect()->route('admin.pekerja', ['tab' => 'profiling']);
+        }
+
         $workers = Worker::with('household')
             ->withSum('insentifs', 'jumlah_upah')
             ->withCount('insentifs')
@@ -54,6 +58,15 @@ class ProfilingController extends Controller
         $persentaseMiskin = $totalWorkers > 0 ? round(($miskinCount / $totalWorkers) * 100, 1) : 0;
         $persentaseLayak = $totalWorkers > 0 ? round(($layakCount / $totalWorkers) * 100, 1) : 0;
 
+        $groups = \App\Models\WorkerGroup::withCount('workers')
+            ->with('workers')
+            ->orderBy('nama_kelompok')
+            ->get();
+
+        $availableWorkers = Worker::with('workerGroups')
+            ->orderBy('nama')
+            ->get();
+
         return view('pengawas.profiling.index', compact(
             'workers',
             'totalWorkers',
@@ -65,7 +78,9 @@ class ProfilingController extends Controller
             'persentaseLayak',
             'pekerjaanMakroStats',
             'kesejahteraanStats',
-            'prioritasStats'
+            'prioritasStats',
+            'groups',
+            'availableWorkers'
         ));
     }
 

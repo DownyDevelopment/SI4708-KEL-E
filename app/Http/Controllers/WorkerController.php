@@ -13,12 +13,62 @@ class WorkerController extends Controller
     public function index()
     {
         $workers = Worker::with('household')
+            ->withSum('insentifs', 'jumlah_upah')
+            ->withCount('insentifs')
             ->orderByDesc('total_skor')
             ->orderByDesc('skor_vulnerabilitas')
             ->get();
         $households = Household::all();
 
-        return view('admin.pekerja', compact('workers', 'households'));
+        $totalWorkers = $workers->count();
+        $miskinCount = 0;
+        $layakCount = 0;
+        $tidakLayakCount = 0;
+        $lulusCount = 0;
+        $pekerjaanMakroStats = [];
+        $kesejahteraanStats = [];
+        $prioritasStats = [];
+
+        foreach ($workers as $worker) {
+            if ($worker->is_miskin) {
+                $miskinCount++;
+            }
+
+            if ($worker->status_program === 'lulus') {
+                $lulusCount++;
+            } elseif (ProfilingScorer::layakProgram($worker)) {
+                $layakCount++;
+            } else {
+                $tidakLayakCount++;
+            }
+
+            $makro = $worker->pekerjaan_makro;
+            $pekerjaanMakroStats[$makro] = ($pekerjaanMakroStats[$makro] ?? 0) + 1;
+
+            $kesejahteraan = $worker->status_kesejahteraan ?? $worker->klasifikasi_kesejahteraan;
+            $kesejahteraanStats[$kesejahteraan] = ($kesejahteraanStats[$kesejahteraan] ?? 0) + 1;
+
+            $prioritas = $worker->prioritas ?? 'sedang';
+            $prioritasStats[$prioritas] = ($prioritasStats[$prioritas] ?? 0) + 1;
+        }
+
+        $persentaseMiskin = $totalWorkers > 0 ? round(($miskinCount / $totalWorkers) * 100, 1) : 0;
+        $persentaseLayak = $totalWorkers > 0 ? round(($layakCount / $totalWorkers) * 100, 1) : 0;
+
+        return view('admin.pekerja', compact(
+            'workers', 
+            'households',
+            'totalWorkers',
+            'miskinCount',
+            'layakCount',
+            'tidakLayakCount',
+            'lulusCount',
+            'persentaseMiskin',
+            'persentaseLayak',
+            'pekerjaanMakroStats',
+            'kesejahteraanStats',
+            'prioritasStats'
+        ));
     }
 
     public function store(Request $request)
