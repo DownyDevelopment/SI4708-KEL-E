@@ -110,11 +110,7 @@ class WorkerController extends Controller
             'schedules.program',
             'profilingHistories' => fn ($q) => $q->orderByDesc('created_at'),
             'profilingSnapshots' => fn ($q) => $q->orderByDesc('recorded_at'),
-            'insentifs' => fn ($q) => $q->orderByDesc('created_at')->limit(5),
-        ])
-            ->withSum('insentifs', 'jumlah_upah')
-            ->withCount('insentifs')
-            ->findOrFail($id);
+        ])->findOrFail($id);
 
         $programs = $worker->schedules
             ->pluck('program')

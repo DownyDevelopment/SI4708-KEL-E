@@ -15,7 +15,7 @@ class WorkerGroupController extends Controller
             ->orderBy('nama_kelompok')
             ->get();
 
-        $availableWorkers = Worker::where('status_program', 'aktif')
+        $availableWorkers = Worker::with('workerGroups')
             ->orderBy('nama')
             ->get();
 

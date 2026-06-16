@@ -6,6 +6,7 @@
     <title>Work4Village - @yield('title', 'Dashboard')</title>
     <link rel="stylesheet" href="{{ asset('css/index.css') }}">
     <link rel="stylesheet" href="{{ asset('css/App.css') }}">
+    @stack('styles')
     <script src="https://unpkg.com/lucide@latest"></script>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
