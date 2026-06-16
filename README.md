@@ -1,58 +1,232 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
-
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+  <img src="apps/web/public/images/logo.png" alt="Work4Village Logo" width="120" height="120" style="border-radius: 20px;">
 </p>
 
-## About Laravel
+<h1 align="center">Work4Village</h1>
+<p align="center"><strong>Sistem Informasi Manajemen Program Kerja Mikro Prasejahtera Desa</strong></p>
+<p align="center">
+  <em>Pemberdayaan sosial, SDG 1 (Tanpa Kemiskinan) melalui penyediaan lapangan kerja mikro, SDG 2 (Tanpa Kelaparan) melalui pengembangan kebun pangan komunitas, serta SDG 3 (Kehidupan Sehat dan Sejahtera) melalui perbaikan sanitasi dan kualitas lingkungan permukiman.</em>
+</p>
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+<p align="center">
+  <img src="https://img.shields.io/badge/Next.js-14.x-000000?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js">
+  <img src="https://img.shields.io/badge/Node.js-20.x-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node.js">
+  <img src="https://img.shields.io/badge/Express.js-4.x-000000?style=for-the-badge&logo=express&logoColor=white" alt="Express.js">
+  <img src="https://img.shields.io/badge/PostgreSQL-Database-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL">
+  <img src="https://img.shields.io/badge/TailwindCSS-3.x-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="TailwindCSS">
+  <img src="https://img.shields.io/badge/GraphQL-Enabled-E10098?style=for-the-badge&logo=graphql&logoColor=white" alt="GraphQL">
+</p>
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Tim Pengembang (Scrum Team)
 
-## Learning Laravel
+Aplikasi ini dikembangkan oleh Tim Mahasiswa S1 Sistem Informasi Universitas Telkom menggunakan metodologi Agile (Scrum):
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+| No | Nama | NIM | Peran | Tanggung Jawab Modul / PBI |
+|----|------|-----|-------|-----------------------------|
+| 1 | Muhammad Luthfi TR | 102022300133 | Project Manager | Monitoring Progres & Kendala Lapangan (PBI 10-12) |
+| 2 | Zahra Annisa Inayah | 102022330277 | Scrum Master | Dashboard Evaluasi & Laporan Dampak (PBI 19-21) |
+| 3 | Anisa Fatiimatus Zahro | 102022330350 | Developer | Manajemen Registrasi & Hak Akses Profil (PBI 1-3) |
+| 4 | Raafi Naufal Fadhillah | 102022300053 | Developer | Perencanaan Program Kerja Mikro & Area (PBI 4-6) |
+| 5 | Ariq Anugrah Zahid | 102022330115 | Developer | Sistem Operasional & Penjadwalan Kerja (PBI 7-9) |
+| 6 | Fayyadl Ahsan Amala | 102022300346 | Developer | Sistem Finansial, Insentif & Akumulasi Bulanan (PBI 13-15) |
+| 7 | Josua Immanuel Natanael P | 102022300271 | Developer | Manajemen Inventaris & Distribusi Hasil Desa (PBI 16-18) |
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+## Arsitektur Sistem
 
-## Agentic Development
+Aplikasi **Work4Village** menggunakan pendekatan *Three-Tier Layered Architecture* untuk memisahkan fungsionalitas visual, logika bisnis, dan data transaksional agar menjamin keamanan data warga prasejahtera.
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                           CLIENT LAYER                                │
+│      ┌───────────────────────────┐   ┌───────────────────────────┐  │
+│      │     Web Admin Portal       │   │   Pengawas Field Mobile    │  │
+│      │     (Next.js App)          │   │   (Responsive View)        │  │
+│      └─────────────┬───────────────┘   └─────────────┬───────────┘  │
+│                    │   HTML5 / CSS3 / Tailwind CSS    │              │
+└────────────────────┼──────────────────────────────────┼──────────────┘
+                      │                                  │
+                      ▼                                  ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                         APPLICATION LAYER                             │
+│  ┌───────────────────────────────────────────────────────────────┐  │
+│  │                     REST / GRAPHQL API                        │  │
+│  │   AuthRouter    │ ProgramController   │ LogbookController      │  │
+│  │   WorkerRouter  │ IncentiveController │ DistributionController │  │
+│  └───────────────────────────────────────────────────────────────┘  │
+│  ┌───────────────────────────────────────────────────────────────┐  │
+│  │                     BUSINESS LOGIC RUNTIME                     │  │
+│  │     Node.js Run-Time Engine & Express Layer                    │  │
+│  └───────────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────┘
+                      │                                  │
+                      ▼                                  ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                            DATA LAYER                                 │
+│  ┌──────────────────────────────────────┐  ┌──────────────────────┐  │
+│  │   Relational PostgreSQL Database      │  │   Cloud Asset Drive  │  │
+│  │   (Tables: worker, daily_log,         │  │   (Bukti Foto Kerja  │  │
+│  │   incentive_record, inventory_item)   │  │   Before & After)    │  │
+│  └──────────────────────────────────────┘  └──────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### Alur Kerja Sistem (Main Workflow)
 
-## Contributing
+```
+Admin Buat Tugas & Alokasikan Warga ──► Pengawas Cek Jadwal di Lapangan
+                                                  │
+                                                  ▼
+                                  Presensi & Input Logbook
+                                  (Pencatatan Progres + Foto)
+                                                  │
+                                                  ▼
+                                       Validasi Bukti Lapangan
+                                                  │
+                              ┌───────────────────┴───────────────────┐
+                              ▼                                       ▼
+                       Foto Invalid                          Valid (Disetujui)
+                       (Ditolak Admin)                               │
+                                                                      ▼
+                                                       Kalkulasi Upah Otomatis
+                                                       & Catat Virtual Ledger
+                                                                      │
+                                                                      ▼
+                                                       Update Stok Hasil Desa
+                                                       & Grafik Tren Bulanan
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+---
 
-## Code of Conduct
+## Fitur Utama Sistem
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Sistem ini membatasi hak akses secara ketat menjadi dua peran pengguna utama demi penyederhanaan alur birokrasi digital di tingkat desa.
 
-## Security Vulnerabilities
+### Sisi Admin Desa (Manajerial & Analitis)
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+| Fitur | Deskripsi |
+|-------|-----------|
+| **Registrasi & Profiling** | Pendaftaran data warga miskin secara terstruktur (kemampuan, status keluarga, riwayat penugasan). |
+| **Penjadwalan Mikro** | Pembuatan dan alokasi jadwal shift harian/mingguan untuk kegiatan kebersihan, kebun komunitas, atau pengelolaan sampah. |
+| **Kalkulator Insentif** | Perhitungan upah otomatis berbasis hasil kerja valid serta akumulasi ledger bulanan untuk melacak kenaikan taraf hidup warga. |
+| **Inventaris Hasil Desa** | Operasi CRUD untuk melacak sisa stok komoditas fisik seperti kuantitas kompos dan hasil panen kebun desa. |
+| **Dashboard & Tren** | Visualisasi dashboard analitik mengenai tren produktivitas historis pekerja dan ekspor laporan dampak berformat PDF. |
 
-## License
+### Sisi Pengawas Lapangan (Operasional & Validasi)
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+| Fitur | Deskripsi |
+|-------|-----------|
+| **Pemetaan Titik Tugas** | Visualisasi peta interaktif berbasis koordinat geografis untuk panduan lokasi penugasan di area desa. |
+| **Pencatatan Logbook** | Form presensi digital harian warga dan pengisian volume hasil kerja (luas area bersih/berat sampah). |
+| **Evidence Upload** | Fitur wajib mengunggah foto bukti fisik pekerjaan (sebelum dan sesudah) sebagai syarat utama akuntabilitas pencairan upah. |
+| **Pelaporan Kendala** | Eskalasi pelaporan masalah operasional di lapangan (seperti alat penunjang rusak) secara *real-time* ke admin. |
+| **Log Distribusi** | Pencatatan alur penyaluran hasil produksi desa agar tepat sasaran ke keluarga prasejahtera yang berhak. |
+
+---
+
+## Hak Akses Berbasis Peran (RBAC)
+
+| Peran (Role) | Ruang Lingkup Hak Akses |
+|--------------|--------------------------|
+| **Admin Desa** | Akses Penuh (Insert, Read, Update, Delete) pada konfigurasi data master, master pekerja, penentuan insentif, manajemen inventaris desa, dan dashboard analitik laporan dampak. |
+| **Pengawas Lapangan** | Akses Operasional Teknis (Insert, Read, Update, Delete) pada logbook harian, upload bukti foto, koordinasi logistik internal, mencatat distribusi barang, dan modul materi edukasi warga. |
+
+---
+
+## Panduan Instalasi & Menjalankan Server
+
+### Prasyarat Sistem
+- **Node.js** v18.x atau v20.x (Disarankan versi LTS)
+- **PostgreSQL** atau **MySQL** Server aktif
+- **Git**
+
+### Langkah Pengaturan
+
+#### 1. Kloning Repositori
+```bash
+git clone https://github.com/downydevelopment/si4708-kel-e.git
+cd si4708-kel-e
+```
+
+#### 2. Instalasi Dependensi (Monorepo Node)
+```bash
+# Menginstal paket dependency untuk sub-frontend (apps) dan sub-backend (services)
+npm install
+```
+
+#### 3. Konfigurasi Environment File
+
+Salin berkas template `.env.example` menjadi `.env` di root direktori atau di dalam masing-masing folder servis:
+
+```bash
+cp .env.example .env
+```
+
+Sesuaikan isi kredensial database di dalam berkas `.env`:
+
+```env
+PORT=
+DATABASE_URL=
+JWT_SECRET=
+```
+
+#### 4. Migrasi Skema Basis Data
+
+Jalankan perintah otomatisasi pembuatan struktur tabel database dan injeksi data awal (seeding):
+
+```bash
+npm run db:setup
+```
+
+#### 5. Menjalankan Server Pengembangan (Development Mode)
+
+Disarankan menggunakan **dua terminal terpisah** agar proses pemantauan log sistem berjalan optimal:
+
+- **Terminal 1 Sisi Backend API (Express & GraphQL Server)**
+  ```bash
+  npm run dev:api
+  ```
+- **Terminal 2 Sisi Frontend Web Portal (Next.js)**
+  ```bash
+  npm run dev:web
+  ```
+
+*Catatan: Anda juga bisa menjalankan keduanya secara bersamaan lewat satu instruksi jika terpasang script concurrent: `npm run dev`*
+
+Aplikasi dapat diakses penuh melalui peramban di alamat: **http://localhost:3000**
+
+---
+
+## Struktur Direktori Proyek
+
+```text
+Work4Village/
+├── apps/                        # Lapisan Antarmuka Pengguna (Client Layer)
+│   ├── web/                     # Proyek Utama Next.js (Admin & Pengawas Portal)
+│   │   ├── pages/               # Routing halaman web portal
+│   │   ├── components/          # Kumpulan komponen UI modular
+│   │   └── public/              # Berkas static assets & gambar mockup
+│   └── admin/                   # Cadangan dashboard web internal
+├── services/                    # Lapisan Logika Sistem (Application Layer)
+│   ├── api/                     # Runtime server Express & GraphQL endpoints
+│   │   ├── routes/              # Definisi router URI endpoint REST
+│   │   ├── controllers/         # Handler logika utama fungsional (PBI)
+│   │   └── models/              # Pemetaan skema tabel DB (Prisma/Sequelize ORM)
+│   └── worker/                  # Background task handler untuk rekap upah bulanan
+├── database/                    # Lapisan Penyimpanan Data (Data Layer)
+│   ├── migrations/              # Berkas rekam historis migrasi SQL
+│   └── seeds/                   # Data master awal untuk pengujian sistem (Seeder)
+├── config/                      # Berkas penampung file JSON konfigurasi global
+├── .env.example                 # Template acuan variabel environment sistem
+├── package.json                 # Manajemen scripts perintah npm proyek root
+└── tsconfig.json                # Pengaturan kompilator bahasa TypeScript
+```
+
+---
+
+## Kesimpulan
+
+**Work4Village** mentransformasikan pengelolaan program penanggulangan kemiskinan desa (skema *cash-for-work*). Melalui pemisahan arsitektur yang modular, pencatatan logbook berbasis bukti fisik (*evidence upload*), dan visualisasi data, platform ini menjamin bahwa setiap upah insentif terdistribusi secara adil, sekaligus memacu kemandirian ekonomi desa.
