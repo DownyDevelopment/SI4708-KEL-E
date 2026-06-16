@@ -14,8 +14,9 @@ class EkonomiController extends Controller
 {
     public function index()
     {
-        $workers = Worker::all();
+        $workers = Worker::orderBy('nama')->get();
         $pendingLogbooks = collect();
+        $now = now();
 
         if (auth()->user()->role === 'admin') {
             $pendingLogbooks = Logbook::with(['worker', 'schedule.program'])
@@ -25,10 +26,60 @@ class EkonomiController extends Controller
                 ->get();
         }
 
+        $totalInsentifBulan = (float) Insentif::whereYear('tanggal', $now->year)
+            ->whereMonth('tanggal', $now->month)
+            ->sum('jumlah_upah');
+
+        $entriBulan = Insentif::whereYear('tanggal', $now->year)
+            ->whereMonth('tanggal', $now->month)
+            ->count();
+
+        $pekerjaDibayarBulan = Insentif::whereYear('tanggal', $now->year)
+            ->whereMonth('tanggal', $now->month)
+            ->distinct('worker_id')
+            ->count('worker_id');
+
+        $totalRewards = Reward::count();
+        $totalInsentifAll = (float) Insentif::sum('jumlah_upah');
+
+        $jenisStats = Insentif::whereYear('tanggal', $now->year)
+            ->whereMonth('tanggal', $now->month)
+            ->selectRaw('jenis_insentif, COUNT(*) as jumlah, SUM(jumlah_upah) as total')
+            ->groupBy('jenis_insentif')
+            ->orderByDesc('total')
+            ->get();
+
+        $monthLabels = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+        $trenBulanan = collect();
+        for ($i = 5; $i >= 0; $i--) {
+            $date = $now->copy()->subMonths($i);
+            $trenBulanan->push([
+                'bulan' => $monthLabels[$date->month] . ' ' . $date->format('y'),
+                'total' => (float) Insentif::whereYear('tanggal', $date->year)
+                    ->whereMonth('tanggal', $date->month)
+                    ->sum('jumlah_upah'),
+            ]);
+        }
+
+        $recentInsentifs = Insentif::with('worker')
+            ->orderByDesc('tanggal')
+            ->orderByDesc('id')
+            ->limit(8)
+            ->get();
+
         return view('admin.ekonomi', [
             'workers' => $workers,
             'pendingLogbooks' => $pendingLogbooks,
             'defaultUpah' => (int) SystemSetting::get('upah_default_logbook', 50000),
+            'totalInsentifBulan' => $totalInsentifBulan,
+            'entriBulan' => $entriBulan,
+            'pekerjaDibayarBulan' => $pekerjaDibayarBulan,
+            'totalRewards' => $totalRewards,
+            'totalInsentifAll' => $totalInsentifAll,
+            'jenisStats' => $jenisStats,
+            'trenBulanan' => $trenBulanan,
+            'recentInsentifs' => $recentInsentifs,
+            'bulanLabel' => $monthLabels[$now->month] . ' ' . $now->year,
         ]);
     }
 

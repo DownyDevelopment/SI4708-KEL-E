@@ -77,20 +77,17 @@ class AnalisisController extends Controller
         $this->applyPeriodFilter($insentifQuery, 'created_at', $period);
         $totalInsentif = (float) ($insentifQuery->sum('jumlah_upah') ?? 0);
 
-        $workers = Worker::query()->whereNotNull('created_at')->get();
-        $trenPartisipasi = $this->groupByPeriod(
+        $workersQuery = Worker::query()->whereNotNull('created_at');
+        $this->applyPeriodFilter($workersQuery, 'created_at', $period);
+        $workers = $workersQuery->get();
+
+        $grouped = $this->groupByPeriod(
             $workers,
             fn ($w) => $w->created_at,
             $period
-        )->map(fn ($group, $key) => (object) [
-            'bulan' => $key,
-            'partisipasi' => $group->count(),
-        ])->sortBy('bulan')->values();
+        )->map(fn ($group) => $group->count());
 
-        $formattedTren = $trenPartisipasi->map(fn ($item) => [
-            'bulan' => $this->formatPeriodLabel($item->bulan, $period),
-            'partisipasi' => (int) $item->partisipasi,
-        ]);
+        $formattedTren = $this->buildCompleteTrendSeries($grouped, $period);
 
         $sebaranProgram = MicroProgram::select('jenis_program as name', DB::raw('COUNT(id) as value'))
             ->groupBy('jenis_program')
@@ -151,5 +148,34 @@ class AnalisisController extends Controller
         }
         $months = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
         return ($months[(int) $parts[1]] ?? $parts[1]) . ' ' . $parts[0];
+    }
+
+    /**
+     * Isi semua bucket periode (termasuk yang nilainya 0) agar grafik tren
+     * selalu menampilkan timeline penuh, bukan hanya bulan yang ada datanya.
+     */
+    private function buildCompleteTrendSeries($grouped, string $period): \Illuminate\Support\Collection
+    {
+        $buckets = collect();
+
+        if ($period === 'mingguan') {
+            for ($i = 7; $i >= 0; $i--) {
+                $date = now()->subWeeks($i)->startOfWeek();
+                $buckets->push($date->format('Y-\\WW'));
+            }
+        } elseif ($period === 'tahunan') {
+            for ($i = 2; $i >= 0; $i--) {
+                $buckets->push(now()->subYears($i)->format('Y'));
+            }
+        } else {
+            for ($i = 11; $i >= 0; $i--) {
+                $buckets->push(now()->subMonths($i)->format('Y-m'));
+            }
+        }
+
+        return $buckets->map(fn ($key) => [
+            'bulan' => $this->formatPeriodLabel($key, $period),
+            'partisipasi' => (int) ($grouped[$key] ?? 0),
+        ])->values();
     }
 }
