@@ -3,15 +3,7 @@
 
 @section('content')
 <div class="animate-fade-in" style="padding: 2rem;" x-data="operasionalData()">
-    <div style="margin-bottom: 2rem;">
-        <h1 style="font-size: 1.8rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text-main);">
-            <i data-lucide="calendar-clock" style="width: 28px; height: 28px; color: var(--primary);"></i>
-            Operasional & Penjadwalan
-        </h1>
-        <p style="color: var(--text-muted); margin-top: 0.5rem;">
-            Kelola jadwal kerja harian/mingguan dan catat logbook progres pekerjaan lapangan.
-        </p>
-    </div>
+    <x-hero-banner title="Operasional & Penjadwalan" description="Kelola jadwal kerja harian/mingguan dan catat logbook progres pekerjaan lapangan." />
 
     @if(session('success'))
         <div class="glass-panel" style="margin-bottom: 1rem; padding: 0.85rem 1.25rem; border-left: 4px solid var(--primary); color: var(--text-main);">

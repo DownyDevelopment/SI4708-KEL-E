@@ -599,26 +599,18 @@
 
 @section('content')
 <div class="animate-fade-in pekerja-page" x-data="pekerjaData()">
-    {{-- Hero --}}
-    <div class="pekerja-hero">
-        <div>
-            <h1>
-                <i data-lucide="users" style="width: 28px; height: 28px; color: var(--primary);"></i>
-                Data Pekerja
-            </h1>
-            <p>Profiling & pendaftaran pekerja berbasis skoring BPS/Kemensos — prioritas penugasan dari skor tertinggi.</p>
-        </div>
-        <div class="pekerja-hero-actions">
-            <a href="/admin/keluarga" class="btn btn-outline" style="text-decoration: none;">
+    <x-hero-banner title="Data Pekerja" description="Profiling & pendaftaran pekerja berbasis skoring BPS/Kemensos — prioritas penugasan dari skor tertinggi.">
+        <x-slot:actions>
+            <a href="/admin/keluarga" class="global-hero-banner-btn-ghost">
                 <i data-lucide="home" style="width: 16px; height: 16px;"></i>
                 Data Keluarga
             </a>
-            <button class="btn btn-primary" @click="openAddForm()">
+            <button class="global-hero-banner-btn-white" @click="openAddForm()">
                 <i data-lucide="clipboard-list" style="width: 16px; height: 16px;"></i>
                 Survei Profiling Baru
             </button>
-        </div>
-    </div>
+        </x-slot:actions>
+    </x-hero-banner>
 
     {{-- Stats --}}
     <div class="pekerja-stats">

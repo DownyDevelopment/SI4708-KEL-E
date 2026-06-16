@@ -745,27 +745,18 @@
 @section('content')
 <div class="admin-dash animate-fade-in">
 
-    {{-- Hero --}}
-    <div class="admin-dash-hero">
-        <div class="admin-dash-hero-content">
-            <div class="admin-dash-hero-badge">
-                <i data-lucide="calendar" style="width: 13px; height: 13px;"></i>
-                {{ now()->translatedFormat('l, d F Y') }}
-            </div>
-            <h1>{{ $greeting }}, {{ auth()->user()->nama }}!</h1>
-            <p>Pantau progres program kerja mikro, pekerja desa, dan hasil produksi dari satu dashboard terpusat.</p>
-        </div>
-        <div class="admin-dash-hero-actions">
-            <a href="/admin/analisis" class="admin-dash-btn-white">
+    <x-hero-banner title="{{ $greeting }}, {{ auth()->user()->nama }}!" description="Pantau progres program kerja mikro, pekerja desa, dan hasil produksi dari satu dashboard terpusat.">
+        <x-slot:actions>
+            <a href="/admin/analisis" class="global-hero-banner-btn-white">
                 <i data-lucide="bar-chart-2" style="width: 16px; height: 16px;"></i>
                 Laporan Analisis
             </a>
-            <a href="/admin/perencanaan" class="admin-dash-btn-ghost">
+            <a href="/admin/perencanaan" class="global-hero-banner-btn-ghost">
                 <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
                 Tambah Program
             </a>
-        </div>
-    </div>
+        </x-slot:actions>
+    </x-hero-banner>
 
     {{-- KPI row --}}
     <div class="admin-dash-kpis">

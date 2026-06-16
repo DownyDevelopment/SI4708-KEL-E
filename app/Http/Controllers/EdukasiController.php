@@ -7,9 +7,12 @@ use App\Models\EdukasiContent;
 
 class EdukasiController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $contents = EdukasiContent::all();
+        if ($request->is('pengawas/*')) {
+            return view('pengawas.edukasi', compact('contents'));
+        }
         return view('admin.edukasi', compact('contents'));
     }
 

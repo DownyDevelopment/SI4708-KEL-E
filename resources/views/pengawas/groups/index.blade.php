@@ -682,20 +682,14 @@
         return (name + ' ' + desc + ' ' + members).toLowerCase().includes(q);
     }
 }">
-    {{-- Hero --}}
-    <div class="groups-hero">
-        <div class="groups-hero-text">
-            <h1>
-                <i data-lucide="users-round" style="width: 28px; height: 28px; color: var(--primary);"></i>
-                Kelompok Kerja
-            </h1>
-            <p>Kelola kelompok pekerja untuk penugasan lapangan dan evaluasi berbasis tim.</p>
-        </div>
-        <button type="button" class="btn btn-primary" @click="openForm()">
-            <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
-            Tambah Kelompok
-        </button>
-    </div>
+    <x-hero-banner title="Kelompok Kerja" description="Kelola kelompok pekerja untuk penugasan lapangan dan evaluasi berbasis tim.">
+        <x-slot:actions>
+            <button type="button" class="global-hero-banner-btn-white" @click="openForm()">
+                <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
+                Tambah Kelompok
+            </button>
+        </x-slot:actions>
+    </x-hero-banner>
 
     {{-- Stats --}}
     <div class="groups-stats">

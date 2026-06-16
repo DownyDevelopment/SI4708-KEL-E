@@ -3,13 +3,7 @@
 
 @section('content')
 <div class="animate-fade-in" style="padding: 2rem;">
-    <div style="margin-bottom: 2rem;">
-        <h1 style="font-size: 1.8rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text-main);">
-            <i data-lucide="mail" style="width: 28px; height: 28px; color: var(--primary);"></i>
-            Pesan Internal
-        </h1>
-        <p style="color: var(--text-muted);">Riwayat pesan antar admin dan pengawas dalam sistem.</p>
-    </div>
+    <x-hero-banner title="Pesan Internal" description="Riwayat pesan antar admin dan pengawas dalam sistem." />
 
     @if(session('success'))
         <div class="glass-panel" style="margin-bottom: 1rem; padding: 0.85rem 1.25rem; border-left: 4px solid var(--primary);">

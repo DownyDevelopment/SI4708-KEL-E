@@ -3,20 +3,16 @@
 
 @section('content')
 <div class="animate-fade-in" x-data="keluargaData()">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-        <div>
-            <h1 style="font-size: 1.8rem;">Profiling Keluarga Prasejahtera</h1>
-            <p>Data awal rumah tangga — indikator kemiskinan, kelaparan (SDG 2), dan kesehatan (SDG 3).</p>
-        </div>
-        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-            <a href="/admin/pekerja" class="btn btn-outline" style="text-decoration: none;">
+    <x-hero-banner title="Profiling Keluarga Prasejahtera" description="Data awal rumah tangga — indikator kemiskinan, kelaparan (SDG 2), dan kesehatan (SDG 3).">
+        <x-slot:actions>
+            <a href="/admin/pekerja" class="global-hero-banner-btn-ghost" style="text-decoration: none;">
                 <i data-lucide="user" style="width: 18px; height: 18px; margin-right: 8px;"></i> Data Pekerja
             </a>
-            <button class="btn btn-primary" @click="openAddForm()">
+            <button class="global-hero-banner-btn-white" @click="openAddForm()">
                 <i data-lucide="plus-circle" style="width: 18px; height: 18px; margin-right: 8px;"></i> Tambah Keluarga
             </button>
-        </div>
-    </div>
+        </x-slot:actions>
+    </x-hero-banner>
 
     @if(session('success'))
         <div style="background: #f0fdf4; color: #166534; padding: 0.75rem; border-radius: var(--radius-sm); margin-bottom: 1.5rem; font-size: 0.85rem; text-align: center;">

@@ -3,18 +3,13 @@
 
 @section('content')
 <div class="animate-fade-in" style="padding: 2rem;" x-data="tugasData()">
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
-        <div>
-            <h1 style="font-size: 1.8rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text-main);">
-                <i data-lucide="calendar" style="width: 28px; height: 28px; color: var(--primary);"></i>
-                Operasional & Penjadwalan
-            </h1>
-            <p style="color: var(--text-muted);">Atur jadwal kerja harian/mingguan dan penugasan pekerja per program.</p>
-        </div>
-        <button type="button" class="btn btn-primary" @click="openCreateModal()">
-            <i data-lucide="plus" style="width: 18px; height: 18px; margin-right: 6px;"></i> Tambah Jadwal
-        </button>
-    </div>
+    <x-hero-banner title="Operasional & Penjadwalan" description="Atur jadwal kerja harian/mingguan dan penugasan pekerja per program.">
+        <x-slot:actions>
+            <button type="button" class="global-hero-banner-btn-white" @click="openCreateModal()">
+                <i data-lucide="plus" style="width: 18px; height: 18px; margin-right: 6px;"></i> Tambah Jadwal
+            </button>
+        </x-slot:actions>
+    </x-hero-banner>
 
     @if(session('success'))
         <div class="glass-panel" style="margin-bottom: 1rem; padding: 0.85rem 1.25rem; border-left: 4px solid var(--primary);">

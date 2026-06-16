@@ -636,18 +636,9 @@
 @section('content')
 <div class="analisis-page animate-fade-in" x-data="analisisData()">
 
-    {{-- Hero --}}
-    <div class="analisis-hero">
-        <div class="analisis-hero-content">
-            <div class="analisis-hero-badge">
-                <i data-lucide="bar-chart-2" style="width: 13px; height: 13px;"></i>
-                Laporan Dampak Program · {{ $periodLabel }}
-            </div>
-            <h1>Dashboard Analisis Desa</h1>
-            <p>Pusat evaluasi pencapaian program kerja mikro, partisipasi warga prasejahtera, dan dampak lingkungan berkelanjutan.</p>
-        </div>
-        <div class="analisis-hero-actions no-print">
-            <div class="analisis-period-select">
+    <x-hero-banner title="Dashboard Analisis Desa" description="Pusat evaluasi pencapaian program kerja mikro, partisipasi warga prasejahtera, dan dampak lingkungan berkelanjutan.">
+        <x-slot:actions>
+            <div class="analisis-period-select no-print">
                 <i data-lucide="calendar-range" style="width: 16px; height: 16px; color: rgba(255,255,255,0.85);"></i>
                 <select x-model="period" @change="changePeriod">
                     <option value="mingguan">Mingguan</option>
@@ -655,12 +646,12 @@
                     <option value="tahunan">Tahunan</option>
                 </select>
             </div>
-            <button class="analisis-btn-white" @click="downloadPdf">
+            <button class="global-hero-banner-btn-white no-print" @click="downloadPdf">
                 <i data-lucide="download" style="width: 16px; height: 16px;"></i>
                 Unduh PDF
             </button>
-        </div>
-    </div>
+        </x-slot:actions>
+    </x-hero-banner>
 
     @if(session('success'))
         <div class="analisis-alert no-print">

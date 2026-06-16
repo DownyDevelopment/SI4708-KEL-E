@@ -74,6 +74,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::post('/pesan', [\App\Http\Controllers\PesanController::class, 'store'])->name('admin.pesan.store');
     Route::get('/settings', [\App\Http\Controllers\SettingsController::class, 'index'])->name('admin.settings');
     Route::put('/settings', [\App\Http\Controllers\SettingsController::class, 'update'])->name('admin.settings.update');
+
+    Route::get('/pades', [\App\Http\Controllers\PadesController::class, 'index'])->name('admin.pades');
+    Route::post('/pades', [\App\Http\Controllers\PadesController::class, 'store'])->name('admin.pades.store');
 });
 
 Route::middleware(['auth', 'role:pengawas'])->prefix('pengawas')->group(function () {
@@ -100,6 +103,11 @@ Route::middleware(['auth', 'role:pengawas'])->prefix('pengawas')->group(function
     Route::post('/groups', [\App\Http\Controllers\WorkerGroupController::class, 'store'])->name('pengawas.groups.store');
     Route::put('/groups/{id}', [\App\Http\Controllers\WorkerGroupController::class, 'update'])->name('pengawas.groups.update');
     Route::delete('/groups/{id}', [\App\Http\Controllers\WorkerGroupController::class, 'destroy'])->name('pengawas.groups.destroy');
+
+    Route::get('/edukasi', [\App\Http\Controllers\EdukasiController::class, 'index'])->name('pengawas.edukasi');
+    Route::post('/edukasi', [\App\Http\Controllers\EdukasiController::class, 'store'])->name('pengawas.edukasi.store');
+    Route::put('/edukasi/{id}', [\App\Http\Controllers\EdukasiController::class, 'update'])->name('pengawas.edukasi.update');
+    Route::delete('/edukasi/{id}', [\App\Http\Controllers\EdukasiController::class, 'destroy'])->name('pengawas.edukasi.destroy');
 });
 
 Route::middleware('auth')->prefix('api')->group(function () {

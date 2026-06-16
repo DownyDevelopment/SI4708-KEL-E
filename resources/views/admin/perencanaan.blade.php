@@ -857,22 +857,14 @@
 @section('content')
 <div class="perencanaan-page animate-fade-in" x-data="perencanaanData()">
 
-    {{-- Hero --}}
-    <div class="perencanaan-hero">
-        <div>
-            <h1>
-                <i data-lucide="map-pinned" style="width: 28px; height: 28px; color: var(--primary);"></i>
-                Perencanaan Program & Area
-            </h1>
-            <p>Kelola program kerja mikro, petakan area fokus desa, dan koordinasikan stakeholder multi-pihak dalam satu dashboard.</p>
-        </div>
-        <div class="perencanaan-hero-actions">
-            <button @click="resetForm(); showModal = true" class="btn btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
+    <x-hero-banner title="Perencanaan Program & Area" description="Kelola program kerja mikro, petakan area fokus desa, dan koordinasikan stakeholder multi-pihak dalam satu dashboard.">
+        <x-slot:actions>
+            <button @click="resetForm(); showModal = true" class="global-hero-banner-btn-white" style="display: flex; align-items: center; gap: 0.5rem;">
                 <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
                 Tambah Program
             </button>
-        </div>
-    </div>
+        </x-slot:actions>
+    </x-hero-banner>
 
     {{-- Stats --}}
     <div class="perencanaan-stats">

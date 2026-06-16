@@ -818,28 +818,20 @@
 <div class="eko-page animate-fade-in" x-data="ekonomiData()">
 
     {{-- Hero --}}
-    <div class="eko-hero">
-        <div class="eko-hero-content">
-            <div class="eko-hero-badge">
-                <i data-lucide="wallet" style="width: 13px; height: 13px;"></i>
-                Manajemen Keuangan Desa · {{ $bulanLabel }}
-            </div>
-            <h1>Ekonomi, Insentif & Reward</h1>
-            <p>Dashboard keuangan desa — pantau tren pencairan, validasi hasil kerja, catat upah & voucher, serta kelola penghargaan pekerja dalam satu tempat.</p>
-        </div>
-        <div class="eko-hero-actions">
+    <x-hero-banner title="Ekonomi, Insentif & Reward" description="Dashboard keuangan desa — pantau tren pencairan, validasi hasil kerja, catat upah & voucher, serta kelola penghargaan pekerja dalam satu tempat.">
+        <x-slot:actions>
             @if($isAdmin && $pendingCount > 0)
-                <button type="button" class="eko-btn-white" @click="activeTab = 'ringkasan'; scrollToValidasi()">
+                <button type="button" class="global-hero-banner-btn-white" @click="activeTab = 'ringkasan'; scrollToValidasi()">
                     <i data-lucide="clipboard-check" style="width: 16px; height: 16px;"></i>
                     {{ $pendingCount }} Validasi Menunggu
                 </button>
             @endif
-            <button type="button" class="eko-btn-white" @click="activeTab = 'kelola'">
+            <button type="button" class="global-hero-banner-btn-white" @click="activeTab = 'kelola'">
                 <i data-lucide="user-plus" style="width: 16px; height: 16px;"></i>
                 Catat Insentif
             </button>
-        </div>
-    </div>
+        </x-slot:actions>
+    </x-hero-banner>
 
     @if(session('success'))
         <div class="eko-alert eko-alert--success">
