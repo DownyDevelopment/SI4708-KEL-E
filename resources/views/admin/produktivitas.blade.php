@@ -6,15 +6,21 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <div style="padding: 2rem; max-width: 1200px; margin: 0 auto;" x-data="produktivitasData()">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-        <div>
-            <h1 style="font-size: 1.8rem; font-weight: bold; color: var(--text-main); margin-bottom: 0.5rem;">
-                Analisis Tren Produktivitas Warga
-            </h1>
-            <p style="color: var(--text-muted);">
-                Visualisasi data perbandingan jumlah pekerjaan yang selesai antar periode guna mengevaluasi efektivitas program kerja.
-            </p>
-        </div>
+    <x-hero-banner title="Analisis & Kinerja Desa" description="Pusat evaluasi pencapaian program kerja, partisipasi warga prasejahtera, dan metrik keberlanjutan.">
+        <x-slot:actions>
+            <!-- Actions if any -->
+        </x-slot:actions>
+    </x-hero-banner>
+
+    <div class="global-tabs">
+        <a href="/admin/analisis" class="global-tab">
+            <i data-lucide="bar-chart-2" style="width: 16px; height: 16px;"></i>
+            Dampak & SDG
+        </a>
+        <a href="/admin/produktivitas" class="global-tab active">
+            <i data-lucide="trending-up" style="width: 16px; height: 16px;"></i>
+            Tren Produktivitas
+        </a>
     </div>
 
     <!-- Summary Cards -->

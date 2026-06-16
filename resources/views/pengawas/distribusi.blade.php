@@ -3,7 +3,18 @@
 
 @section('content')
 <div style="padding: 2rem;" x-data="trackingData()">
-    <x-hero-banner title="Distribusi Hasil & Penjualan" description="Mencatat alur distribusi hasil panen/kerajinan kepada warga, atau penjualan untuk ekonomi desa." />
+    <x-hero-banner title="Aktivitas Lapangan" description="Kelola jadwal kerja harian kelompok, catat kemajuan logbook, dan laporkan alur distribusi hasil produksi." />
+
+    <div class="global-tabs">
+        <a href="/pengawas/operasional" class="global-tab">
+            <i data-lucide="calendar-clock" style="width: 16px; height: 16px;"></i>
+            Operasional & Logbook
+        </a>
+        <a href="/pengawas/distribusi" class="global-tab active">
+            <i data-lucide="send" style="width: 16px; height: 16px;"></i>
+            Distribusi Hasil
+        </a>
+    </div>
 
     @if(session('success'))
         <div class="glass-panel" style="margin-bottom: 1rem; padding: 0.85rem 1.25rem; border-left: 4px solid var(--primary); color: var(--text-main);">

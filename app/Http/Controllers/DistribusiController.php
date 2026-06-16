@@ -10,9 +10,7 @@ class DistribusiController extends Controller
 {
     public function index()
     {
-        $items = Inventaris::where('kuantitas', '>', 0)->get();
-        $households = Household::all();
-        return view('pengawas.distribusi', compact('items', 'households'));
+        return redirect()->route('pengawas.operasional', ['tab' => 'distribusi']);
     }
 
     public function store(Request $request)

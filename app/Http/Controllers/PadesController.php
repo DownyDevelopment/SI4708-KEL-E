@@ -11,32 +11,7 @@ class PadesController extends Controller
 {
     public function index()
     {
-        // 1. Hitung total penjualan dari inventaris_histories
-        $totalSales = 0;
-        $histories = InventarisHistory::where('tipe_perubahan', 'kurang')
-            ->where('keterangan', 'like', '%Penjualan%')
-            ->get();
-
-        foreach ($histories as $h) {
-            if (preg_match('/Total:\s*Rp[^\d]*([\d\.,]+)/u', $h->keterangan, $matches)) {
-                $cleaned = str_replace('.', '', $matches[1]);
-                $cleaned = str_replace(',', '.', $cleaned);
-                $totalSales += (float)$cleaned;
-            }
-        }
-
-        // 2. Hitung total yang sudah dicairkan ke PADes
-        $totalDisbursed = PadesPencairan::sum('nominal');
-
-        // 3. Saldo siap cair
-        $availableBalance = max(0, $totalSales - $totalDisbursed);
-
-        // 4. Riwayat pencairan PADes terurut dari yang terbaru
-        $pencairans = PadesPencairan::orderByDesc('tanggal_pencairan')
-            ->orderByDesc('id')
-            ->get();
-
-        return view('admin.pades.index', compact('totalSales', 'totalDisbursed', 'availableBalance', 'pencairans'));
+        return redirect()->route('admin.ekonomi', ['tab' => 'pades']);
     }
 
     public function store(Request $request)

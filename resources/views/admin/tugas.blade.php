@@ -3,13 +3,24 @@
 
 @section('content')
 <div class="animate-fade-in" style="padding: 2rem;" x-data="tugasData()">
-    <x-hero-banner title="Operasional & Penjadwalan" description="Atur jadwal kerja harian/mingguan dan penugasan pekerja per program.">
+    <x-hero-banner title="Program & Operasional Desa" description="Perencanaan program kerja desa, penugasan pekerja, dan penjadwalan aktivitas operasional lapangan.">
         <x-slot:actions>
             <button type="button" class="global-hero-banner-btn-white" @click="openCreateModal()">
                 <i data-lucide="plus" style="width: 18px; height: 18px; margin-right: 6px;"></i> Tambah Jadwal
             </button>
         </x-slot:actions>
     </x-hero-banner>
+
+    <div class="global-tabs">
+        <a href="/admin/perencanaan" class="global-tab">
+            <i data-lucide="map-pin" style="width: 16px; height: 16px;"></i>
+            Program Kerja
+        </a>
+        <a href="/admin/tugas" class="global-tab active">
+            <i data-lucide="file-text" style="width: 16px; height: 16px;"></i>
+            Penjadwalan Tugas
+        </a>
+    </div>
 
     @if(session('success'))
         <div class="glass-panel" style="margin-bottom: 1rem; padding: 0.85rem 1.25rem; border-left: 4px solid var(--primary);">

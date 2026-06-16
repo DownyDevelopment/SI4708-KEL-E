@@ -17,13 +17,15 @@ class JadwalController extends Controller
 {
     public function index()
     {
-        return view('admin.tugas', $this->operasionalData());
+        return redirect()->route('admin.perencanaan', ['tab' => 'tugas']);
     }
 
     public function pengawasIndex(Request $request)
     {
         $data = $this->operasionalData();
         $data['activeTab'] = $request->query('tab', 'jadwal');
+        $data['items'] = \App\Models\Inventaris::where('kuantitas', '>', 0)->get();
+        $data['households'] = \App\Models\Household::all();
 
         return view('pengawas.operasional', $data);
     }
@@ -171,7 +173,7 @@ class JadwalController extends Controller
         return $matches;
     }
 
-    private function operasionalData(): array
+    public function operasionalData(): array
     {
         $jadwal = WorkSchedule::with(['program', 'workerGroup.workers', 'logbooks'])
             ->orderByDesc('tanggal')

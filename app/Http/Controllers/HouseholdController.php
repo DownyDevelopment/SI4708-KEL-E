@@ -9,8 +9,7 @@ class HouseholdController extends Controller
 {
     public function index()
     {
-        $households = Household::all();
-        return view('admin.keluarga', compact('households'));
+        return redirect()->route('admin.pekerja', ['tab' => 'keluarga']);
     }
 
     public function store(Request $request)

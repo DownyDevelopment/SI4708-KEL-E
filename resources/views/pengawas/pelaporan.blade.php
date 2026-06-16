@@ -3,7 +3,7 @@
 
 @section('content')
 <div style="padding: 2rem;" x-data="pelaporanData()">
-    <x-hero-banner title="Pelaporan Masalah Lapangan" description="Catat dan kelola laporan masalah yang terjadi di area kerja.">
+    <x-hero-banner title="Laporan & Ekonomi" description="Rekapitulasi penerimaan upah/insentif pekerja desa dan pelaporan masalah operasional lapangan.">
         <x-slot:actions>
             <button class="global-hero-banner-btn-white" @click="showAddForm = true" style="background: #ef4444; border-color: #ef4444; color: white;">
                 <i data-lucide="plus" style="width: 18px; height: 18px; margin-right: 8px;"></i>
@@ -11,6 +11,17 @@
             </button>
         </x-slot:actions>
     </x-hero-banner>
+
+    <div class="global-tabs">
+        <a href="/pengawas/ekonomi" class="global-tab">
+            <i data-lucide="dollar-sign" style="width: 16px; height: 16px;"></i>
+            Insentif & Upah
+        </a>
+        <a href="/pengawas/pelaporan" class="global-tab active">
+            <i data-lucide="alert-triangle" style="width: 16px; height: 16px;"></i>
+            Pelaporan Masalah
+        </a>
+    </div>
 
     @if(session('success'))
         <div class="glass-panel" style="margin-bottom: 1rem; padding: 0.85rem 1.25rem; border-left: 4px solid var(--primary); color: var(--text-main);">
