@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="apps/web/public/images/logo.png" alt="Work4Village Logo" width="120" height="120" style="border-radius: 20px;">
-</p>
-
 <h1 align="center">Work4Village</h1>
 <p align="center"><strong>Sistem Informasi Manajemen Program Kerja Mikro Prasejahtera Desa</strong></p>
 <p align="center">
