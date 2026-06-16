@@ -67,6 +67,16 @@ class EkonomiController extends Controller
             ->limit(8)
             ->get();
 
+        $allInsentifs = Insentif::with(['worker', 'logbook.schedule.program'])
+            ->orderByDesc('tanggal')
+            ->orderByDesc('id')
+            ->get();
+
+        $allRewards = Reward::with('worker')
+            ->orderByDesc('tanggal_pemberian')
+            ->orderByDesc('id')
+            ->get();
+
         return view('admin.ekonomi', [
             'workers' => $workers,
             'pendingLogbooks' => $pendingLogbooks,
@@ -79,6 +89,8 @@ class EkonomiController extends Controller
             'jenisStats' => $jenisStats,
             'trenBulanan' => $trenBulanan,
             'recentInsentifs' => $recentInsentifs,
+            'allInsentifs' => $allInsentifs,
+            'allRewards' => $allRewards,
             'bulanLabel' => $monthLabels[$now->month] . ' ' . $now->year,
         ]);
     }

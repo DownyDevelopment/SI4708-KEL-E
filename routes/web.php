@@ -67,7 +67,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::put('/tugas/{id}', [\App\Http\Controllers\JadwalController::class, 'update']);
     Route::delete('/tugas/{id}', [\App\Http\Controllers\JadwalController::class, 'destroy']);
 
-    Route::get('/insentif', [\App\Http\Controllers\InsentifController::class, 'index'])->name('admin.insentif');
+    Route::get('/insentif', fn () => redirect()->route('admin.ekonomi', ['tab' => 'daftar']));
     Route::get('/notifikasi', [\App\Http\Controllers\NotifikasiController::class, 'index'])->name('admin.notifikasi');
     Route::post('/notifikasi/{id}/read', [\App\Http\Controllers\NotifikasiController::class, 'markRead'])->name('admin.notifikasi.read');
     Route::get('/pesan', [\App\Http\Controllers\PesanController::class, 'index'])->name('admin.pesan');

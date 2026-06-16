@@ -40,13 +40,12 @@
                 <x-sidebar-item icon="square-user" label="Profiling Keluarga" to="/admin/keluarga" :active="request()->is('admin/keluarga')" />
                 <x-sidebar-item icon="map-pin" label="Perencanaan Program" to="/admin/perencanaan" :active="request()->is('admin/perencanaan') || request()->is('admin/program')" />
                 <x-sidebar-item icon="pie-chart" label="Profiling" to="/admin/profiling" :active="request()->is('admin/profiling')" />
-                <x-sidebar-item icon="dollar-sign" label="Ekonomi & Insentif" to="/admin/ekonomi" :active="request()->is('admin/ekonomi')" />
+                <x-sidebar-item icon="dollar-sign" label="Ekonomi & Insentif" to="/admin/ekonomi" :active="request()->is('admin/ekonomi') || request()->is('admin/insentif')" />
                 <x-sidebar-item icon="book-open" label="Edukasi" to="/admin/edukasi" :active="request()->is('admin/edukasi')" />
                 <x-sidebar-item icon="shield-check" label="Pengaturan Akses" to="/admin/roles" :active="request()->is('admin/roles')" />
                 <x-sidebar-item icon="trending-up" label="Tren Produktivitas" to="/admin/produktivitas" :active="request()->is('admin/produktivitas')" />
                 <x-sidebar-item icon="file-text" label="Tugas" to="/admin/tugas" :active="request()->is('admin/tugas')" />
                 <x-sidebar-item icon="package" label="Inventaris" to="/admin/inventaris" :active="request()->is('admin/inventaris')" />
-                <x-sidebar-item icon="gift" label="Insentif & Reward" to="/admin/insentif" :active="request()->is('admin/insentif')" />
                 <x-sidebar-item icon="bell" label="Notifikasi" to="/admin/notifikasi" :active="request()->is('admin/notifikasi')" />
                 <x-sidebar-item icon="mail" label="Pesan" to="/admin/pesan" :active="request()->is('admin/pesan')" />
                 <x-sidebar-item icon="settings" label="Pengaturan Sistem" to="/admin/settings" :active="request()->is('admin/settings')" />

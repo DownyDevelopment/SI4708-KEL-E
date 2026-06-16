@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'Ekonomi & Insentif')
+@section('title', 'Ekonomi, Insentif & Reward')
 
 @php
     $ekonomiPrefix = request()->is('pengawas/*') ? '/pengawas' : '/admin';
@@ -695,6 +695,122 @@
     }
 
     .eko-btn-reject:hover { background: rgba(239, 68, 68, 0.06); }
+
+    /* Tabs */
+    .eko-tabs {
+        display: flex;
+        gap: 0.35rem;
+        margin-bottom: 1.5rem;
+        padding: 0.35rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        flex-wrap: wrap;
+    }
+
+    .eko-tab {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.6rem 1.1rem;
+        font-size: 0.84rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        background: transparent;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+    }
+
+    .eko-tab:hover { color: var(--text-main); background: var(--background); }
+
+    .eko-tab--active {
+        color: #b45309;
+        background: rgba(217, 119, 6, 0.1);
+        box-shadow: inset 0 0 0 1px rgba(217, 119, 6, 0.18);
+    }
+
+    .eko-tab-badge {
+        font-size: 0.65rem;
+        font-weight: 700;
+        padding: 0.12rem 0.45rem;
+        border-radius: 99px;
+        background: rgba(239, 68, 68, 0.12);
+        color: #dc2626;
+    }
+
+    .eko-search-bar {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .eko-search-input {
+        flex: 1;
+        min-width: 220px;
+        padding: 0.6rem 0.85rem 0.6rem 2.35rem;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        font-size: 0.85rem;
+        background: var(--background);
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: 0.75rem center;
+    }
+
+    .eko-daftar-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+    }
+
+    @media (max-width: 768px) { .eko-daftar-stats { grid-template-columns: 1fr; } }
+
+    .eko-daftar-stat {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 1.1rem 1.25rem;
+    }
+
+    .eko-daftar-stat-label {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+    }
+
+    .eko-daftar-stat-val {
+        font-size: 1.35rem;
+        font-weight: 800;
+        margin-top: 0.3rem;
+        letter-spacing: -0.02em;
+    }
+
+    .eko-subtabs {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .eko-subtab {
+        padding: 0.45rem 0.9rem;
+        font-size: 0.78rem;
+        font-weight: 600;
+        border-radius: 99px;
+        border: 1px solid var(--border);
+        background: var(--background);
+        color: var(--text-muted);
+        cursor: pointer;
+    }
+
+    .eko-subtab--active {
+        background: rgba(217, 119, 6, 0.1);
+        border-color: rgba(217, 119, 6, 0.3);
+        color: #b45309;
+    }
 </style>
 @endpush
 
@@ -708,16 +824,20 @@
                 <i data-lucide="wallet" style="width: 13px; height: 13px;"></i>
                 Manajemen Keuangan Desa · {{ $bulanLabel }}
             </div>
-            <h1>Ekonomi & Insentif</h1>
-            <p>Catat upah dan voucher, validasi hasil kerja, pantau akumulasi pendapatan bulanan pekerja, serta kelola penghargaan.</p>
+            <h1>Ekonomi, Insentif & Reward</h1>
+            <p>Dashboard keuangan desa — pantau tren pencairan, validasi hasil kerja, catat upah & voucher, serta kelola penghargaan pekerja dalam satu tempat.</p>
         </div>
         <div class="eko-hero-actions">
-            @if($isAdmin)
-                <a href="/admin/insentif" class="eko-btn-white">
-                    <i data-lucide="gift" style="width: 16px; height: 16px;"></i>
-                    Insentif & Reward
-                </a>
+            @if($isAdmin && $pendingCount > 0)
+                <button type="button" class="eko-btn-white" @click="activeTab = 'ringkasan'; scrollToValidasi()">
+                    <i data-lucide="clipboard-check" style="width: 16px; height: 16px;"></i>
+                    {{ $pendingCount }} Validasi Menunggu
+                </button>
             @endif
+            <button type="button" class="eko-btn-white" @click="activeTab = 'kelola'">
+                <i data-lucide="user-plus" style="width: 16px; height: 16px;"></i>
+                Catat Insentif
+            </button>
         </div>
     </div>
 
@@ -739,6 +859,26 @@
             <div>@foreach($errors->all() as $error)<p style="margin:0;">{{ $error }}</p>@endforeach</div>
         </div>
     @endif
+
+    {{-- Tab navigation --}}
+    <div class="eko-tabs">
+        <button type="button" class="eko-tab" :class="{ 'eko-tab--active': activeTab === 'ringkasan' }" @click="activeTab = 'ringkasan'">
+            <i data-lucide="layout-dashboard" style="width: 15px; height: 15px;"></i>
+            Ringkasan
+        </button>
+        <button type="button" class="eko-tab" :class="{ 'eko-tab--active': activeTab === 'daftar' }" @click="activeTab = 'daftar'">
+            <i data-lucide="list" style="width: 15px; height: 15px;"></i>
+            Daftar Lengkap
+            <span class="eko-tab-badge" style="background: rgba(217,119,6,0.12); color: #b45309;">{{ $allInsentifs->count() + $allRewards->count() }}</span>
+        </button>
+        <button type="button" class="eko-tab" :class="{ 'eko-tab--active': activeTab === 'kelola' }" @click="activeTab = 'kelola'">
+            <i data-lucide="user-cog" style="width: 15px; height: 15px;"></i>
+            Kelola Pekerja
+        </button>
+    </div>
+
+    {{-- TAB: Ringkasan --}}
+    <div x-show="activeTab === 'ringkasan'" x-cloak>
 
     {{-- KPI --}}
     <div class="eko-kpis">
@@ -976,6 +1116,150 @@
         </div>
     </div>
     @endif
+
+    </div>{{-- end ringkasan tab --}}
+
+    {{-- TAB: Daftar Lengkap --}}
+    <div x-show="activeTab === 'daftar'" x-cloak>
+        <div class="eko-daftar-stats">
+            <div class="eko-daftar-stat">
+                <div class="eko-daftar-stat-label">Total Upah / Insentif (Semua Waktu)</div>
+                <div class="eko-daftar-stat-val" style="color: #d97706;">Rp {{ number_format($totalInsentifAll, 0, ',', '.') }}</div>
+            </div>
+            <div class="eko-daftar-stat">
+                <div class="eko-daftar-stat-label">Jumlah Entri Insentif</div>
+                <div class="eko-daftar-stat-val">{{ $allInsentifs->count() }}</div>
+            </div>
+            <div class="eko-daftar-stat">
+                <div class="eko-daftar-stat-label">Penghargaan (Reward)</div>
+                <div class="eko-daftar-stat-val" style="color: #7c3aed;">{{ $allRewards->count() }}</div>
+            </div>
+        </div>
+
+        <div class="eko-search-bar">
+            <input type="search" class="eko-search-input" x-model="searchQuery" placeholder="Cari pekerja, program, jenis, atau keterangan…">
+            <button type="button" class="btn btn-outline btn-sm" @click="activeTab = 'kelola'">
+                <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
+                Catat Baru
+            </button>
+        </div>
+
+        <div class="eko-subtabs">
+            <button type="button" class="eko-subtab" :class="{ 'eko-subtab--active': daftarView === 'insentif' }" @click="daftarView = 'insentif'">
+                Insentif / Upah ({{ $allInsentifs->count() }})
+            </button>
+            <button type="button" class="eko-subtab" :class="{ 'eko-subtab--active': daftarView === 'reward' }" @click="daftarView = 'reward'">
+                Reward / Penghargaan ({{ $allRewards->count() }})
+            </button>
+        </div>
+
+        <div class="eko-panel" x-show="daftarView === 'insentif'">
+            <div class="eko-panel-header">
+                <div>
+                    <h2>
+                        <i data-lucide="banknote" style="width: 17px; height: 17px; color: #d97706;"></i>
+                        Daftar Insentif / Upah
+                    </h2>
+                    <p>Seluruh pencatatan upah, voucher, dan insentif pekerja</p>
+                </div>
+            </div>
+            <div class="eko-table-wrap">
+                <table class="eko-table">
+                    <thead>
+                        <tr>
+                            <th>Tanggal</th>
+                            <th>Pekerja</th>
+                            <th>Program</th>
+                            <th>Jenis</th>
+                            <th>Jumlah</th>
+                            <th>Keterangan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($allInsentifs as $item)
+                            @php
+                                $searchText = strtolower(implode(' ', array_filter([
+                                    $item->worker?->nama,
+                                    $item->logbook?->schedule?->program?->nama_program,
+                                    $item->jenis_insentif,
+                                    $item->keterangan,
+                                ])));
+                                $badgeClass = match(true) {
+                                    str_contains(strtolower($item->jenis_insentif), 'upah') => 'eko-badge--upah',
+                                    str_contains(strtolower($item->jenis_insentif), 'voucher') => 'eko-badge--voucher',
+                                    str_contains(strtolower($item->jenis_insentif), 'insentif') => 'eko-badge--insentif',
+                                    default => 'eko-badge--default',
+                                };
+                            @endphp
+                            <tr data-search="{{ $searchText }}" x-show="matchesSearch($el.dataset.search)">
+                                <td style="color: var(--text-muted);">{{ $item->tanggal ? \Carbon\Carbon::parse($item->tanggal)->format('d M Y') : '—' }}</td>
+                                <td>
+                                    <div class="eko-recent-row">
+                                        <div class="eko-recent-avatar">{{ collect(explode(' ', $item->worker?->nama ?? '?'))->take(2)->map(fn ($w) => strtoupper(substr($w, 0, 1)))->join('') }}</div>
+                                        {{ $item->worker?->nama ?? '—' }}
+                                    </div>
+                                </td>
+                                <td style="color: var(--text-muted);">{{ $item->logbook?->schedule?->program?->nama_program ?? '—' }}</td>
+                                <td><span class="eko-badge {{ $badgeClass }}">{{ $item->jenis_insentif }}</span></td>
+                                <td class="eko-amount">Rp {{ number_format($item->jumlah_upah, 0, ',', '.') }}</td>
+                                <td style="font-size: 0.8rem; color: var(--text-muted); max-width: 220px;">{{ $item->keterangan ?: '—' }}</td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="6" class="eko-empty" style="padding: 2rem;">Belum ada data insentif.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="eko-panel" x-show="daftarView === 'reward'">
+            <div class="eko-panel-header">
+                <div>
+                    <h2>
+                        <i data-lucide="trophy" style="width: 17px; height: 17px; color: #7c3aed;"></i>
+                        Daftar Reward / Penghargaan
+                    </h2>
+                    <p>Sertifikat, apresiasi, dan penghargaan pekerja desa</p>
+                </div>
+            </div>
+            <div class="eko-table-wrap">
+                <table class="eko-table">
+                    <thead>
+                        <tr>
+                            <th>Tanggal</th>
+                            <th>Pekerja</th>
+                            <th>Nama Penghargaan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($allRewards as $reward)
+                            @php
+                                $rewardSearch = strtolower(implode(' ', array_filter([
+                                    $reward->worker?->nama,
+                                    $reward->nama_penghargaan,
+                                ])));
+                            @endphp
+                            <tr data-search="{{ $rewardSearch }}" x-show="matchesSearch($el.dataset.search)">
+                                <td style="color: var(--text-muted);">{{ $reward->tanggal_pemberian ? \Carbon\Carbon::parse($reward->tanggal_pemberian)->format('d M Y') : '—' }}</td>
+                                <td>
+                                    <div class="eko-recent-row">
+                                        <div class="eko-recent-avatar" style="background: linear-gradient(135deg, #7c3aed, #d97706);">{{ collect(explode(' ', $reward->worker?->nama ?? '?'))->take(2)->map(fn ($w) => strtoupper(substr($w, 0, 1)))->join('') }}</div>
+                                        {{ $reward->worker?->nama ?? '—' }}
+                                    </div>
+                                </td>
+                                <td style="font-weight: 500;">{{ $reward->nama_penghargaan }}</td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="3" class="eko-empty" style="padding: 2rem;">Belum ada data reward.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {{-- TAB: Kelola Pekerja --}}
+    <div x-show="activeTab === 'kelola'" x-cloak>
 
     {{-- Worker selector --}}
     <div class="eko-selector">
@@ -1226,6 +1510,8 @@
             <p style="font-size: 0.85rem; margin: 0;">Catat insentif, lihat akumulasi upah bulanan, dan kelola penghargaan per pekerja.</p>
         </div>
     </template>
+
+    </div>{{-- end kelola tab --}}
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -1242,18 +1528,50 @@
             loadingDetail: false,
             today: new Date().toISOString().slice(0, 10),
             ekonomiPrefix: '{{ $ekonomiPrefix }}',
+            activeTab: new URLSearchParams(window.location.search).get('tab') || 'ringkasan',
+            daftarView: 'insentif',
+            searchQuery: '',
+            chartsRendered: false,
 
             get selectedWorker() {
                 return this.workers.find(w => String(w.id) === String(this.workerId)) || null;
             },
 
             init() {
-                this.$nextTick(() => {
-                    setTimeout(() => {
+                this.$watch('activeTab', (tab) => {
+                    this.$nextTick(() => {
                         if (typeof lucide !== 'undefined') lucide.createIcons();
-                        this.renderOverviewCharts();
-                    }, 50);
+                        if (tab === 'ringkasan' && !this.chartsRendered) {
+                            setTimeout(() => this.renderOverviewCharts(), 80);
+                        }
+                    });
                 });
+
+                if (this.activeTab === 'ringkasan') {
+                    this.$nextTick(() => {
+                        setTimeout(() => {
+                            if (typeof lucide !== 'undefined') lucide.createIcons();
+                            this.renderOverviewCharts();
+                        }, 50);
+                    });
+                } else {
+                    this.$nextTick(() => {
+                        if (typeof lucide !== 'undefined') lucide.createIcons();
+                    });
+                }
+            },
+
+            scrollToValidasi() {
+                this.$nextTick(() => {
+                    const el = document.getElementById('validasi-section');
+                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+            },
+
+            matchesSearch(text) {
+                const q = (this.searchQuery || '').trim().toLowerCase();
+                if (!q) return true;
+                return (text || '').includes(q);
             },
 
             fmtIdr(n) {
@@ -1287,7 +1605,7 @@
             },
 
             renderOverviewCharts() {
-                if (typeof Chart === 'undefined') return;
+                if (typeof Chart === 'undefined' || this.chartsRendered) return;
 
                 const trenData = @json($trenBulanan);
                 const ctxTren = document.getElementById('trenChart');
@@ -1372,6 +1690,8 @@
                         },
                     });
                 }
+
+                this.chartsRendered = true;
             },
         }));
     });
