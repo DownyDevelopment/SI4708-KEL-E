@@ -53,7 +53,7 @@
 
     /* Hero */
     .admin-dash-hero {
-        background: linear-gradient(135deg, #0f766e 0%, #0d9488 45%, #0891b2 100%);
+        background: linear-gradient(135deg, #1e3a5f 0%, #0f766e 50%, #0891b2 100%);
         border-radius: var(--radius-lg);
         padding: 2rem 2.25rem;
         color: white;
@@ -64,7 +64,7 @@
         margin-bottom: 1.75rem;
         position: relative;
         overflow: hidden;
-        box-shadow: 0 12px 40px rgba(15, 118, 110, 0.25);
+        box-shadow: 0 12px 40px rgba(15, 118, 110, 0.22);
     }
 
     .admin-dash-hero::before {

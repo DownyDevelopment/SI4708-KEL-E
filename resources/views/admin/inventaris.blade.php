@@ -11,7 +11,7 @@
 
     /* Hero */
     .inv-hero {
-        background: linear-gradient(135deg, #b45309 0%, #d97706 38%, #0f766e 100%);
+        background: linear-gradient(135deg, #1e3a5f 0%, #0f766e 50%, #0891b2 100%);
         border-radius: var(--radius-lg);
         padding: 2rem 2.25rem;
         color: white;
@@ -22,7 +22,7 @@
         margin-bottom: 1.75rem;
         position: relative;
         overflow: hidden;
-        box-shadow: 0 12px 40px rgba(217, 119, 6, 0.24);
+        box-shadow: 0 12px 40px rgba(15, 118, 110, 0.22);
     }
 
     .inv-hero::before {
@@ -95,7 +95,7 @@
         align-items: center;
         gap: 0.4rem;
         background: white;
-        color: #b45309;
+        color: var(--primary);
         border: none;
         border-radius: 99px;
         padding: 0.65rem 1.25rem;

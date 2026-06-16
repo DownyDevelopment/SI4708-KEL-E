@@ -11,7 +11,7 @@
 
     /* Hero */
     .edu-hero {
-        background: linear-gradient(135deg, #4338ca 0%, #6366f1 40%, #0f766e 100%);
+        background: linear-gradient(135deg, #1e3a5f 0%, #0f766e 50%, #0891b2 100%);
         border-radius: var(--radius-lg);
         padding: 2rem 2.25rem;
         color: white;
@@ -22,7 +22,7 @@
         margin-bottom: 1.75rem;
         position: relative;
         overflow: hidden;
-        box-shadow: 0 12px 40px rgba(99, 102, 241, 0.28);
+        box-shadow: 0 12px 40px rgba(15, 118, 110, 0.22);
     }
 
     .edu-hero::before {
@@ -95,7 +95,7 @@
         align-items: center;
         gap: 0.4rem;
         background: white;
-        color: #4338ca;
+        color: var(--primary);
         border: none;
         border-radius: 99px;
         padding: 0.65rem 1.25rem;
