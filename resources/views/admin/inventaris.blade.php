@@ -712,27 +712,18 @@
 @section('content')
 <div class="inv-page animate-fade-in" x-data="inventarisData()">
 
-    {{-- Hero --}}
-    <section class="inv-hero">
-        <div class="inv-hero-content">
-            <div class="inv-hero-badge">
-                <i data-lucide="warehouse" style="width: 14px; height: 14px;"></i>
-                Gudang Hasil Kerja
-            </div>
-            <h1>Manajemen Inventaris</h1>
-            <p>Lacak stok hasil panen, kompos, kerajinan, dan peralatan. Kelola distribusi gratis, penjualan, serta riwayat transaksi stok secara real-time.</p>
-        </div>
-        <div class="inv-hero-actions">
-            <button class="inv-btn-white" @click="showAddForm = true">
+    <x-hero-banner title="Manajemen Inventaris" description="Lacak stok hasil panen, kompos, kerajinan, dan peralatan. Kelola distribusi gratis, penjualan, serta riwayat transaksi stok secara real-time.">
+        <x-slot:actions>
+            <button class="global-hero-banner-btn-white" @click="showAddForm = true">
                 <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
                 Tambah Barang
             </button>
-            <a href="{{ route('admin.inventaris', ['filter' => 'kompos-kerajinan']) }}" class="inv-btn-ghost">
+            <a href="{{ route('admin.inventaris', ['filter' => 'kompos-kerajinan']) }}" class="global-hero-banner-btn-white">
                 <i data-lucide="recycle" style="width: 15px; height: 15px;"></i>
                 Kompos & Kerajinan
             </a>
-        </div>
-    </section>
+        </x-slot:actions>
+    </x-hero-banner>
 
     {{-- Stats --}}
     <div class="inv-stats">

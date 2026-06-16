@@ -757,29 +757,20 @@
 @section('content')
 <div class="prof-page animate-fade-in" x-data="profilingData()">
 
-    {{-- Hero --}}
-    <div class="prof-hero">
-        <div class="prof-hero-content">
-            <div class="prof-hero-badge">
-                <i data-lucide="scan-search" style="width: 13px; height: 13px;"></i>
-                Indikator Kemensos / BPS · Skoring Vulnerabilitas
-            </div>
-            <h1>Profiling & Analisis Kesejahteraan</h1>
-            <p>Survei indikator kesejahteraan pekerja desa — filter threshold layak/tidak layak, prioritas penugasan, dan pemantauan progres SDG 1, 2, 3.</p>
-        </div>
-        <div class="prof-hero-actions">
+    <x-hero-banner title="Profiling & Analisis Kesejahteraan" description="Survei indikator kesejahteraan pekerja desa — filter threshold layak/tidak layak, prioritas penugasan, dan pemantauan progres SDG 1, 2, 3.">
+        <x-slot:actions>
             @if($isAdmin)
-                <a href="/admin/pekerja" class="prof-btn-white">
+                <a href="/admin/pekerja" class="global-hero-banner-btn-white">
                     <i data-lucide="clipboard-list" style="width: 16px; height: 16px;"></i>
                     Survei Baru
                 </a>
             @endif
-            <a href="{{ $isAdmin ? '/admin/keluarga' : '#' }}" class="prof-btn-ghost" @if(!$isAdmin) style="pointer-events: none; opacity: 0.6;" @endif>
+            <a href="{{ $isAdmin ? '/admin/keluarga' : '#' }}" class="global-hero-banner-btn-ghost" @if(!$isAdmin) style="pointer-events: none; opacity: 0.6;" @endif>
                 <i data-lucide="users-round" style="width: 16px; height: 16px;"></i>
                 Data Keluarga
             </a>
-        </div>
-    </div>
+        </x-slot:actions>
+    </x-hero-banner>
 
     @if(session('success'))
         <div class="prof-alert">

@@ -799,7 +799,7 @@
             <i data-lucide="upload" style="width: 18px; height: 18px; color: var(--primary);"></i>
             Upload Materi Baru
         </h3>
-        <form method="POST" action="{{ route('admin.edukasi') }}">
+        <form method="POST" action="{{ route('pengawas.edukasi.store') }}">
             @csrf
             <div class="edu-form-group" style="margin-bottom: 1rem;">
                 <label>Judul Materi</label>
@@ -900,7 +900,7 @@
                         <button type="button" class="edu-icon-btn" @click="openEdit(content)" title="Edit">
                             <i data-lucide="pencil" style="width: 14px; height: 14px;"></i>
                         </button>
-                        <form method="POST" :action="'/admin/edukasi/' + content.id" @submit="return confirm('Hapus materi ini?')">
+                        <form method="POST" :action="'/pengawas/edukasi/' + content.id" @submit="return confirm('Hapus materi ini?')">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="edu-icon-btn danger" title="Hapus">
@@ -944,7 +944,7 @@
                 </button>
             </div>
             <div class="edu-modal-body">
-                <form method="POST" :action="'/admin/edukasi/' + editContent?.id">
+                <form method="POST" :action="'/pengawas/edukasi/' + editContent?.id">
                     @csrf
                     @method('PUT')
                     <div class="edu-form-group" style="margin-bottom: 1rem;">

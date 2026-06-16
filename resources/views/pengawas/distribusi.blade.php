@@ -3,14 +3,7 @@
 
 @section('content')
 <div style="padding: 2rem;" x-data="trackingData()">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-        <div>
-            <h1 style="font-size: 1.5rem; font-weight: bold; color: var(--text-main); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
-                <i data-lucide="send" style="color: var(--primary);"></i> Distribusi Hasil & Penjualan
-            </h1>
-            <p style="color: var(--text-muted);">Mencatat alur distribusi hasil panen/kerajinan kepada warga, atau penjualan untuk ekonomi desa.</p>
-        </div>
-    </div>
+    <x-hero-banner title="Distribusi Hasil & Penjualan" description="Mencatat alur distribusi hasil panen/kerajinan kepada warga, atau penjualan untuk ekonomi desa." />
 
     @if(session('success'))
         <div class="glass-panel" style="margin-bottom: 1rem; padding: 0.85rem 1.25rem; border-left: 4px solid var(--primary); color: var(--text-main);">

@@ -3,20 +3,14 @@
 
 @section('content')
 <div style="padding: 2rem;" x-data="pelaporanData()">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-        <div>
-            <h1 style="font-size: 1.5rem; font-weight: bold; color: var(--text-main); margin-bottom: 0.5rem;">
-                Pelaporan Masalah Lapangan
-            </h1>
-            <p style="color: var(--text-muted);">
-                Catat dan kelola laporan masalah yang terjadi di area kerja.
-            </p>
-        </div>
-        <button class="btn btn-primary" @click="showAddForm = true" style="background: #ef4444; border-color: #ef4444;">
-            <i data-lucide="plus" style="width: 18px; height: 18px; margin-right: 8px;"></i>
-            <span>Lapor Masalah</span>
-        </button>
-    </div>
+    <x-hero-banner title="Pelaporan Masalah Lapangan" description="Catat dan kelola laporan masalah yang terjadi di area kerja.">
+        <x-slot:actions>
+            <button class="global-hero-banner-btn-white" @click="showAddForm = true" style="background: #ef4444; border-color: #ef4444; color: white;">
+                <i data-lucide="plus" style="width: 18px; height: 18px; margin-right: 8px;"></i>
+                <span>Lapor Masalah</span>
+            </button>
+        </x-slot:actions>
+    </x-hero-banner>
 
     @if(session('success'))
         <div class="glass-panel" style="margin-bottom: 1rem; padding: 0.85rem 1.25rem; border-left: 4px solid var(--primary); color: var(--text-main);">
