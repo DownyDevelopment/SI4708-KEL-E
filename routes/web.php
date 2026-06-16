@@ -66,6 +66,14 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::post('/tugas', [\App\Http\Controllers\JadwalController::class, 'store']);
     Route::put('/tugas/{id}', [\App\Http\Controllers\JadwalController::class, 'update']);
     Route::delete('/tugas/{id}', [\App\Http\Controllers\JadwalController::class, 'destroy']);
+
+    Route::get('/insentif', [\App\Http\Controllers\InsentifController::class, 'index'])->name('admin.insentif');
+    Route::get('/notifikasi', [\App\Http\Controllers\NotifikasiController::class, 'index'])->name('admin.notifikasi');
+    Route::post('/notifikasi/{id}/read', [\App\Http\Controllers\NotifikasiController::class, 'markRead'])->name('admin.notifikasi.read');
+    Route::get('/pesan', [\App\Http\Controllers\PesanController::class, 'index'])->name('admin.pesan');
+    Route::post('/pesan', [\App\Http\Controllers\PesanController::class, 'store'])->name('admin.pesan.store');
+    Route::get('/settings', [\App\Http\Controllers\SettingsController::class, 'index'])->name('admin.settings');
+    Route::put('/settings', [\App\Http\Controllers\SettingsController::class, 'update'])->name('admin.settings.update');
 });
 
 Route::middleware(['auth', 'role:pengawas'])->prefix('pengawas')->group(function () {
@@ -75,6 +83,7 @@ Route::middleware(['auth', 'role:pengawas'])->prefix('pengawas')->group(function
     Route::get('/logbook', [\App\Http\Controllers\LogbookController::class, 'index'])->name('pengawas.logbook');
     Route::post('/logbook', [\App\Http\Controllers\LogbookController::class, 'store']);
     Route::put('/logbook/{id}', [\App\Http\Controllers\LogbookController::class, 'update']);
+    Route::post('/logbook/{id}/evaluasi', [\App\Http\Controllers\LogbookController::class, 'evaluate'])->name('pengawas.logbook.evaluasi');
     Route::get('/distribusi', [\App\Http\Controllers\DistribusiController::class, 'index'])->name('pengawas.distribusi');
     Route::post('/distribusi', [\App\Http\Controllers\DistribusiController::class, 'store']);
     Route::get('/ekonomi', [\App\Http\Controllers\EkonomiController::class, 'index'])->name('pengawas.ekonomi');
@@ -87,9 +96,23 @@ Route::middleware(['auth', 'role:pengawas'])->prefix('pengawas')->group(function
     Route::post('/profiling/{workerId}/snapshot', [\App\Http\Controllers\ProfilingController::class, 'updateProfiling'])->name('pengawas.profiling.snapshot');
     Route::post('/profiling/{workerId}/update', [\App\Http\Controllers\ProfilingController::class, 'updateProfiling'])->name('pengawas.profiling.update');
     Route::get('/pekerja/{id}/profil', [\App\Http\Controllers\WorkerController::class, 'profile'])->name('pengawas.pekerja.profil');
+    Route::get('/groups', [\App\Http\Controllers\WorkerGroupController::class, 'index'])->name('pengawas.groups.index');
+    Route::post('/groups', [\App\Http\Controllers\WorkerGroupController::class, 'store'])->name('pengawas.groups.store');
+    Route::put('/groups/{id}', [\App\Http\Controllers\WorkerGroupController::class, 'update'])->name('pengawas.groups.update');
+    Route::delete('/groups/{id}', [\App\Http\Controllers\WorkerGroupController::class, 'destroy'])->name('pengawas.groups.destroy');
 });
 
 Route::middleware('auth')->prefix('api')->group(function () {
+    Route::get('/user/notifications/unread-count', function () {
+        return response()->json([
+            'count' => \App\Models\Notification::where('user_id', auth()->id())->where('is_read', false)->count(),
+        ]);
+    });
+    Route::get('/user/messages/unread-count', function () {
+        return response()->json([
+            'count' => \App\Models\Message::where('receiver_id', auth()->id())->where('is_read', false)->count(),
+        ]);
+    });
     Route::get('/user/notifications', function () {
         return response()->json(\App\Models\Notification::where('user_id', auth()->id())->get());
     });

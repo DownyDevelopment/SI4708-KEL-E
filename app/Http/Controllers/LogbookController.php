@@ -3,9 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Logbook;
-use App\Models\Worker;
 use App\Models\WorkSchedule;
-use App\Models\ScheduleAssignment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -21,7 +19,7 @@ class LogbookController extends Controller
     {
         $validated = $request->validate([
             'schedule_id' => 'required|exists:work_schedules,id',
-            'worker_id' => 'nullable|exists:workers,id',
+            'worker_group_id' => 'nullable|exists:worker_groups,id',
             'tanggal' => 'nullable|date',
             'progres_persentase' => 'required|numeric|min:0|max:100',
             'catatan_progres' => 'nullable|string',
@@ -42,6 +40,7 @@ class LogbookController extends Controller
         ]);
 
         $schedule = WorkSchedule::findOrFail($validated['schedule_id']);
+        $groupId = $validated['worker_group_id'] ?? $schedule->worker_group_id;
         $catatan = $validated['catatan_progres'] ?? $validated['catatan'] ?? null;
         $detailMonitoring = $this->cleanDetailMonitoring($validated['detail_monitoring'] ?? null);
 
@@ -52,7 +51,7 @@ class LogbookController extends Controller
 
         Logbook::create([
             'schedule_id' => $validated['schedule_id'],
-            'worker_id' => $validated['worker_id'] ?? null,
+            'worker_group_id' => $groupId,
             'pengawas_id' => Auth::id(),
             'tanggal' => $validated['tanggal'] ?? now()->toDateString(),
             'catatan_progres' => $catatan,
@@ -89,7 +88,7 @@ class LogbookController extends Controller
             'progres_persentase' => 'required|numeric|min:0|max:100',
             'catatan_progres' => 'nullable|string',
             'catatan' => 'nullable|string',
-            'worker_id' => 'nullable|exists:workers,id',
+            'worker_group_id' => 'nullable|exists:worker_groups,id',
             'foto' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'foto_bukti' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'foto_sebelum' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
@@ -113,7 +112,7 @@ class LogbookController extends Controller
         }
 
         $logbook->update([
-            'worker_id' => $validated['worker_id'] ?? $logbook->worker_id,
+            'worker_group_id' => $validated['worker_group_id'] ?? $logbook->worker_group_id ?? $logbook->schedule?->worker_group_id,
             'catatan_progres' => $catatan,
             'catatan' => $catatan,
             'progres_persentase' => (int) $validated['progres_persentase'],
@@ -141,6 +140,29 @@ class LogbookController extends Controller
         return redirect()
             ->route('pengawas.operasional', ['tab' => 'logbook'])
             ->with('success', 'Progres logbook berhasil diperbarui.');
+    }
+
+    public function evaluate(Request $request, int $id)
+    {
+        $logbook = Logbook::with('schedule.program')->findOrFail($id);
+
+        $validated = $request->validate([
+            'rating_kinerja' => 'required|integer|min:1|max:5',
+            'catatan_evaluasi' => 'nullable|string|max:2000',
+        ]);
+
+        if ((int) $logbook->progres_persentase < 100) {
+            return redirect()->back()->with('error', 'Evaluasi hanya dapat diberikan setelah pekerjaan selesai (progres 100%).');
+        }
+
+        $logbook->update([
+            'rating_kinerja' => $validated['rating_kinerja'],
+            'catatan_evaluasi' => $validated['catatan_evaluasi'] ?? null,
+            'evaluated_by' => Auth::id(),
+            'evaluated_at' => now(),
+        ]);
+
+        return redirect()->back()->with('success', 'Evaluasi kinerja berhasil disimpan.');
     }
 
     private function storePhoto(?\Illuminate\Http\UploadedFile $file): ?string

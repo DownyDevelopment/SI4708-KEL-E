@@ -32,6 +32,7 @@ class WorkerController extends Controller
             'akses_air_bersih' => 'nullable|string|max:50',
             'status_gizi' => 'nullable|string|max:30',
             'bukti_foto_kondisi' => 'nullable|image|max:5120',
+            'total_pendapatan' => 'nullable|integer|min:0',
         ]);
 
         $worker = new Worker($request->except('bukti_foto_kondisi'));
@@ -91,6 +92,7 @@ class WorkerController extends Controller
         $request->validate([
             'nama' => 'required|string|max:255',
             'kemampuan_utama' => 'required|string|max:255',
+            'total_pendapatan' => 'nullable|integer|min:0',
         ]);
 
         $worker = Worker::findOrFail($id);

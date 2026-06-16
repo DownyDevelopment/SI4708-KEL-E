@@ -18,6 +18,11 @@
             {{ session('success') }}
         </div>
     @endif
+    @if(session('error'))
+        <div class="glass-panel" style="margin-bottom: 1rem; padding: 0.85rem 1.25rem; border-left: 4px solid var(--danger); color: var(--danger);">
+            {{ session('error') }}
+        </div>
+    @endif
     @if($errors->any())
         <div class="glass-panel" style="margin-bottom: 1rem; padding: 0.85rem 1.25rem; border-left: 4px solid var(--danger); color: var(--danger);">
             @foreach($errors->all() as $error)
@@ -44,7 +49,7 @@
                         <tr style="border-bottom: 2px solid var(--border); text-align: left;">
                             <th style="padding: 0.75rem;">Program</th>
                             <th style="padding: 0.75rem;">Tanggal</th>
-                            <th style="padding: 0.75rem;">Pekerja</th>
+                            <th style="padding: 0.75rem;">Kelompok</th>
                             <th style="padding: 0.75rem;">Progres</th>
                             <th style="padding: 0.75rem;">Status</th>
                             <th style="padding: 0.75rem;">Aksi</th>
@@ -56,8 +61,11 @@
                                 <td style="padding: 0.75rem; font-weight: 500;">{{ $item->tugas ?? '—' }}</td>
                                 <td style="padding: 0.75rem;">{{ $item->tanggal ? \Carbon\Carbon::parse($item->tanggal)->format('d M Y') : '—' }}</td>
                                 <td style="padding: 0.75rem; font-size: 0.85rem;">
-                                    @if(!empty($item->pekerja_nama))
-                                        {{ implode(', ', $item->pekerja_nama) }}
+                                    @if($item->kelompok_nama)
+                                        <strong>{{ $item->kelompok_nama }}</strong>
+                                        @if(!empty($item->pekerja_nama))
+                                            <br><span style="color: var(--text-muted);">{{ implode(', ', array_slice($item->pekerja_nama, 0, 2)) }}</span>
+                                        @endif
                                     @else
                                         <span style="color: var(--text-muted);">Belum ditugaskan</span>
                                     @endif
@@ -141,20 +149,15 @@
                         <input type="hidden" name="schedule_id" :value="selectedSchedule.id">
                         <input type="hidden" name="tanggal" :value="today">
 
+                        <input type="hidden" name="worker_group_id" :value="selectedSchedule.worker_group_id">
+
                         <h3 style="margin-bottom: 0.25rem; color: var(--text-main);">Logbook Harian</h3>
                         <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;">
                             <span x-text="selectedSchedule.tugas"></span>
+                            <template x-if="selectedSchedule.kelompok_nama">
+                                <span> · Kelompok: <strong x-text="selectedSchedule.kelompok_nama"></strong></span>
+                            </template>
                         </p>
-
-                        <div class="form-group">
-                            <label class="form-label">Pekerja (opsional)</label>
-                            <select name="worker_id" class="form-input">
-                                <option value="">— Semua / umum —</option>
-                                @foreach($workers as $w)
-                                    <option value="{{ $w->id }}">{{ $w->nama }}</option>
-                                @endforeach
-                            </select>
-                        </div>
 
                         <div class="form-group">
                             <label class="form-label">Lokasi pekerjaan</label>
@@ -290,6 +293,23 @@
                         @elseif($log->status_validasi === 'ditolak')
                             <span class="badge" style="margin-left: 0.5rem; background: rgba(239, 68, 68, 0.15); color: var(--danger);">Validasi ditolak</span>
                         @endif
+                        @if($log->rating_kinerja)
+                            <div style="margin-top: 0.5rem; font-size: 0.85rem;">
+                                <strong>Rating:</strong>
+                                @for($i = 1; $i <= 5; $i++)
+                                    <span style="color: {{ $i <= $log->rating_kinerja ? '#f59e0b' : '#d1d5db' }};">★</span>
+                                @endfor
+                                ({{ $log->rating_kinerja }}/5)
+                                @if($log->catatan_evaluasi)
+                                    — <em style="color: var(--text-muted);">{{ $log->catatan_evaluasi }}</em>
+                                @endif
+                            </div>
+                        @elseif((int)$log->progres_persentase >= 100)
+                            <button type="button" class="btn btn-outline btn-sm" style="margin-top: 0.5rem;"
+                                    @click="openEvaluasi(@js(['id' => $log->id, 'program' => $log->schedule?->program?->nama_program ?? 'Program', 'worker' => $log->workerGroup?->nama_kelompok ?? 'Kelompok']))">
+                                Beri Evaluasi Kinerja
+                            </button>
+                        @endif
                         @if($log->foto_sebelum || $log->foto_sesudah || $log->foto_bukti)
                             <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
                                 @if($log->foto_sebelum)
@@ -307,6 +327,38 @@
             </div>
         </div>
     </div>
+
+    <template x-if="showEvalModal">
+        <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 99; display: flex; align-items: center; justify-content: center; padding: 1rem;">
+            <div class="glass-panel" style="width: 100%; max-width: 480px; padding: 2rem; background: var(--surface);">
+                <h3 style="margin-bottom: 0.5rem;">Evaluasi Kinerja</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.25rem;">
+                    <span x-text="evalData.program"></span> — <span x-text="evalData.worker"></span>
+                </p>
+                <form :action="'/pengawas/logbook/' + evalData.id + '/evaluasi'" method="POST">
+                    @csrf
+                    <div class="form-group">
+                        <label class="form-label">Rating Kinerja (1–5)</label>
+                        <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                            <template x-for="star in 5">
+                                <button type="button" @click="evalRating = star"
+                                        :style="'font-size: 1.75rem; background: none; border: none; cursor: pointer; color: ' + (star <= evalRating ? '#f59e0b' : '#d1d5db')">★</button>
+                            </template>
+                        </div>
+                        <input type="hidden" name="rating_kinerja" :value="evalRating" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Catatan Evaluasi</label>
+                        <textarea name="catatan_evaluasi" class="form-input" rows="3" placeholder="Ulasan singkat kinerja pekerja..."></textarea>
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem;">
+                        <button type="button" class="btn btn-outline" @click="showEvalModal = false">Batal</button>
+                        <button type="submit" class="btn btn-primary" :disabled="evalRating < 1">Simpan Evaluasi</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </template>
 </div>
 
 <style>
@@ -334,6 +386,9 @@
             previewSebelum: null,
             previewSesudah: null,
             today: new Date().toISOString().slice(0, 10),
+            showEvalModal: false,
+            evalData: { id: null, program: '', worker: '' },
+            evalRating: 0,
 
             get monitoringType() {
                 const jenis = (this.selectedSchedule?.jenis_program || '').toLowerCase();
@@ -388,6 +443,13 @@
                 const url = URL.createObjectURL(file);
                 if (type === 'sebelum') this.previewSebelum = url;
                 else this.previewSesudah = url;
+            },
+
+            openEvaluasi(data) {
+                this.evalData = data;
+                this.evalRating = 0;
+                this.showEvalModal = true;
+                setTimeout(() => lucide.createIcons(), 50);
             },
         }));
     });

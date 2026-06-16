@@ -21,6 +21,11 @@
             {{ session('success') }}
         </div>
     @endif
+    @if(session('error'))
+        <div class="glass-panel" style="margin-bottom: 1rem; padding: 0.85rem 1.25rem; border-left: 4px solid var(--danger); color: var(--danger);">
+            {{ session('error') }}
+        </div>
+    @endif
     @if($errors->any())
         <div class="glass-panel" style="margin-bottom: 1rem; padding: 0.85rem 1.25rem; border-left: 4px solid var(--danger); color: var(--danger);">
             @foreach($errors->all() as $error)
@@ -38,7 +43,7 @@
                         <th style="padding: 0.75rem;">Program</th>
                         <th style="padding: 0.75rem;">Tanggal</th>
                         <th style="padding: 0.75rem;">Shift / Jam</th>
-                        <th style="padding: 0.75rem;">Pekerja</th>
+                        <th style="padding: 0.75rem;">Kelompok</th>
                         <th style="padding: 0.75rem;">Progres</th>
                         <th style="padding: 0.75rem;">Status</th>
                         <th style="padding: 0.75rem;">Aksi</th>
@@ -56,8 +61,11 @@
                                 @endif
                             </td>
                             <td style="padding: 0.75rem; font-size: 0.85rem;">
-                                @if(!empty($item->pekerja_nama))
-                                    {{ implode(', ', array_slice($item->pekerja_nama, 0, 3)) }}@if(count($item->pekerja_nama) > 3) +{{ count($item->pekerja_nama) - 3 }}@endif
+                                @if($item->kelompok_nama)
+                                    <strong>{{ $item->kelompok_nama }}</strong>
+                                    @if(!empty($item->pekerja_nama))
+                                        <br><span style="color: var(--text-muted);">{{ implode(', ', array_slice($item->pekerja_nama, 0, 2)) }}@if(count($item->pekerja_nama) > 2) +{{ count($item->pekerja_nama) - 2 }}@endif</span>
+                                    @endif
                                 @else
                                     —
                                 @endif
@@ -134,6 +142,7 @@
                                 <option value="scheduled">Terjadwal</option>
                                 <option value="in_progress">Berjalan</option>
                                 <option value="completed">Selesai</option>
+                                <option value="delayed">Tertunda</option>
                             </select>
                         </div>
                     </div>
@@ -159,24 +168,13 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Pekerja ditugaskan <span style="font-weight: normal; color: var(--text-muted);">(urut prioritas skor profiling)</span></label>
-                        @if(!empty($workerMatches))
-                        <div style="background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem; margin-bottom: 0.75rem; font-size: 0.85rem; color: var(--text-muted);">
-                            <strong style="color: var(--text-main);">Rekomendasi matching</strong> — pilih program dulu, lalu centang pekerja yang keahliannya cocok.
-                        </div>
-                        @endif
-                        <div style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem;">
-                            @foreach($workers as $w)
-                                <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0; cursor: pointer; font-size: 0.9rem;">
-                                    <input type="checkbox" name="worker_ids[]" value="{{ $w->id }}" :checked="form.worker_ids.includes('{{ $w->id }}')" @change="toggleWorker('{{ $w->id }}', $event.target.checked)">
-                                    <span>{{ $w->nama }}</span>
-                                    <span style="font-size: 0.75rem; color: var(--text-muted);">· Skor {{ $w->skor_vulnerabilitas ?? '—' }} · {{ $w->kemampuan_utama }}</span>
-                                    @if($w->desa_asal)
-                                        <span style="font-size: 0.75rem; color: #d97706;">· {{ $w->desa_asal }}</span>
-                                    @endif
-                                </label>
+                        <label class="form-label">Kelompok kerja <span style="font-weight: normal; color: var(--text-muted);">(penugasan berbasis kelompok)</span></label>
+                        <select name="worker_group_id" class="form-input" x-model="form.worker_group_id" required>
+                            <option value="">— Pilih kelompok —</option>
+                            @foreach($workerGroups as $g)
+                                <option value="{{ $g->id }}">{{ $g->nama_kelompok }} ({{ $g->workers_count }} anggota)</option>
                             @endforeach
-                        </div>
+                        </select>
                     </div>
 
                     <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
@@ -208,7 +206,7 @@
                 jam_selesai: '',
                 shift_label: '',
                 deskripsi: '',
-                worker_ids: [],
+                worker_group_id: '',
             },
 
             init() {
@@ -226,7 +224,7 @@
                     jam_selesai: '',
                     shift_label: '',
                     deskripsi: '',
-                    worker_ids: [],
+                    worker_group_id: '',
                 };
                 this.showModal = true;
                 setTimeout(() => lucide.createIcons(), 50);
@@ -243,20 +241,10 @@
                     jam_selesai: item.jam_selesai || '',
                     shift_label: item.shift_label || '',
                     deskripsi: item.deskripsi || '',
-                    worker_ids: (item.assignments || []).map(a => String(a.worker_id)),
+                    worker_group_id: String(item.worker_group_id || ''),
                 };
                 this.showModal = true;
                 setTimeout(() => lucide.createIcons(), 50);
-            },
-
-            toggleWorker(id, checked) {
-                if (checked) {
-                    if (!this.form.worker_ids.includes(id)) {
-                        this.form.worker_ids.push(id);
-                    }
-                } else {
-                    this.form.worker_ids = this.form.worker_ids.filter(w => w !== id);
-                }
             },
         }));
     });

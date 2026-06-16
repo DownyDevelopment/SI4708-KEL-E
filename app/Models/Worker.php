@@ -19,6 +19,9 @@ class Worker extends Model
         'jenis_kelamin',
         'alamat',
         'no_telepon',
+        'nama_bank',
+        'nomor_rekening',
+        'total_pendapatan',
         'kontak_darurat',
         'status_keluarga',
         'status_rumah',
@@ -70,6 +73,12 @@ class Worker extends Model
         return $this->belongsToMany(WorkSchedule::class, 'schedule_assignments', 'worker_id', 'schedule_id');
     }
 
+    public function workerGroups(): BelongsToMany
+    {
+        return $this->belongsToMany(WorkerGroup::class, 'worker_group_worker', 'worker_id', 'worker_group_id')
+            ->withTimestamps();
+    }
+
     public function profilingSnapshots(): HasMany
     {
         return $this->hasMany(ProfilingSnapshot::class);
@@ -100,27 +109,12 @@ class Worker extends Model
     }
 
     /**
-     * Get the worker's total income (Household per capita + sum of all insentifs).
-     */
-    public function getTotalPendapatanAttribute(): float
-    {
-        $pendapatanKeluarga = 0;
-        if ($this->household && $this->household->jumlah_anggota > 0) {
-            $pendapatanKeluarga = $this->household->pendapatan_per_bulan / $this->household->jumlah_anggota;
-        }
-
-        $pendapatanInsentif = $this->insentifs_sum_jumlah_upah ?? 0;
-
-        return $pendapatanKeluarga + $pendapatanInsentif;
-    }
-
-    /**
      * Get the worker's poverty status.
      * Assuming poverty line is Rp 500,000 per capita.
      */
     public function getIsMiskinAttribute(): bool
     {
-        $total = $this->total_pendapatan;
+        $total = (float) ($this->attributes['total_pendapatan'] ?? 0);
         if ($total == 0) {
             return false; // Or true, but maybe no data means we don't classify as miskin automatically
         }
@@ -132,7 +126,7 @@ class Worker extends Model
      */
     public function getKlasifikasiKesejahteraanAttribute(): string
     {
-        $total = $this->total_pendapatan;
+        $total = (float) ($this->attributes['total_pendapatan'] ?? 0);
 
         if ($total == 0 && !$this->household && ($this->insentifs_count ?? 0) == 0) {
             return 'Tidak Diketahui';

@@ -48,6 +48,16 @@
                     <dd style="margin: 0; font-weight: 500;">{{ $worker->no_telepon ?: '—' }}</dd>
                 </div>
                 <div>
+                    <dt style="color: var(--text-muted); margin-bottom: 0.15rem;">Rekening / E-Wallet</dt>
+                    <dd style="margin: 0; font-weight: 500;">
+                        @if($worker->nama_bank && $worker->nomor_rekening)
+                            {{ $worker->nama_bank }} — {{ $worker->nomor_rekening }}
+                        @else
+                            <span style="color: var(--warning);">Belum diisi</span>
+                        @endif
+                    </dd>
+                </div>
+                <div>
                     <dt style="color: var(--text-muted); margin-bottom: 0.15rem;">Keluarga</dt>
                     <dd style="margin: 0; font-weight: 500;">{{ $worker->household?->kepala_keluarga ?? '—' }}</dd>
                 </div>

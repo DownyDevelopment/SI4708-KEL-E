@@ -3,6 +3,7 @@
 
 @section('content')
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <div class="dashboard-layout animate-fade-in">
     <!-- Banner -->
     <div class="banner">
@@ -129,6 +130,14 @@
         </div>
     </div>
 
+    <!-- Sebaran Bidang Kerja -->
+    <div class="glass-panel stat-card" style="padding: 2rem; margin-bottom: 2rem;" x-data="bidangKerjaChart()">
+        <h3 class="stat-title" style="margin-bottom: 1.5rem; color: var(--text-main); font-size: 1rem; font-weight: 600;">Sebaran Bidang Kerja Pekerja</h3>
+        <div style="height: 320px; max-width: 520px; margin: 0 auto;">
+            <canvas id="bidangKerjaChart"></canvas>
+        </div>
+    </div>
+
     <!-- Peta Area Kerja -->
     <div class="glass-panel stat-card" style="padding: 2rem;" x-data="dashboardMapData()">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
@@ -163,6 +172,56 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('bidangKerjaChart', () => ({
+            chartData: @json($data['bidang_kerja']),
+            init() {
+                this.$nextTick(() => this.renderChart());
+            },
+            renderChart() {
+                const canvas = document.getElementById('bidangKerjaChart');
+                if (!canvas || typeof Chart === 'undefined') return;
+
+                const breakdown = this.chartData.breakdown || {};
+                const labels = this.chartData.labels || [];
+                const values = this.chartData.values || [];
+
+                new Chart(canvas.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels,
+                        datasets: [{
+                            data: values,
+                            backgroundColor: ['#22c55e', '#f59e0b', '#8b5cf6', '#3b82f6', '#94a3b8'],
+                        }],
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom' },
+                            tooltip: {
+                                callbacks: {
+                                    label: (ctx) => {
+                                        const label = ctx.label || '';
+                                        const val = ctx.parsed || 0;
+                                        if (label === 'Lainnya' && Object.keys(breakdown).length > 0) {
+                                            const detail = Object.entries(breakdown)
+                                                .map(([name, count]) => `${name} (${count})`)
+                                                .join(', ');
+                                            return [`Lainnya: ${val}`, `Detail: ${detail}`];
+                                        }
+                                        return `${label}: ${val}`;
+                                    },
+                                },
+                            },
+                        },
+                    },
+                });
+            },
+        }));
+    });
+
     function fixLeafletIcons() {
         if (typeof L === 'undefined') return;
         delete L.Icon.Default.prototype._getIconUrl;

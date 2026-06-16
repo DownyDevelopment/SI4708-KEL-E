@@ -11,6 +11,14 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body class="app-container" x-data="layoutData()" x-init="initData()">
+    @php
+        $unreadNotifs = auth()->check()
+            ? \App\Models\Notification::where('user_id', auth()->id())->where('is_read', false)->count()
+            : 0;
+        $unreadMsgs = auth()->check()
+            ? \App\Models\Message::where('receiver_id', auth()->id())->where('is_read', false)->count()
+            : 0;
+    @endphp
     <!-- Sidebar -->
     <aside class="sidebar" :style="sidebarOpen ? 'width: 260px; min-width: 260px; padding: 1.25rem;' : 'width: 68px; min-width: 68px; padding: 1rem 0.5rem;'" style="transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; flex-shrink: 0;">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem;">
@@ -37,6 +45,17 @@
                 <x-sidebar-item icon="trending-up" label="Tren Produktivitas" to="/admin/produktivitas" :active="request()->is('admin/produktivitas')" />
                 <x-sidebar-item icon="file-text" label="Tugas" to="/admin/tugas" :active="request()->is('admin/tugas')" />
                 <x-sidebar-item icon="package" label="Inventaris" to="/admin/inventaris" :active="request()->is('admin/inventaris')" />
+                <x-sidebar-item icon="gift" label="Insentif & Reward" to="/admin/insentif" :active="request()->is('admin/insentif')" />
+                <x-sidebar-item icon="bell" label="Notifikasi" to="/admin/notifikasi" :active="request()->is('admin/notifikasi')" />
+                <x-sidebar-item icon="mail" label="Pesan" to="/admin/pesan" :active="request()->is('admin/pesan')" />
+                <x-sidebar-item icon="settings" label="Pengaturan Sistem" to="/admin/settings" :active="request()->is('admin/settings')" />
+                <form method="POST" action="{{ route('logout') }}" style="width: 100%; margin-top: 0.25rem;">
+                    @csrf
+                    <button type="submit" class="nav-item" style="width: 100%; background: transparent; border: none; cursor: pointer; color: var(--text-muted);" :style="sidebarOpen ? 'justify-content: flex-start; padding: 0.75rem 1rem; gap: 0.75rem;' : 'justify-content: center; padding: 0.75rem 0; gap: 0;'">
+                        <i data-lucide="log-out" style="width: 20px; height: 20px; flex-shrink: 0;"></i>
+                        <span x-show="sidebarOpen">Keluar</span>
+                    </button>
+                </form>
             @else
                 <x-sidebar-item icon="layout-dashboard" label="Dashboard Pengawas" to="/pengawas/dashboard" :active="request()->is('pengawas/dashboard')" />
                 <x-sidebar-item icon="pie-chart" label="Profiling Pekerja" to="/pengawas/profiling" :active="request()->is('pengawas/profiling') || request()->is('pengawas/pekerja/*/profil')" />
@@ -44,18 +63,16 @@
                 <x-sidebar-item icon="send" label="Distribusi Hasil" to="/pengawas/distribusi" :active="request()->is('pengawas/distribusi')" />
                 <x-sidebar-item icon="dollar-sign" label="Insentif & Upah" to="/pengawas/ekonomi" :active="request()->is('pengawas/ekonomi')" />
                 <x-sidebar-item icon="alert-triangle" label="Pelaporan Masalah" to="/pengawas/pelaporan" :active="request()->is('pengawas/pelaporan')" />
+                <x-sidebar-item icon="users" label="Kelompok Kerja" to="/pengawas/groups" :active="request()->is('pengawas/groups')" />
+                <form method="POST" action="{{ route('logout') }}" style="width: 100%; margin-top: 0.25rem;">
+                    @csrf
+                    <button type="submit" class="nav-item" style="width: 100%; background: transparent; border: none; cursor: pointer; color: var(--text-muted);" :style="sidebarOpen ? 'justify-content: flex-start; padding: 0.75rem 1rem; gap: 0.75rem;' : 'justify-content: center; padding: 0.75rem 0; gap: 0;'">
+                        <i data-lucide="log-out" style="width: 20px; height: 20px; flex-shrink: 0;"></i>
+                        <span x-show="sidebarOpen">Keluar</span>
+                    </button>
+                </form>
             @endif
         </nav>
-
-        <div class="sidebar-footer">
-            <form method="POST" action="{{ route('logout') }}" style="width: 100%;">
-                @csrf
-                <button type="submit" class="nav-item" style="width: 100%; background: transparent; border: none; cursor: pointer; color: var(--text-muted);" :style="sidebarOpen ? 'justify-content: flex-start; padding: 0.75rem 1rem; gap: 0.75rem;' : 'justify-content: center; padding: 0.75rem 0; gap: 0;'">
-                    <i data-lucide="log-out" style="width: 20px; height: 20px; flex-shrink: 0;"></i>
-                    <span x-show="sidebarOpen">Keluar</span>
-                </button>
-            </form>
-        </div>
     </aside>
 
     <!-- Main Content -->
@@ -80,65 +97,16 @@
             </div>
 
             <div class="topbar-actions">
-                <!-- Notifications -->
-                <div style="position: relative;" @click.outside="showNotif = false">
-                    <button class="icon-btn" @click="showNotif = !showNotif; if(showNotif) fetchNotifications()">
-                        <i data-lucide="bell" style="width: 20px; height: 20px;"></i>
-                        <div x-show="unreadNotifs > 0" x-cloak class="badge-dot" style="position: absolute; top: 5px; right: 5px; width: 8px; height: 8px; background: red; border-radius: 50%;"></div>
-                    </button>
-                    <div x-show="showNotif" x-cloak class="topbar-dropdown" style="width: 300px;">
-                        <div style="padding: 1rem; border-bottom: 1px solid #f1f5f9; font-weight: 600;">Notifikasi</div>
-                        <div style="max-height: 300px; overflow-y: auto;">
-                            <template x-if="notifications.length === 0">
-                                <div style="padding: 1rem; text-align: center; color: var(--text-muted); font-size: 0.85rem;">Tidak ada notifikasi</div>
-                            </template>
-                            <template x-for="n in notifications">
-                                <div style="padding: 0.75rem 1rem; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: start;" :style="n.is_read ? 'background: white;' : 'background: #f0fdf4;'">
-                                    <div>
-                                        <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-main);" x-text="n.judul"></div>
-                                        <div style="font-size: 0.75rem; color: var(--text-muted);" x-text="n.pesan"></div>
-                                    </div>
-                                    <button x-show="!n.is_read" @click="markNotifRead(n.id)" style="background: none; border: none; color: var(--primary); cursor: pointer;"><i data-lucide="check" style="width: 16px; height: 16px;"></i></button>
-                                </div>
-                            </template>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Messages -->
-                <div style="position: relative;" @click.outside="showMsg = false">
-                    <button class="icon-btn" @click="showMsg = !showMsg; if(showMsg) { fetchMessages(); fetchUsers(); }">
-                        <i data-lucide="mail" style="width: 20px; height: 20px;"></i>
-                    </button>
-                    <div x-show="showMsg" x-cloak class="topbar-dropdown" style="width: 320px; display: flex; flex-direction: column;">
-                        <div style="padding: 1rem; border-bottom: 1px solid #f1f5f9; font-weight: 600;">Pesan Internal</div>
-                        <div style="max-height: 250px; overflow-y: auto; padding: 0.5rem;">
-                            <template x-if="messages.length === 0">
-                                <div style="padding: 1rem; text-align: center; color: var(--text-muted); font-size: 0.85rem;">Belum ada pesan</div>
-                            </template>
-                            <template x-for="m in messages">
-                                <div style="margin-bottom: 0.5rem;" :style="m.sender_id === {{ auth()->id() }} ? 'text-align: right;' : 'text-align: left;'">
-                                    <div style="display: inline-block; max-width: 85%; padding: 0.5rem 0.75rem; border-radius: 12px; font-size: 0.85rem;" :style="m.sender_id === {{ auth()->id() }} ? 'background: var(--primary); color: white;' : 'background: #f1f5f9; color: var(--text-main);'">
-                                        <div style="font-size: 0.7rem; opacity: 0.8; margin-bottom: 2px;" x-text="m.sender_id === {{ auth()->id() }} ? 'Anda' : m.sender_name"></div>
-                                        <span x-text="m.pesan"></span>
-                                    </div>
-                                </div>
-                            </template>
-                        </div>
-                        <form @submit.prevent="sendMessage" style="padding: 0.75rem; border-top: 1px solid #f1f5f9; display: flex; flex-direction: column; gap: 0.5rem; background: #f8fafc;">
-                            <select x-model="composeMsg.receiver_id" style="padding: 0.4rem; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.8rem;" required>
-                                <option value="">Pilih Penerima...</option>
-                                <template x-for="u in usersList">
-                                    <option :value="u.id" x-text="u.nama + ' (' + u.role + ')'"></option>
-                                </template>
-                            </select>
-                            <div style="display: flex; gap: 0.5rem;">
-                                <input type="text" placeholder="Tulis pesan..." x-model="composeMsg.pesan" required style="flex: 1; padding: 0.4rem 0.6rem; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.8rem;" />
-                                <button type="submit" style="background: var(--primary); color: white; border: none; border-radius: 6px; width: 32px; display: flex; align-items: center; justify-content: center; cursor: pointer;"><i data-lucide="send" style="width: 16px; height: 16px;"></i></button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
+                @if(auth()->user()->role === 'admin')
+                <a href="/admin/notifikasi" class="icon-btn" style="position: relative; text-decoration: none;" title="Notifikasi">
+                    <i data-lucide="bell" style="width: 20px; height: 20px;"></i>
+                    <span x-show="unreadNotifs > 0" x-cloak style="position: absolute; top: 4px; right: 4px; min-width: 8px; height: 8px; background: #ef4444; border-radius: 50%; border: 2px solid white;"></span>
+                </a>
+                <a href="/admin/pesan" class="icon-btn" style="position: relative; text-decoration: none;" title="Pesan">
+                    <i data-lucide="mail" style="width: 20px; height: 20px;"></i>
+                    <span x-show="unreadMsgs > 0" x-cloak style="position: absolute; top: 4px; right: 4px; min-width: 8px; height: 8px; background: #ef4444; border-radius: 50%; border: 2px solid white;"></span>
+                </a>
+                @endif
 
                 <!-- User Profile -->
                 <div class="user-profile">
@@ -183,41 +151,24 @@
                 searchResults: [],
                 showSearch: false,
                 searchTimer: null,
-                notifications: [],
-                showNotif: false,
-                messages: [],
-                usersList: [],
-                showMsg: false,
-                composeMsg: { receiver_id: '', pesan: '' },
-
-                get unreadNotifs() {
-                    return this.notifications.filter(n => !n.is_read).length;
-                },
+                unreadNotifs: {{ $unreadNotifs }},
+                unreadMsgs: {{ $unreadMsgs }},
 
                 initData() {
-                    // Fetch initial data if needed
+                    this.refreshUnreadCounts();
                 },
 
-                async fetchNotifications() {
+                async refreshUnreadCounts() {
                     try {
-                        const res = await fetch('/api/user/notifications');
-                        this.notifications = await res.json();
-                        setTimeout(() => lucide.createIcons(), 50);
-                    } catch (e) { console.error(e); }
-                },
-
-                async fetchMessages() {
-                    try {
-                        const res = await fetch('/api/user/messages');
-                        this.messages = await res.json();
-                    } catch (e) { console.error(e); }
-                },
-
-                async fetchUsers() {
-                    try {
-                        const res = await fetch('/api/user/list');
-                        this.usersList = await res.json();
-                    } catch (e) { console.error(e); }
+                        const [notifRes, msgRes] = await Promise.all([
+                            fetch('/api/user/notifications/unread-count'),
+                            fetch('/api/user/messages/unread-count'),
+                        ]);
+                        const notifData = await notifRes.json();
+                        const msgData = await msgRes.json();
+                        this.unreadNotifs = notifData.count ?? 0;
+                        this.unreadMsgs = msgData.count ?? 0;
+                    } catch (e) { /* ignore */ }
                 },
 
                 async handleSearch() {
@@ -236,34 +187,6 @@
                         this.showSearch = false;
                         this.searchResults = [];
                     }
-                },
-
-                async markNotifRead(id) {
-                    await fetch(`/api/user/notifications/${id}/read`, {
-                        method: 'PUT',
-                        headers: {
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                            'Accept': 'application/json'
-                        }
-                    });
-                    this.fetchNotifications();
-                },
-
-                async sendMessage() {
-                    if (!this.composeMsg.receiver_id || !this.composeMsg.pesan) return;
-                    try {
-                        await fetch('/api/user/messages', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                                'Accept': 'application/json'
-                            },
-                            body: JSON.stringify(this.composeMsg)
-                        });
-                        this.composeMsg = { receiver_id: '', pesan: '' };
-                        this.fetchMessages();
-                    } catch (err) { console.error(err); }
                 }
             }
         }

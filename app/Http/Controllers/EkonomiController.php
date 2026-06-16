@@ -8,6 +8,7 @@ use App\Models\Insentif;
 use App\Models\Reward;
 use App\Models\Logbook;
 use App\Models\ScheduleAssignment;
+use App\Models\SystemSetting;
 
 class EkonomiController extends Controller
 {
@@ -24,7 +25,11 @@ class EkonomiController extends Controller
                 ->get();
         }
 
-        return view('admin.ekonomi', compact('workers', 'pendingLogbooks'));
+        return view('admin.ekonomi', [
+            'workers' => $workers,
+            'pendingLogbooks' => $pendingLogbooks,
+            'defaultUpah' => (int) SystemSetting::get('upah_default_logbook', 50000),
+        ]);
     }
 
     public function detail(Request $request, $workerId)
@@ -111,6 +116,9 @@ class EkonomiController extends Controller
         Insentif::create($request->only([
             'worker_id', 'tanggal', 'jumlah_upah', 'jenis_insentif', 'keterangan',
         ]));
+
+        Worker::where('id', $request->worker_id)->increment('total_pendapatan', (float) $request->jumlah_upah);
+
         return redirect()->back()->with('success', 'Insentif / upah berhasil dicatat.');
     }
 
@@ -135,7 +143,7 @@ class EkonomiController extends Controller
             'jumlah_upah' => 'nullable|numeric|min:0',
         ]);
 
-        $logbook = Logbook::with(['worker', 'schedule.program'])->findOrFail($id);
+        $logbook = Logbook::with(['worker', 'workerGroup.workers', 'schedule.program'])->findOrFail($id);
 
         if ($logbook->status_validasi !== 'menunggu') {
             return redirect()->back()->with('error', 'Logbook ini sudah divalidasi sebelumnya.');
@@ -157,30 +165,46 @@ class EkonomiController extends Controller
             return redirect()->back()->with('success', 'Logbook sudah memiliki pencairan upah.');
         }
 
-        $workerId = $logbook->worker_id;
-        if (!$workerId && $logbook->schedule_id) {
+        $workerIds = collect();
+
+        if ($logbook->worker_id) {
+            $workerIds->push($logbook->worker_id);
+        } elseif ($logbook->worker_group_id) {
+            $workerIds = $logbook->workerGroup?->workers->pluck('id') ?? collect();
+        } elseif ($logbook->schedule_id) {
             $assignment = ScheduleAssignment::where('schedule_id', $logbook->schedule_id)->first();
-            $workerId = $assignment?->worker_id;
+            if ($assignment?->worker_id) {
+                $workerIds->push($assignment->worker_id);
+            }
         }
 
-        if (!$workerId) {
+        if ($workerIds->isEmpty()) {
             return redirect()->back()->with('error', 'Tidak ada pekerja terkait untuk pencairan upah.');
         }
 
         $programName = $logbook->schedule?->program?->nama_program ?? 'Program';
-        $jumlahUpah = $request->jumlah_upah ?? 50000;
+        $jumlahUpah = (float) ($request->jumlah_upah ?? (int) SystemSetting::get('upah_default_logbook', 50000));
+        $jumlahPerPekerja = round($jumlahUpah / $workerIds->count(), 2);
 
-        Insentif::create([
-            'worker_id' => $workerId,
-            'logbook_id' => $logbook->id,
-            'tanggal' => now()->toDateString(),
-            'jumlah_upah' => $jumlahUpah,
-            'jenis_insentif' => 'Upah Harian',
-            'keterangan' => "Pencairan otomatis setelah validasi logbook #{$logbook->id} — {$programName}",
-        ]);
+        foreach ($workerIds as $workerId) {
+            Insentif::create([
+                'worker_id' => $workerId,
+                'logbook_id' => $logbook->id,
+                'tanggal' => now()->toDateString(),
+                'jumlah_upah' => $jumlahPerPekerja,
+                'jenis_insentif' => 'Upah Harian',
+                'keterangan' => "Pencairan otomatis setelah validasi logbook #{$logbook->id} — {$programName}",
+            ]);
+
+            Worker::where('id', $workerId)->increment('total_pendapatan', $jumlahPerPekerja);
+        }
 
         $logbook->update(['status_validasi' => 'disetujui']);
 
-        return redirect()->back()->with('success', 'Validasi disetujui. Upah pekerja berhasil dicatat.');
+        $pesanPencairan = $workerIds->count() > 1
+            ? "Validasi disetujui. Upah dibagi ke {$workerIds->count()} anggota kelompok."
+            : 'Validasi disetujui. Upah pekerja berhasil dicatat.';
+
+        return redirect()->back()->with('success', $pesanPencairan);
     }
 }

@@ -69,19 +69,6 @@
 
     <!-- Charts -->
     <div style="display: grid; grid-template-columns: 1fr; gap: 2rem;">
-        <!-- Line Chart -->
-        <div class="card" style="background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid var(--border-color);">
-            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
-                <i data-lucide="calendar" style="width: 20px; height: 20px; color: var(--primary);"></i>
-                <h3 style="font-size: 1.125rem; font-weight: bold; color: var(--text-main); margin: 0;">
-                    Grafik Tren Pekerjaan Selesai (Garis)
-                </h3>
-            </div>
-            <div style="height: 300px; width: 100%;">
-                <canvas id="lineChart"></canvas>
-            </div>
-        </div>
-
         <!-- Bar Chart -->
         <div class="card" style="background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid var(--border-color);">
             <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
@@ -136,53 +123,6 @@
                 const dataBerjalan = this.data.map(d => d.PekerjaanBerjalan);
                 const dataSelesai = this.data.map(d => d.PekerjaanSelesai);
 
-                // Line Chart
-                const ctxLine = document.getElementById('lineChart').getContext('2d');
-                new Chart(ctxLine, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [
-                            {
-                                label: 'Jumlah Pekerjaan Rencana',
-                                data: dataRencana,
-                                borderColor: '#94a3b8',
-                                borderDash: [5, 5],
-                                fill: false,
-                                tension: 0.4
-                            },
-                            {
-                                label: 'Jumlah Pekerjaan Berjalan',
-                                data: dataBerjalan,
-                                borderColor: '#fbbf24',
-                                fill: false,
-                                tension: 0.4
-                            },
-                            {
-                                label: 'Jumlah Pekerjaan Selesai',
-                                data: dataSelesai,
-                                borderColor: '#0ea5e9', // var(--primary) usually
-                                borderWidth: 3,
-                                fill: false,
-                                tension: 0.4
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        interaction: {
-                            mode: 'index',
-                            intersect: false,
-                        },
-                        scales: {
-                            y: { beginAtZero: true },
-                            x: { grid: { display: false } }
-                        }
-                    }
-                });
-
-                // Bar Chart
                 const ctxBar = document.getElementById('barChart').getContext('2d');
                 new Chart(ctxBar, {
                     type: 'bar',

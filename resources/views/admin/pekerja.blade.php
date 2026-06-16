@@ -98,6 +98,15 @@
             </div>
 
             <div class="form-group" style="grid-column: 1 / -1; background: var(--background); padding: 1rem; border-radius: 8px; margin-top: 0.5rem;">
+                <strong style="display: block; margin-bottom: 0.75rem; color: var(--primary);">Pendapatan Program (Tunai)</strong>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Total Pendapatan (Rp)</label>
+                <input type="number" name="total_pendapatan" class="form-input" min="0" step="1000" placeholder="Total uang tunai dari insentif/reward" x-model="workerData.total_pendapatan" />
+                <small style="color: var(--text-muted);">Akumulasi pendapatan tunai pekerja dari program insentif & reward.</small>
+            </div>
+
+            <div class="form-group" style="grid-column: 1 / -1; background: var(--background); padding: 1rem; border-radius: 8px; margin-top: 0.5rem;">
                 <strong style="display: block; margin-bottom: 0.75rem; color: var(--primary);">B. Indikator Profiling (Skoring Otomatis)</strong>
             </div>
 
@@ -151,8 +160,19 @@
                 </select>
             </div>
             <div class="form-group">
-                <label class="form-label">Keahlian Kerja / Kemampuan Utama <span style="color:#ef4444">*</span></label>
-                <input type="text" name="kemampuan_utama" class="form-input" placeholder="contoh: Berkebun, Mengolah Sampah" required x-model="workerData.kemampuan_utama" />
+                <label class="form-label">Bidang Kerja / Kemampuan Utama <span style="color:#ef4444">*</span></label>
+                <select name="bidang_kerja_select" class="form-input" x-model="bidangKerjaSelect" @change="onBidangChange()" required>
+                    <option value="">— Pilih bidang —</option>
+                    <option value="Pertanian">Pertanian</option>
+                    <option value="Pengelolaan Sampah">Pengelolaan Sampah</option>
+                    <option value="Kerajinan Tangan">Kerajinan Tangan</option>
+                    <option value="Pertukangan">Pertukangan</option>
+                    <option value="Lainnya">Lainnya</option>
+                </select>
+                <input type="hidden" name="kemampuan_utama" :value="resolvedKemampuanUtama">
+                <div x-show="bidangKerjaSelect === 'Lainnya'" x-cloak style="margin-top: 0.75rem;">
+                    <input type="text" class="form-input" placeholder="Tulis bidang kerja kustom, contoh: Menjahit, Supir..." x-model="bidangKerjaLainnya" @input="syncKemampuanUtama()" />
+                </div>
             </div>
             <div class="form-group" x-show="!editMode">
                 <label class="form-label">Bukti Foto Kondisi Lapangan</label>
@@ -324,11 +344,46 @@
             updateWorkerName: '',
             updateData: { frekuensi_makan: '', kondisi_sanitasi: '', pendidikan_terakhir: '', status_gizi: '' },
             workerData: {},
+            bidangKerjaSelect: '',
+            bidangKerjaLainnya: '',
+
+            get resolvedKemampuanUtama() {
+                if (this.bidangKerjaSelect === 'Lainnya') {
+                    return this.bidangKerjaLainnya.trim();
+                }
+                return this.bidangKerjaSelect;
+            },
+
+            onBidangChange() {
+                if (this.bidangKerjaSelect !== 'Lainnya') {
+                    this.bidangKerjaLainnya = '';
+                }
+                this.syncKemampuanUtama();
+            },
+
+            syncKemampuanUtama() {
+                this.workerData.kemampuan_utama = this.resolvedKemampuanUtama;
+            },
+
+            setBidangFromValue(value) {
+                const standar = ['Pertanian', 'Pengelolaan Sampah', 'Kerajinan Tangan', 'Pertukangan'];
+                if (standar.includes(value)) {
+                    this.bidangKerjaSelect = value;
+                    this.bidangKerjaLainnya = '';
+                } else if (value) {
+                    this.bidangKerjaSelect = 'Lainnya';
+                    this.bidangKerjaLainnya = value;
+                } else {
+                    this.bidangKerjaSelect = '';
+                    this.bidangKerjaLainnya = '';
+                }
+                this.syncKemampuanUtama();
+            },
 
             defaultWorkerData() {
                 return {
                     nama: '', household_id: '', tanggal_lahir: '', jenis_kelamin: 'L',
-                    no_telepon: '', kontak_darurat: '', kemampuan_utama: '',
+                    no_telepon: '', kontak_darurat: '', total_pendapatan: 0, kemampuan_utama: '',
                     pendidikan_terakhir: '', frekuensi_makan: '', status_gizi: '',
                     kondisi_sanitasi: '', akses_air_bersih: '', kebiasaan: '',
                     status_keluarga: 'Kepala Keluarga', status_rumah: 'Milik Sendiri',
@@ -370,6 +425,7 @@
             openAddForm() {
                 this.editMode = false;
                 this.workerData = this.defaultWorkerData();
+                this.setBidangFromValue('');
                 this.showForm = true;
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             },
@@ -392,6 +448,7 @@
                     if (res.ok) {
                         this.workerData = { ...this.defaultWorkerData(), ...(await res.json()) };
                         if (this.workerData.household_id === null) this.workerData.household_id = '';
+                        this.setBidangFromValue(this.workerData.kemampuan_utama || '');
                         this.editMode = true;
                         this.showForm = true;
                         window.scrollTo({ top: 0, behavior: 'smooth' });

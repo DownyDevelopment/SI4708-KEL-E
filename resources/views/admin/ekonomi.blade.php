@@ -71,7 +71,7 @@
                             <form method="POST" action="/admin/logbook/{{ $log->id }}/validasi" style="display: flex; gap: 0.5rem; align-items: center;">
                                 @csrf
                                 <input type="hidden" name="action" value="disetujui">
-                                <input type="number" name="jumlah_upah" class="form-input" style="width: 120px;" placeholder="50000" value="50000" min="0" step="1000">
+                                <input type="number" name="jumlah_upah" class="form-input" style="width: 120px;" placeholder="{{ $defaultUpah ?? 50000 }}" value="{{ $defaultUpah ?? 50000 }}" min="0" step="1000">
                                 <button type="submit" class="btn btn-primary btn-sm">Setujui & Cairkan</button>
                             </form>
                             <form method="POST" action="/admin/logbook/{{ $log->id }}/validasi">

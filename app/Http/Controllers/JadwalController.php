@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\MicroProgram;
 use App\Models\ScheduleAssignment;
 use App\Models\Worker;
+use App\Models\WorkerGroup;
 use App\Models\WorkSchedule;
 use App\Support\OperationalNotifier;
+use App\Models\SystemSetting;
 use Illuminate\Http\Request;
 use App\Support\ProfilingScorer;
 use Illuminate\Support\Facades\DB;
@@ -30,21 +32,43 @@ class JadwalController extends Controller
     {
         $validated = $request->validate([
             'program_id' => 'required|exists:micro_programs,id',
+            'worker_group_id' => 'required|exists:worker_groups,id',
             'tanggal' => 'required|date',
-            'status' => 'required|in:scheduled,in_progress,completed',
+            'status' => 'required|in:scheduled,in_progress,completed,delayed',
             'deskripsi' => 'nullable|string',
             'jam_mulai' => 'nullable|string|max:50',
             'jam_selesai' => 'nullable|string|max:50',
             'shift_label' => 'nullable|string|max:100',
-            'worker_ids' => 'required|array|min:1',
-            'worker_ids.*' => 'exists:workers,id',
         ]);
 
         $program = MicroProgram::findOrFail($validated['program_id']);
 
+        $kuota = (int) SystemSetting::get('kuota_jadwal_harian', 10);
+        $existingCount = WorkSchedule::where('program_id', $validated['program_id'])
+            ->whereDate('tanggal', $validated['tanggal'])
+            ->count();
+
+        if ($existingCount >= $kuota) {
+            return redirect()->back()
+                ->with('error', "Kuota jadwal harian untuk program ini sudah penuh (maks. {$kuota} per hari).")
+                ->withInput();
+        }
+
+        $groupQuota = (int) SystemSetting::get('kuota_kelompok_kerja', 5);
+        $groupCountToday = WorkSchedule::where('worker_group_id', $validated['worker_group_id'])
+            ->whereDate('tanggal', $validated['tanggal'])
+            ->count();
+
+        if ($groupCountToday >= $groupQuota) {
+            return redirect()->back()
+                ->with('error', "Kelompok ini sudah mencapai kuota kerja harian (maks. {$groupQuota} per hari).")
+                ->withInput();
+        }
+
         DB::transaction(function () use ($validated, $program) {
-            $schedule = WorkSchedule::create([
+            WorkSchedule::create([
                 'program_id' => $validated['program_id'],
+                'worker_group_id' => $validated['worker_group_id'],
                 'tanggal' => $validated['tanggal'],
                 'status' => $validated['status'],
                 'deskripsi' => $validated['deskripsi'] ?? null,
@@ -52,13 +76,6 @@ class JadwalController extends Controller
                 'jam_selesai' => $validated['jam_selesai'] ?? null,
                 'shift_label' => $validated['shift_label'] ?? null,
             ]);
-
-            foreach ($validated['worker_ids'] as $workerId) {
-                ScheduleAssignment::create([
-                    'schedule_id' => $schedule->id,
-                    'worker_id' => $workerId,
-                ]);
-            }
 
             OperationalNotifier::notify(
                 'Jadwal Baru',
@@ -76,19 +93,19 @@ class JadwalController extends Controller
 
         $validated = $request->validate([
             'program_id' => 'required|exists:micro_programs,id',
+            'worker_group_id' => 'required|exists:worker_groups,id',
             'tanggal' => 'required|date',
-            'status' => 'required|in:scheduled,in_progress,completed',
+            'status' => 'required|in:scheduled,in_progress,completed,delayed',
             'deskripsi' => 'nullable|string',
             'jam_mulai' => 'nullable|string|max:50',
             'jam_selesai' => 'nullable|string|max:50',
             'shift_label' => 'nullable|string|max:100',
-            'worker_ids' => 'required|array|min:1',
-            'worker_ids.*' => 'exists:workers,id',
         ]);
 
         DB::transaction(function () use ($schedule, $validated) {
             $schedule->update([
                 'program_id' => $validated['program_id'],
+                'worker_group_id' => $validated['worker_group_id'],
                 'tanggal' => $validated['tanggal'],
                 'status' => $validated['status'],
                 'deskripsi' => $validated['deskripsi'] ?? null,
@@ -96,15 +113,6 @@ class JadwalController extends Controller
                 'jam_selesai' => $validated['jam_selesai'] ?? null,
                 'shift_label' => $validated['shift_label'] ?? null,
             ]);
-
-            $schedule->assignments()->delete();
-
-            foreach ($validated['worker_ids'] as $workerId) {
-                ScheduleAssignment::create([
-                    'schedule_id' => $schedule->id,
-                    'worker_id' => $workerId,
-                ]);
-            }
 
             $programName = MicroProgram::find($validated['program_id'])?->nama_program
                 ?? $schedule->program?->nama_program
@@ -165,7 +173,7 @@ class JadwalController extends Controller
 
     private function operasionalData(): array
     {
-        $jadwal = WorkSchedule::with(['program', 'assignments.worker', 'logbooks'])
+        $jadwal = WorkSchedule::with(['program', 'workerGroup.workers', 'logbooks'])
             ->orderByDesc('tanggal')
             ->orderByDesc('created_at')
             ->get()
@@ -174,19 +182,19 @@ class JadwalController extends Controller
                 $item->tugas = $item->program?->nama_program;
                 $item->jenis_program = $item->program?->jenis_program;
                 $item->progres_terakhir = $latestLogbook?->progres_persentase ?? 0;
-                $item->pekerja_nama = $item->assignments
-                    ->map(fn ($a) => $a->worker?->nama)
-                    ->filter()
+                $item->kelompok_nama = $item->workerGroup?->nama_kelompok;
+                $item->pekerja_nama = $item->workerGroup?->workers
+                    ->pluck('nama')
                     ->values()
-                    ->all();
+                    ->all() ?? [];
 
                 $item->desa_lokasi = $item->program?->desa_lokasi ?? $item->program?->lokasi;
-                $item->pekerja_desa = $item->assignments
-                    ->map(fn ($a) => $a->worker?->desa_asal)
+                $item->pekerja_desa = $item->workerGroup?->workers
+                    ->map(fn ($w) => $w->desa_asal)
                     ->filter()
                     ->unique()
                     ->values()
-                    ->all();
+                    ->all() ?? [];
                 $item->lintas_desa = collect($item->pekerja_desa)->contains(fn ($d) => $d && $item->desa_lokasi && $d !== $item->desa_lokasi);
 
                 return $item;
@@ -195,17 +203,17 @@ class JadwalController extends Controller
         return [
             'jadwal' => $jadwal,
             'programs' => MicroProgram::orderBy('nama_program')->get(),
+            'workerGroups' => WorkerGroup::withCount('workers')->orderBy('nama_kelompok')->get(),
             'workers' => Worker::with('household')
                 ->where('status_program', 'aktif')
                 ->where('prioritas', '!=', 'tidak_layak')
                 ->orderByDesc('skor_vulnerabilitas')
                 ->get(),
             'workerMatches' => $this->buildWorkerMatches(MicroProgram::all(), Worker::with('household')->where('status_program', 'aktif')->get()),
-            'logbooks' => \App\Models\Logbook::with(['schedule.program', 'worker', 'pengawas'])
+            'logbooks' => \App\Models\Logbook::with(['schedule.program', 'workerGroup.workers', 'pengawas'])
                 ->orderByDesc('created_at')
                 ->limit(50)
                 ->get(),
         ];
     }
-
 }

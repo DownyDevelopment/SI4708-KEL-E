@@ -10,6 +10,7 @@ class WorkSchedule extends Model
 {
     protected $fillable = [
         'program_id',
+        'worker_group_id',
         'tanggal',
         'jam_mulai',
         'jam_selesai',
@@ -21,6 +22,11 @@ class WorkSchedule extends Model
     public function program(): BelongsTo
     {
         return $this->belongsTo(MicroProgram::class, 'program_id');
+    }
+
+    public function workerGroup(): BelongsTo
+    {
+        return $this->belongsTo(WorkerGroup::class, 'worker_group_id');
     }
 
     public function assignments(): HasMany

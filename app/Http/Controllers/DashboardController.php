@@ -8,6 +8,7 @@ use App\Models\Inventaris;
 use App\Models\MicroProgram;
 use App\Models\Worker;
 use App\Models\WorkSchedule;
+use App\Support\BidangKerjaHelper;
 use Carbon\Carbon;
 
 class DashboardController extends Controller
@@ -45,6 +46,7 @@ class DashboardController extends Controller
             ],
             'dampak' => Inventaris::all(),
             'area' => MicroProgram::all(),
+            'bidang_kerja' => BidangKerjaHelper::chartData(),
         ];
 
         return view('admin.dashboard', compact('data'));

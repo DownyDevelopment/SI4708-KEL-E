@@ -35,8 +35,8 @@
                 <button :class="isAddingMode ? 'btn' : 'btn btn-primary'" @click="isAddingMode = !isAddingMode" style="padding: 0.5rem 1rem; font-size: 0.8rem;" :style="isAddingMode ? 'background: #dc2626; color: white;' : ''" x-text="isAddingMode ? 'Batal Tambah' : '+ Tambah Titik'"></button>
             </div>
         </div>
-        <div style="height: 320px; width: 100%; border-radius: 12px; overflow: hidden;" :style="isAddingMode ? 'border: 3px dashed var(--primary); cursor: crosshair;' : 'border: 1px solid var(--border);'">
-            <div id="perencanaan-map" style="height: 100%; width: 100%; z-index: 0;"></div>
+        <div style="height: 320px; width: 100%; border-radius: 12px; overflow: hidden; background: #e2e8f0; position: relative;" :style="isAddingMode ? 'border: 3px dashed var(--primary); cursor: crosshair;' : 'border: 1px solid var(--border);'">
+            <div id="perencanaan-map" style="height: 100%; width: 100%; min-height: 320px; z-index: 0;"></div>
         </div>
         <div x-show="isAddingMode" x-cloak style="font-size: 0.8rem; color: var(--primary); margin-top: 0.5rem; text-align: center;">
             Klik pada peta untuk menambahkan titik lokasi program baru.
@@ -323,6 +323,10 @@
                 setTimeout(() => {
                     if (this.map) this.map.invalidateSize();
                 }, 450);
+
+                window.addEventListener('resize', () => {
+                    if (this.map) this.map.invalidateSize();
+                });
 
                 this.map.on('click', async (e) => {
                     if (!this.isAddingMode) return;
