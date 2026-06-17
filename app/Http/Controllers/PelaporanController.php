@@ -10,7 +10,7 @@ class PelaporanController extends Controller
 {
     public function index()
     {
-        return redirect()->route('pengawas.ekonomi', ['tab' => 'laporan']);
+        return redirect()->route('pengawas.ekonomi', ['hub' => 'laporan']);
     }
 
     public function store(Request $request)

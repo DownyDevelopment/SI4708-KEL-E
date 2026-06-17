@@ -11,7 +11,7 @@ class PadesController extends Controller
 {
     public function index()
     {
-        return redirect()->route('admin.ekonomi', ['tab' => 'pades']);
+        return redirect()->route('admin.ekonomi', ['hub' => 'pades']);
     }
 
     public function store(Request $request)
