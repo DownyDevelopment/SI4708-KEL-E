@@ -682,7 +682,28 @@
         </div>
     </div>
 
-    {{-- Info banner --}}
+    {{-- Action bar: Tambah Pekerja --}}
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; gap: 1rem; flex-wrap: wrap;">
+        <div style="font-size: 0.9rem; color: var(--text-muted);">
+            Menampilkan <strong style="color: var(--text-main);">{{ $totalWorkers }}</strong> pekerja terdaftar
+        </div>
+        <div style="display: flex; gap: 0.65rem; flex-wrap: wrap;">
+            <button type="button" id="btn-tambah-pekerja" @click="openAddForm()"
+                style="display: inline-flex; align-items: center; gap: 0.5rem;
+                       background: var(--primary); color: white; border: none;
+                       border-radius: 99px; padding: 0.65rem 1.35rem;
+                       font-size: 0.875rem; font-weight: 600; cursor: pointer;
+                       box-shadow: 0 4px 14px rgba(15,118,110,0.25);
+                       transition: transform 0.15s, box-shadow 0.15s;"
+                onmouseenter="this.style.transform='translateY(-1px)';this.style.boxShadow='0 6px 20px rgba(15,118,110,0.35)'"
+                onmouseleave="this.style.transform='';this.style.boxShadow='0 4px 14px rgba(15,118,110,0.25)'">
+                <i data-lucide="user-plus" style="width:16px;height:16px;"></i>
+                Tambah Pekerja Baru
+            </button>
+        </div>
+    </div>
+
+
     <div class="pekerja-info-banner">
         <div class="pekerja-info-banner-icon">
             <i data-lucide="info" style="width: 18px; height: 18px;"></i>
