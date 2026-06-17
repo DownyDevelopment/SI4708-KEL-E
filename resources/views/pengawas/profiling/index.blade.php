@@ -992,6 +992,13 @@
                     <button class="prof-chip" :class="{ active: filter === 'tidak_layak' }" @click="setFilter('tidak_layak')">Tidak Layak</button>
                     <button class="prof-chip" :class="{ active: filter === 'aktif' }" @click="setFilter('aktif')">Aktif</button>
                     <button class="prof-chip" :class="{ active: filter === 'lulus' }" @click="setFilter('lulus')">Lulus</button>
+                    @if($isAdmin)
+                        <button type="button" class="prof-chip" style="background: var(--primary); color: white; border-color: var(--primary); font-weight: 600; display: inline-flex; align-items: center; gap: 0.35rem;" 
+                            @click="activeTab = 'pekerja'; updateUrl('pekerja'); setTimeout(() => window.dispatchEvent(new CustomEvent('open-add-worker-form')), 80);">
+                            <i data-lucide="user-plus" style="width: 13px; height: 13px;"></i>
+                            Tambah Pekerja
+                        </button>
+                    @endif
                 </div>
             </div>
         </div>

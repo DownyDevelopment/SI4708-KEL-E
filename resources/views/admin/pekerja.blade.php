@@ -601,8 +601,8 @@
 <div class="animate-fade-in pekerja-page" x-data="{ activeTab: new URLSearchParams(window.location.search).get('tab') || 'pekerja', updateUrl(tab) { window.history.replaceState(null, null, '?tab=' + tab); setTimeout(() => lucide.createIcons(), 50); } }">
     <x-hero-banner title="Kependudukan &amp; Profiling" description="Manajemen data warga prasejahtera, skoring kerentanan keluarga, dan monitoring kelulusan program kemiskinan.">
         <x-slot:actions>
-            <template x-if="activeTab === 'pekerja'">
-                <button class="global-hero-banner-btn-white" @click="window.dispatchEvent(new CustomEvent('open-add-worker-form'))">
+            <template x-if="activeTab === 'pekerja' || activeTab === 'profiling'">
+                <button class="global-hero-banner-btn-white" @click="if (activeTab !== 'pekerja') { activeTab = 'pekerja'; updateUrl('pekerja'); setTimeout(() => window.dispatchEvent(new CustomEvent('open-add-worker-form')), 80); } else { window.dispatchEvent(new CustomEvent('open-add-worker-form')); }">
                     <i data-lucide="clipboard-list" style="width: 16px; height: 16px;"></i>
                     Survei Profiling Baru
                 </button>
