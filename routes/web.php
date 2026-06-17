@@ -111,6 +111,15 @@ Route::middleware(['auth', 'role:pengawas'])->prefix('pengawas')->group(function
 });
 
 Route::middleware('auth')->prefix('api')->group(function () {
+    // Worker API — dipakai oleh form Edit Data di halaman pekerja
+    Route::get('/workers', function () {
+        return response()->json(\App\Models\Worker::with('household')->orderBy('nama')->get());
+    });
+    Route::get('/workers/{id}', function ($id) {
+        $w = \App\Models\Worker::with('household')->findOrFail($id);
+        return response()->json($w);
+    });
+
     Route::get('/user/notifications/unread-count', function () {
         return response()->json([
             'count' => \App\Models\Notification::where('user_id', auth()->id())->where('is_read', false)->count(),
