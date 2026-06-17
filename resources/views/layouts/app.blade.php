@@ -21,7 +21,7 @@
             : 0;
     @endphp
     <!-- Sidebar -->
-    <aside class="sidebar" :style="sidebarOpen ? 'width: 260px; min-width: 260px; padding: 1.25rem;' : 'width: 68px; min-width: 68px; padding: 1rem 0.5rem;'" style="transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; flex-shrink: 0;">
+    <aside class="sidebar" :style="sidebarOpen ? 'width: 280px; min-width: 280px; padding: 1.25rem;' : 'width: 68px; min-width: 68px; padding: 1rem 0.5rem;'" style="transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; flex-shrink: 0;">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem;">
             <div style="display: flex; align-items: center; gap: 0.75rem; overflow: hidden;">
                 <div style="background: var(--primary); color: white; width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; flex-shrink: 0;">W</div>

@@ -64,30 +64,95 @@ class MonitoringSeeder extends Seeder
             'Pertukangan', 'Menjahit', 'Pertanian', 'Pengelolaan Sampah', 'Kerajinan Tangan',
             'Supir', 'Pertukangan', 'Pertanian', 'Menjahit', 'Pengelolaan Sampah', 'Supir',
         ];
-        $kesejahteraan = ['Sangat Miskin', 'Miskin', 'Rentan Miskin', 'Sejahtera', 'Pending'];
-        $prioritas = ['tinggi', 'sedang', 'rendah'];
-        $statusProgram = ['aktif', 'aktif', 'aktif', 'lulus', 'tidak_layak'];
+
+        // Profil konsisten: semua nilai saling selaras dengan aturan ProfilingScorer
+        // skor_vulnerabilitas: 0–30 (ProfilingScorer::score() → min(30, max(0, $total)))
+        // total_skor (4 dimensi, maks ~12): menentukan kategori kesejahteraan
+        //   > 10  → Sangat Miskin  → prioritas tinggi
+        //   7-10  → Rentan Miskin  → prioritas sedang
+        //   < 7   → Sejahtera/lulus/tidak_layak → prioritas rendah
+        $profiles = [
+            // [total_skor, skor_vuln, status_kesejahteraan,  prioritas, status_program ]
+            [12, 28, 'Sangat Miskin',  'tinggi',  'aktif'],        // 0  Budi Santoso
+            [11, 25, 'Sangat Miskin',  'tinggi',  'aktif'],        // 1  Siti Aminah
+            [9,  22, 'Rentan Miskin',  'sedang',  'aktif'],        // 2  Joko Susilo
+            [8,  19, 'Rentan Miskin',  'sedang',  'aktif'],        // 3  Andi Pratama
+            [5,  10, 'Sejahtera',      'rendah',  'lulus'],        // 4  Rina Melati
+            [12, 27, 'Sangat Miskin',  'tinggi',  'aktif'],        // 5  Agus Setiawan
+            [10, 24, 'Rentan Miskin',  'sedang',  'aktif'],        // 6  Dewi Lestari
+            [9,  21, 'Rentan Miskin',  'sedang',  'aktif'],        // 7  Hendra Wijaya
+            [7,  16, 'Rentan Miskin',  'sedang',  'aktif'],        // 8  Sari Indah
+            [3,  7,  'Sejahtera',      'rendah',  'tidak_layak'], // 9  Eko Prasetyo
+            [11, 26, 'Sangat Miskin',  'tinggi',  'aktif'],        // 10 Fitriani
+            [12, 29, 'Sangat Miskin',  'tinggi',  'aktif'],        // 11 Dedi Saputra
+            [8,  18, 'Rentan Miskin',  'sedang',  'aktif'],        // 12 Yuniarti
+            [7,  15, 'Rentan Miskin',  'sedang',  'lulus'],        // 13 Rudi Haryanto
+            [4,  9,  'Sejahtera',      'rendah',  'tidak_layak'], // 14 Lina Herlina
+            [11, 24, 'Sangat Miskin',  'tinggi',  'aktif'],        // 15 Bambang Suryono
+            [9,  20, 'Rentan Miskin',  'sedang',  'aktif'],        // 16 Nita Permatasari
+            [12, 30, 'Sangat Miskin',  'tinggi',  'aktif'],        // 17 Iwan Kusuma
+            [7,  14, 'Rentan Miskin',  'sedang',  'aktif'],        // 18 Maya Anggraini
+            [2,  5,  'Sejahtera',      'rendah',  'lulus'],        // 19 Reza Rahardian
+        ];
+
+        // Data SDG/indikator profiling — konsisten dengan skor & kategori kesejahteraan
+        // Aturan: skor tinggi (Sangat Miskin) = kondisi paling buruk, skor rendah (Sejahtera) = kondisi baik
+        $sdgData = [
+            // [frekuensi_makan,       kondisi_sanitasi,               pendidikan_terakhir,  akses_air_bersih,     status_rumah,                        status_gizi, riwayat_penyakit,   status_keluarga]
+            ['1 kali',   'Tidak Ada Jamban',              'SD / Sederajat',     'Sumur / Mata Air',   'Kontrak / Sewa',                    'Kurang',  'Hipertensi',       'Kepala Keluarga'],  // 0  Budi - Sangat Miskin
+            ['2 kali',   'Jamban Bersama',                'SD / Sederajat',     'Sumur / Mata Air',   'Kontrak / Sewa',                    'Kurang',  'tidak ada',        'Kepala Keluarga'],  // 1  Siti - Sangat Miskin
+            ['2 kali',   'Jamban Bersama',                'SMP / Sederajat',    'Sumur / Mata Air',   'Kontrak / Sewa',                    'Normal',  'tidak ada',        'Kepala Keluarga'],  // 2  Joko - Rentan Miskin
+            ['2 kali',   'Jamban Sendiri',                'SMP / Sederajat',    'Sumur / Mata Air',   'Milik Sendiri',                     'Normal',  'tidak ada',        'Kepala Keluarga'],  // 3  Andi - Rentan Miskin
+            ['3 kali atau lebih', 'Jamban Sendiri + Septic Tank', 'SMA / Sederajat', 'PAM / PDAM',  'Milik Sendiri',                     'Normal',  'tidak ada',        'Kepala Keluarga'],  // 4  Rina - Sejahtera
+            ['1 kali',   'Tidak Ada Jamban',              'Tidak Sekolah',      'Tidak Ada',          'Tidak Ada (Gelandangan/Numpang)',   'Buruk',   'TBC',              'Kepala Keluarga'],  // 5  Agus - Sangat Miskin
+            ['2 kali',   'Jamban Bersama',                'SMP / Sederajat',    'Sumur / Mata Air',   'Kontrak / Sewa',                    'Normal',  'tidak ada',        'Kepala Keluarga'],  // 6  Dewi - Rentan Miskin
+            ['2 kali',   'Jamban Sendiri',                'SD / Sederajat',     'Sumur / Mata Air',   'Kontrak / Sewa',                    'Normal',  'Diabetes',         'Kepala Keluarga'],  // 7  Hendra - Rentan Miskin
+            ['2 kali',   'Jamban Sendiri',                'SMA / Sederajat',    'Sumur / Mata Air',   'Milik Sendiri',                     'Normal',  'tidak ada',        'Kepala Keluarga'],  // 8  Sari - Rentan Miskin
+            ['3 kali atau lebih', 'Jamban Sendiri + Septic Tank', 'SMA / Sederajat', 'PAM / PDAM',  'Milik Sendiri',                     'Normal',  'tidak ada',        'Kepala Keluarga'],  // 9  Eko - Sejahtera
+            ['1 kali',   'Tidak Ada Jamban',              'SD / Sederajat',     'Tidak Ada',          'Kontrak / Sewa',                    'Kurang',  'Asma',             'Kepala Keluarga'],  // 10 Fitriani - Sangat Miskin
+            ['1 kali',   'Tidak Ada Jamban',              'Tidak Sekolah',      'Sumur / Mata Air',   'Tidak Ada (Gelandangan/Numpang)',   'Buruk',   'Malnutrisi',       'Kepala Keluarga'],  // 11 Dedi - Sangat Miskin
+            ['2 kali',   'Jamban Bersama',                'SMP / Sederajat',    'Sumur / Mata Air',   'Kontrak / Sewa',                    'Normal',  'tidak ada',        'Kepala Keluarga'],  // 12 Yuniarti - Rentan Miskin
+            ['2 kali',   'Jamban Sendiri',                'SMA / Sederajat',    'Sumur / Mata Air',   'Milik Sendiri',                     'Normal',  'tidak ada',        'Kepala Keluarga'],  // 13 Rudi - Rentan Miskin
+            ['3 kali atau lebih', 'Jamban Sendiri + Septic Tank', 'SMA / Sederajat', 'PAM / PDAM',  'Milik Sendiri',                     'Normal',  'tidak ada',        'Kepala Keluarga'],  // 14 Lina - Sejahtera
+            ['1 kali',   'Jamban Bersama',                'SD / Sederajat',     'Sumur / Mata Air',   'Kontrak / Sewa',                    'Kurang',  'Hipertensi',       'Kepala Keluarga'],  // 15 Bambang - Sangat Miskin
+            ['2 kali',   'Jamban Sendiri',                'SMP / Sederajat',    'Sumur / Mata Air',   'Milik Sendiri',                     'Normal',  'tidak ada',        'Kepala Keluarga'],  // 16 Nita - Rentan Miskin
+            ['1 kali',   'Tidak Ada Jamban',              'Tidak Sekolah',      'Tidak Ada',          'Tidak Ada (Gelandangan/Numpang)',   'Buruk',   'TBC, Malnutrisi',  'Kepala Keluarga'],  // 17 Iwan - Sangat Miskin
+            ['2 kali',   'Jamban Sendiri',                'SMA / Sederajat',    'Sumur / Mata Air',   'Milik Sendiri',                     'Normal',  'tidak ada',        'Kepala Keluarga'],  // 18 Maya - Rentan Miskin
+            ['3 kali atau lebih', 'Jamban Sendiri + Septic Tank', 'Diploma / S1+', 'PAM / PDAM',    'Milik Sendiri',                     'Normal',  'tidak ada',        'Kepala Keluarga'],  // 19 Reza - Sejahtera
+        ];
 
         $workersData = [];
         foreach ($names as $i => $name) {
+            [$totalSkor, $skorVuln, $kesejahteraan, $prioritas, $statusProgram] = $profiles[$i];
+            [$frekMakan, $sanitasi, $pendidikan, $airBersih, $statusRumah, $gizi, $penyakit, $statusKeluarga] = $sdgData[$i];
             $workersData[] = [
-                'nama' => $name,
-                'tanggal_lahir' => '199' . ($i % 10) . '-0' . (($i % 9) + 1) . '-15',
-                'jenis_kelamin' => $i % 2 === 0 ? 'Laki-laki' : 'Perempuan',
-                'alamat' => 'Jalan Mawar RT 0' . (($i % 5) + 1) . ' RW 0' . (($i % 3) + 1),
-                'no_telepon' => '0812' . str_pad((30000000 + $i), 8, '0', STR_PAD_LEFT),
-                'kemampuan_utama' => $bidangKerja[$i],
-                'keahlian_kerja' => $bidangKerja[$i],
-                'total_pendapatan' => rand(150000, 3500000),
-                'skor_vulnerabilitas' => rand(20, 95),
-                'total_skor' => rand(30, 90),
-                'prioritas' => $prioritas[$i % 3],
-                'status_program' => $statusProgram[$i % 5],
-                'status_kesejahteraan' => $kesejahteraan[$i % 5],
-                'created_at' => now(),
-                'updated_at' => now(),
+                'nama'                 => $name,
+                'tanggal_lahir'        => '199' . ($i % 10) . '-0' . (($i % 9) + 1) . '-15',
+                'jenis_kelamin'        => $i % 2 === 0 ? 'Laki-laki' : 'Perempuan',
+                'alamat'               => 'Jalan Mawar RT 0' . (($i % 5) + 1) . ' RW 0' . (($i % 3) + 1),
+                'no_telepon'           => '0812' . str_pad((30000000 + $i), 8, '0', STR_PAD_LEFT),
+                'kemampuan_utama'      => $bidangKerja[$i],
+                'keahlian_kerja'       => $bidangKerja[$i],
+                'total_pendapatan'     => rand(150000, 3500000),
+                'skor_vulnerabilitas'  => $skorVuln,
+                'total_skor'           => $totalSkor,
+                'prioritas'            => $prioritas,
+                'status_program'       => $statusProgram,
+                'status_kesejahteraan' => $kesejahteraan,
+                // Indikator SDG / Profiling
+                'frekuensi_makan'      => $frekMakan,
+                'kondisi_sanitasi'     => $sanitasi,
+                'pendidikan_terakhir'  => $pendidikan,
+                'akses_air_bersih'     => $airBersih,
+                'status_rumah'         => $statusRumah,
+                'status_gizi'          => $gizi,
+                'riwayat_penyakit'     => $penyakit,
+                'status_keluarga'      => $statusKeluarga,
+                'created_at'           => now(),
+                'updated_at'           => now(),
             ];
         }
+
 
         Worker::insert($workersData);
 
